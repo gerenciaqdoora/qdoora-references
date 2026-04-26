@@ -6,6 +6,7 @@
 > Estas reglas son vitales para la estabilidad de la sesión y la calidad del código.
 > 1. **Cero Bloqueos de UI**: NUNCA utilizar el sistema de "Implementation Plan" u otros artefactos de planificación intermedios que congelen la interfaz del usuario. Proceder directamente a la ejecución técnica.
 > 2. **Investigación de Consistencia**: Antes de proponer una clave de datos (`key`), un atributo de API o un patrón de código, se debe realizar una búsqueda exhaustiva (grep/list_dir) en otros módulos (ej: `CompanyList`, `EmployeeList`, `Laravel Resources`) para asegurar que coincida con el estándar REAL de la aplicación. No se permiten suposiciones.
+> 3. **Refinamiento de Prompts (Opcional)**: Para activar el flujo de refinamiento y diseño previo a la ejecución, se debe invocar el comando `@[/qdoora-workflow-protocol]`. Esto garantiza que el asistente proponga un **Master Prompt Refinado** antes de realizar cambios estructurales.
 
 ## 1. Reglas Generales de Interacción y Ejecución de Comandos
 
