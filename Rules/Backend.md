@@ -13,6 +13,7 @@
 - [Patrones de Implementación](#patrones-de-implementación)
 - [Convenciones de Nombres](#convenciones-de-nombres)
 - [QA & Pruebas Automatizadas](#-qa--pruebas-automatizadas)
+- [Monitoreo y Salud (Health Check)](#-monitoreo-y-salud-health-check)
 
 ---
 
@@ -120,7 +121,7 @@ $user=User::create($data);
 
 $this->companyService->assignUserToCompany(
 
-$user->id, 
+$user->id,
 
 $data['company_id']
 
@@ -131,7 +132,7 @@ $data['company_id']
 
 $this->roleService->assignRole(
 
-$user->id, 
+$user->id,
 
 $data['role_id']
 
@@ -389,6 +390,7 @@ $table->timestamps();
 **Regla Estricta**: La validación de que un recurso pertenece a la empresa (`company_id`) o al usuario DEBE realizarse en el método `authorize()` del `FormRequest`. NUNCA realices esta validación manualmente dentro del controlador si existe un ID de recurso en la ruta.
 
 **Ejemplo Correcto:**
+
 ```php
 public function authorize(): bool
 {
@@ -407,10 +409,12 @@ public function authorize(): bool
 ##### Unicidad de Correos y Traducción de Mensajes (Localización)
 
 **Regla Estricta**: TODO `FormRequest` encargado de la creación, registro o actualización de usuarios (independiente de si es Admin, Soporte o Cliente) DEBE:
+
 1. Incluir la regla de validación de unicidad en base de datos explícitamente: `'email' => 'required|email|unique:users,email'`. NUNCA dependas únicamente del Constraint de Base de Datos para evitar excepciones 500.
 2. Incluir imperativamente el método `messages()` retornando todas las traducciones personalizadas de las reglas en **español** para garantizar una experiencia de usuario (UX) correcta en el ERP Chileno.
 
 **Ejemplo Correcto:**
+
 ```php
 public function rules(): array {
     return [ 'email' => 'required|email|unique:users,email' ];
@@ -437,6 +441,7 @@ public function messages(): array {
 **Regla Estricta**: TODO endpoint destinado exclusivamente al Portal de Soporte (Gestión de Tickets, Logs TI, Analítica de Soporte, Directorio de Suscriptores, etc.) DEBE quedar agrupado bajo el prefijo `v1/support` dentro del archivo `routes/api.php`, encapsulado imperativamente dentro del middleware `auth:api` para garantizar la trazabilidad del agente.
 
 **Ejemplo de Estructura Correcta en `routes/api.php`:**
+
 ```php
 Route::middleware(['auth:api'])->group(function () {
     // Soporte TI - Gestión de Tickets e Interacciones
@@ -916,9 +921,9 @@ return$this->handleError->logAndResponse(
 
 ```
 
-Asistente: "Voy a implementar logging para la creación de empleados. 
+Asistente: "Voy a implementar logging para la creación de empleados.
 
-            ¿Debo crear un nuevo valor en LoggerOperation (ej: CREATE_EMPLOYEE) 
+            ¿Debo crear un nuevo valor en LoggerOperation (ej: CREATE_EMPLOYEE)
 
             o reutilizar uno existente (ej: CREATE_USER)?"
 
@@ -960,6 +965,7 @@ $this->loggerService->log(
 **Patrón Obligatorio**: Utiliza `find()` o `first()` y lanza una `GenericException` (o excepción específica del dominio) con un mensaje descriptivo si el recurso no existe.
 
 **✅ Correcto:**
+
 ```php
 $liquidacion = Liquidacion::find($id);
 if (!$liquidacion) {
@@ -968,6 +974,7 @@ if (!$liquidacion) {
 ```
 
 **❌ Incorrecto:**
+
 ```php
 // CUIDADO: Esto retornará un 404 genérico sin descripción útil para el usuario
 $liquidacion = Liquidacion::findOrFail($id);
@@ -1323,7 +1330,7 @@ $query->where('status', $request->input('status'));
 
 if ($request->has('role')) {
 
-$query->whereHas('roles', fn($q) => 
+$query->whereHas('roles', fn($q) =>
 
 $q->where('name', $request->input('role'))
 
@@ -1471,18 +1478,18 @@ phpartisanmake:migrationcreate_users_table
 ## 🌍 Sistema de Parámetros Globales
 
 > Skill dedicada: `erp-global-parameters-expert`
-> 
+>
 > Este sistema es transversal al ERP: **Nómina**, **Contabilidad** y **Aduana** lo consumen. Debe ser dominado por cualquier agente que calcule liquidaciones o aplique tasas legales.
 
 ### Arquitectura: Tablas Maestras
 
 El sistema tiene **3 tablas** organizadas por `period` (fecha) y `frequency`:
 
-| Modelo | Tabla | Propósito |
-|---|---|---|
-| `GlobalVariable` | `global_variable` | Variables escalares: Sueldo Mínimo, UF, UTM, tasas |
-| `GlobalScale` | `global_scales` | Tablas por tramos: IUT, Asignación Familiar |
-| `GlobalList` | `global_lists` | Listas por entidad: AFPs, ISAPREs, Cajas de Compensación |
+| Modelo           | Tabla             | Propósito                                                |
+| ---------------- | ----------------- | -------------------------------------------------------- |
+| `GlobalVariable` | `global_variable` | Variables escalares: Sueldo Mínimo, UF, UTM, tasas       |
+| `GlobalScale`    | `global_scales`   | Tablas por tramos: IUT, Asignación Familiar              |
+| `GlobalList`     | `global_lists`    | Listas por entidad: AFPs, ISAPREs, Cajas de Compensación |
 
 Todos los modelos comparten: `frequency`, `period`, `type`, `key`.
 
@@ -1491,6 +1498,7 @@ Todos los modelos comparten: `frequency`, `period`, `type`, `key`.
 Los servicios (`GlobalVariableService`, `GlobalScaleService`, `GlobalListService`) invocan automáticamente `ParameterCloningService::ensurePeriodHasData($period, $companyId)` antes de cada lectura. Esto garantiza que el periodo solicitado siempre tenga datos, clonándolos del periodo anterior si no existen.
 
 **Reglas inquebrantables:**
+
 - 🔴 **No se clonan periodos futuros** → lanza `ParameterCloningException`
 - 🔴 **`ADUANA_DOLAR` y `ADUANA_EQUIVALENCIA` NUNCA se clonan** → solo via `importCustoms()`
 - ✅ La clonación es idempotente: si el periodo ya tiene datos, no hace nada
@@ -1534,6 +1542,7 @@ La estabilidad del ERP depende de una suite de pruebas predecible. Dado que el s
 **Por qué**: Laravel almacena los intentos de Rate Limiting en el caché. Si un test agota el límite, los tests subsiguientes fallarán con un `429 Too Many Requests`, arrojando falsos negativos.
 
 **✅ Implementación correcta (Pest):**
+
 ```php
 use Illuminate\Support\Facades\Cache;
 
@@ -1547,6 +1556,7 @@ beforeEach(function () {
 **Regla Estricta**: En entornos de CI/CD o contenedores donde el archivo `.env` se inyecta mediante variables de sistema, se debe silenciar el warning de `file_get_contents` para mantener reportes de auditoría limpios.
 
 **✅ Configuración en `tests/Pest.php`:**
+
 ```php
 <?php
 // Silenciar warnings de file_get_contents (.env) en el entorno de tests
@@ -1554,13 +1564,13 @@ error_reporting(E_ALL & ~E_WARNING);
 ```
 
 ### 3. Checklist de QA para Seguridad
+
 - [ ] ¿El test limpia el caché (`Cache::flush`)?
 - [ ] ¿Se usa un usuario con el rol exacto (`ADMIN_ROLE`, `SUPPORT_ROLE`)?
 - [ ] ¿Se validan códigos de estado específicos (403 para IDOR, 429 para Throttling)?
 - [ ] ¿Se evita el uso de `actingAs` sin especificar el guard `api`?
 
 ---
-
 
 ## 🎯 Palabras Finales
 
@@ -1574,4 +1584,32 @@ Este documento es una guía viva. Si encuentras inconsistencias o mejoras posibl
 
 ---
 
-*Última actualización: [Fecha actual]*
+_Última actualización: [Fecha actual]_
+
+---
+
+## 🏥 Monitoreo y Salud (Health Check)
+
+### Estándar de Disponibilidad
+
+**🔴 REGLA OBLIGATORIA**: Toda API del ecosistema QdoorA DEBE exponer un endpoint público `/api/v1/health` para el monitoreo de disponibilidad por parte de orquestadores (Docker, AWS ECS) y sistemas de observabilidad.
+
+#### Requerimientos del Endpoint:
+
+1. **Sin Autenticación**: Debe ser accesible por el motor de Healthcheck sin necesidad de Bearer Token.
+2. **Validación de Dependencias**: No debe limitarse a devolver un 200; debe validar activamente la conexión a la Base de Datos y Redis.
+3. **Respuesta Stateless**: No debe iniciar sesiones ni escribir en logs de auditoría estándar para evitar saturación de almacenamiento.
+
+#### Patrón Correcto (HealthCheckController):
+
+```php
+public function check(): JsonResponse {
+    try {
+        DB::connection()->getPdo(); // Validar DB
+        Redis::connection()->ping(); // Validar Redis
+        return response()->json(['status' => 'healthy'], 200);
+    } catch (\Throwable $e) {
+        return response()->json(['status' => 'unhealthy'], 503);
+    }
+}
+```

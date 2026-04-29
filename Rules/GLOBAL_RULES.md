@@ -110,3 +110,31 @@ Para planes con restricción de empresa única (ej. Aduana):
 1. **Navegación**: Reemplazar listados y creación de empresas por redirección directa a la edición de la empresa existente mediante `PlanGuard`.
 2. **Toolbar**: Ocultar el selector interactivo y mostrar un badge informativo premium con los datos técnicos (ej: Despachador y Código).
 3. **Persistencia**: Asegurar que los datos técnicos críticos (`agent_name`, `agent_code`) estén siempre presentes en el objeto de sesión del usuario (`User.php -> toLoginResponse`) para evitar inconsistencias visuales en el toolbar.
+
+---
+
+## 6. Infraestructura y DevOps
+
+### Healthchecks y Dependencias (Docker)
+**🔴 REGLA OBLIGATORIA**: Todo servicio crítico (DB, Redis, API) DEBE definir una sección `healthcheck` en el `docker-compose.yml`. 
+- Los servicios dependientes DEBEN utilizar la condición `service_healthy` para asegurar un arranque determinista.
+- **Start Period**: Se debe configurar un `start_period` adecuado (mínimo 30s para la API) para evitar falsos negativos durante el arranque del framework.
+
+### Blindaje de Configuración (.env)
+**🔴 REGLA OBLIGATORIA**: En entornos de desarrollo donde se utilicen volúmenes para el código fuente (`../../qdoora-api:/var/www/html`), el archivo `.env` DEBE montarse explícitamente como un volumen individual:
+```yaml
+volumes:
+  - "../../qdoora-api:/var/www/html"
+  - "./.env:/var/www/html/.env" # Obligatorio para evitar desincronización
+```
+Esto previene que archivos `.env` vacíos o desactualizados en el host sobreescriban la configuración inyectada por el orquestador.
+
+---
+
+## 7. Persistencia y Fuente de Verdad (Agent Assets)
+
+### Gestión de Inteligencia
+**🔴 REGLA INAMOVIBLE**: El directorio `qdoora-references/agent/` es la única fuente de verdad para la inteligencia del asistente (Rules, Skills, Workflows). 
+- **Prohibición**: NUNCA crees o edites archivos directamente dentro del directorio `/.agents/` del workspace. Ese directorio es volátil y se limpia automáticamente en cada sincronización.
+- **Flujo de Edición**: Cualquier mejora en una Skill o adición de una Regla debe realizarse en `qdoora-references/agent/`.
+- **Sincronización**: Tras cualquier cambio en la fuente de verdad, se debe ejecutar el script `update-agent-assets.sh` (aunque los Git Hooks ahora lo automatizan tras pull/merge/checkout).

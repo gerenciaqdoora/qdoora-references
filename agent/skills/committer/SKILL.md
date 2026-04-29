@@ -20,7 +20,7 @@ Esta skill es la herramienta principal para realizar commits y gestionar el hist
 Para realizar un commit, **DEBES** utilizar el script unificado:
 
 ```bash
-/Users/francoalvaradotello/QdoorAChile/.agents/skills/committer/scripts/commit.sh <proyecto> "<mensaje>"
+./scripts/commit.sh <proyecto> "<mensaje>"
 ```
 
 ### Parámetros:

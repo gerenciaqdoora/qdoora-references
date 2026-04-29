@@ -202,7 +202,7 @@ curl -H "Authorization: Bearer $TOKEN" https://api.qdoora.cl/api/companies | \
 
 # Verificar uso de [innerHTML] en Angular
 grep -rn "innerHTML\|bypassSecurityTrustHtml" \
-  /Users/francoalvaradotello/QdoorAChile/fuse-starter/src/ \
+  ./fuse-starter/src/ \
   --include="*.ts" --include="*.html"
 # Cualquier match sin DomSanitizer justificado → QD-07 frontend vulnerable
 ```

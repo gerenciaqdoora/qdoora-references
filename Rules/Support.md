@@ -67,7 +67,7 @@ El `support-portal` sigue una estética de "Misión Crítica" y alta fidelidad c
 
 #### Estándar de Diseño Enterprise
 Toda la interfaz del portal debe adherirse al patrón **Enterprise Premium** y respetar la estructura de estilos centralizada:
-- **Centralización de Estilos**: Cualquier cambio de diseño DEBE estar estructurado y respetar los patrones definidos en [styles.css](file:///Users/francoalvaradotello/QdoorAChile/support-portal/src/styles.css). Queda prohibido el uso de valores "hardcoded" en los componentes.
+- **Centralización de Estilos**: Cualquier cambio de diseño DEBE estar estructurado y respetar los patrones definidos en [styles.css](../../support-portal/src/styles.css). Queda prohibido el uso de valores "hardcoded" en los componentes.
 - **Tokens de Diseño**: Nuevos colores, espaciados o fuentes deben declararse en el bloque `@theme` de Tailwind v4 en el archivo global de estilos.
 - **Paleta Corporativa**: Uso predominante del azul corporativo (`#0052CC`) para elementos de acción primaria y estados activos.
 - **Fondos Técnicos**: Empleo de fondos claros (`bg-slate-50`) con mallas de puntos o rejillas ultra-sutiles (`radial-gradient`).

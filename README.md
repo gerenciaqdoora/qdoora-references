@@ -5,7 +5,7 @@ Bienvenido al repositorio central de conocimiento y estándares del ecosistema *
 ## 🏗️ Estructura del Proyecto
 
 ### 🔴 Rules (Crítico)
-La carpeta [/Rules](file:///Users/francoalvaradotello/QdoorAChile/qdoora-references/Rules) contiene los estándares arquitectónicos, patrones de diseño y reglas de negocio innegociables del proyecto. Es el corazón del conocimiento técnico de QdoorA.
+La carpeta [./Rules](./Rules) contiene los estándares arquitectónicos, patrones de diseño y reglas de negocio innegociables del proyecto. Es el corazón del conocimiento técnico de QdoorA.
 
 - **Backend.md**: Estándares para Laravel 11, FormRequests, y lógica de servicios.
 - **Frontend.md**: Guías para Angular 18 (Cliente), Signals, y componentes Standalone.

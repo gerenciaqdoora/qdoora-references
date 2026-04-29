@@ -1,0 +1,22 @@
+{
+  "skill_name": "docker-compose-expert",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea un servicio para una API de Laravel que dependa de postgres y tenga un healthcheck funcional.",
+      "expectations": [
+        "El servicio incluye healthcheck",
+        "El servicio incluye depends_on con condition: service_healthy",
+        "El servicio monta el archivo .env como volumen"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Explica cómo evitar que las variables de entorno se pierdan al usar volúmenes de código en desarrollo.",
+      "expectations": [
+        "Menciona el montaje explícito del archivo .env",
+        "Explica el conflicto entre el volumen de la raíz y el archivo del contenedor"
+      ]
+    }
+  ]
+}
