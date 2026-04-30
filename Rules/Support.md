@@ -102,6 +102,29 @@ Al trabajar en este módulo, el arquitecto debe asegurar:
 3.  **Metadata Forense**: Los tickets generados automáticamente por el sistema deben incluir `event_id` y `erp_user_id` en el campo `metadata` para facilitar la investigación.
 4.  **Zoneless Readiness**: El código en `support-portal` debe evitar `ChangeDetectorRef` y priorizar Signals para ser compatible con la arquitectura zoneless.
 5.  **Idioma**: Validar que no existan cadenas de texto en inglés en las plantillas HTML o componentes.
+6.  **Acceso Administrativo**: Funcionalidades de creación de clientes o clonación de periodos deben estar protegidas explícitamente por `admin.only` y nunca ser accesibles por roles de soporte básico.
+
+---
+
+## 🚢 Gestión Administrativa de Clientes (Admin Only)
+
+El portal de soporte permite a los usuarios con privilegios administrativos (`ADMIN_ROLE`) realizar operaciones críticas de configuración de infraestructura para nuevos clientes.
+
+### 1. Creación de Cliente Plan Aduana
+Este flujo automatiza la configuración completa de una nueva Agencia de Aduanas en el ecosistema.
+
+*   **Endpoint**: `POST /api/v1/support/create/aduana-subscriber`
+*   **Acceso**: Protegido por `auth:api`, `admin.only` y `support.staff`.
+*   **Operaciones Automatizadas**:
+    1.  Creación de cuenta de usuario maestro (`SUBSCRIBER_ROLE`).
+    2.  Inicialización de entidad suscriptora.
+    3.  Asignación de módulos core: **Contabilidad, Nómina y Aduana**.
+    4.  Creación de empresa legal vinculada.
+    5.  **Clonación Asíncrona de PUC**: Se dispara la clonación del Plan de Cuentas estándar para Aduanas.
+
+### 🛡️ Seguridad y Auditoría
+- **RBAC Estricto**: Solo usuarios con el claim `admin` en su JWT pueden ejecutar estos endpoints.
+- **Validación Dual**: La autorización se valida tanto en el Middleware de la ruta como en el `authorize()` del `FormRequest` correspondiente.
 
 ---
 

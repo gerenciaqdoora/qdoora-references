@@ -13,6 +13,7 @@
 - [Patrones de Implementación](#patrones-de-implementación)
 - [Convenciones de Nombres](#convenciones-de-nombres)
 - [QA & Pruebas Automatizadas](#-qa--pruebas-automatizadas)
+- [Gestión de Secretos e Inyección Global](#-gestión-de-secretos-e-inyección-global)
 - [Monitoreo y Salud (Health Check)](#-monitoreo-y-salud-health-check)
 
 ---
@@ -1585,6 +1586,48 @@ Este documento es una guía viva. Si encuentras inconsistencias o mejoras posibl
 ---
 
 _Última actualización: [Fecha actual]_
+
+---
+
+---
+
+## 🔐 Gestión de Secretos e Inyección Global
+
+### Blindaje contra Aislamiento de Procesos
+
+**Problema Técnico**: En entornos de microservicios o contenedores, los procesos PHP pueden correr en entornos aislados (ej. `artisan serve` vs `php-fpm`). Esto provoca que las variables de entorno cargadas vía `putenv()` en scripts de arranque no sean visibles para el helper `env()` en hilos web.
+
+**🔴 REGLA DE ARQUITECTURA**: La inyección de secretos críticos (JWT, DB, AWS) DEBE realizarse de forma masiva en el hook `registered` de `bootstrap/app.php`.
+
+#### Patrón de Inyección Global:
+
+```php
+// bootstrap/app.php
+->registered(function ($app) {
+    $cacheFile = storage_path('app/aws_secrets.php');
+    if (file_exists($cacheFile)) {
+        $secrets = require $cacheFile;
+        foreach ($secrets as $key => $value) {
+            // 1. Sincronización de entorno (para env() / getenv())
+            putenv("$key=$value");
+            $_ENV[$key] = $value;
+            $_SERVER[$key] = $value;
+
+            // 2. Inyección directa en Config (Garantiza visibilidad en artisan serve)
+            if ($key === 'JWT_SECRET') config(['jwt.secret' => $value]);
+            if ($key === 'APP_KEY') config(['app.key' => $value]);
+            if ($key === 'DB_USERNAME') config(['database.connections.pgsql.username' => $value]);
+            if ($key === 'DB_PASSWORD') config(['database.connections.pgsql.password' => $value]);
+            // ... otros mapeos críticos
+        }
+    }
+})
+```
+
+### Ventajas de este Enfoque:
+1. **Stateless Compatibility**: No depende de archivos `.env` persistentes en el disco.
+2. **Visibilidad Total**: Los secretos están disponibles tanto para `env()` como para `config()` de forma inmediata.
+3. **Seguridad**: Los valores residen en memoria durante la ejecución del request y no se exponen en logs de depuración automáticos.
 
 ---
 
