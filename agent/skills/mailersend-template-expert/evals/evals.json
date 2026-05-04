@@ -1,0 +1,25 @@
+{
+  "skill_name": "mailersend-template-expert",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea una plantilla de correo para 'facturacion' que incluya el nombre del cliente, número de factura y monto total. Debe seguir el estándar de QdoorA.",
+      "expectations": [
+          "El archivo 'qdoora-api/resources/views/emails/mailsersend/facturacion/facturacion.html' existe",
+          "El archivo 'qdoora-api/resources/views/emails/mailsersend/facturacion/prueba.json' existe",
+          "El HTML contiene el header con la imagen de QdoorA",
+          "El HTML contiene el footer azul Iozean",
+          "El JSON contiene las variables 'cliente', 'factura' y 'monto'"
+      ]
+    },
+    {
+        "id": 2,
+        "prompt": "Crea una plantilla de bienvenida para un nuevo cliente.",
+        "expectations": [
+            "El archivo 'qdoora-api/resources/views/emails/mailsersend/bienvenida-cliente/bienvenida-cliente.html' existe",
+            "El archivo 'qdoora-api/resources/views/emails/mailsersend/bienvenida-cliente/prueba.json' existe",
+            "El HTML hereda exactamente la estructura de 'ms-container' y 'header-img' de base.html"
+        ]
+    }
+  ]
+}
