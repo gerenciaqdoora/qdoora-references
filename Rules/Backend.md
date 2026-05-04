@@ -261,24 +261,66 @@ publicfunctionnotifyUserCreation(User$user):void
     {
 
 // ✅ Delegar envío a EmailService
-
 $this->emailService->sendEmail(
-
             to: $user->email,
-
             subject: 'Bienvenido a la plataforma',
-
             view: 'emails.welcome',
-
             data: ['user'=>$user]
-
         );
-
     }
-
 }
 
 ```
+
+##### Integración con MailerSend (Plantillas Premium)
+
+**Regla Estricta**: Para correos que requieran plantillas premium diseñadas en el dashboard de MailerSend, se debe utilizar el `MailerSendTrait` y el patrón de `Personalization`.
+
+**Patrón de Mailable:**
+
+```php
+namespace App\Mail;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Mailable;
+use Illuminate\Queue\SerializesModels;
+use MailerSend\Helpers\Builder\Personalization;
+use MailerSend\LaravelDriver\MailerSendTrait;
+
+class NotificationEmail extends Mailable
+{
+    use Queueable, SerializesModels, MailerSendTrait;
+
+    public function __construct(public $data) {}
+
+    public function build()
+    {
+        // 1. Configurar Personalización (Variables de la plantilla)
+        $personalization = [
+            new Personalization($this->to[0]['address'], [
+                'name'    => $this->data['name'],
+                'details' => $this->data['details'],
+                // ... otras variables
+            ])
+        ];
+
+        // 2. Retornar usando el método mailersend
+        return $this
+            ->subject('Asunto del Correo')
+            ->mailersend(
+                template_id: 'z3m5jgre260ldpyo', // ID de plantilla en MailerSend
+                personalization: $personalization,
+                tags: ['categoria-notificacion']
+            );
+    }
+}
+```
+
+**Puntos Clave:**
+- **Trait**: Importar y usar `MailerSendTrait`.
+- **Personalization**: Es un array de objetos `Personalization`. Cada uno mapea un destinatario a sus variables.
+- **template_id**: El identificador alfanumérico proporcionado por MailerSend.
+- **Variables**: Asegurarse de que los nombres de las variables coincidan exactamente con los definidos en la plantilla de MailerSend (ej: `{$name}`).
 
 ---
 
