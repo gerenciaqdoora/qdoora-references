@@ -34,3 +34,4 @@ Estás trabajando en el núcleo de la API (directorio `./qdoora-api`). Tu priori
 
 6. **Pruebas y Tests**:
    - **Uso de Servicios Obligatorio**: Todo test DEBE usar los servicios de la aplicación (`app/Services`) para la creación y manipulación de datos en lugar de inserciones directas en base de datos (`DB::table`), garantizando que se cuestione y valide la funcionalidad de los servicios y la lógica de negocio real.
+   - **Aislamiento de Base de Datos**: Todo test DEBE usar SQLite en memoria (`:memory:`) configurado en `phpunit.xml` para evitar riesgos de destrucción de datos en desarrollo. NUNCA se deben correr tests apuntando a la base de datos de desarrollo o producción.

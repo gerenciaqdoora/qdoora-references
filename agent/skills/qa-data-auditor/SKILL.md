@@ -67,7 +67,7 @@ Todo endpoint nuevo necesita al mínimo dos tests de autorización:
 
 ### 5. Centralización de Seeders y Comandos de Test
 - **DataSyncCommand**: El comando `DataSyncCommand` debe centralizar SIEMPRE la ejecución de todos los seeders del sistema para garantizar que un solo comando deje el entorno listo.
-- **Comandos de Auditoría por Dominio**: Dentro de la carpeta `app/Console/Commands/Security`, debe existir un comando de consola por cada subcarpeta existente en `tests/Feature/` (ej: si existe `tests/Feature/Nomina`, debe existir un comando que ejecute específicamente esos tests).
+- **Comandos de Auditoría por Dominio**: Dentro de la carpeta `app/Console/Commands/Security`, debe existir un comando de consola por cada subcarpeta existente en `tests/Feature/` (ej: si existe `tests/Feature/Nomina`, debe existir un comando que ejecute específicamente esos tests). **REGLA IMPERATIVA**: Siempre que crees una nueva carpeta en `tests/Feature/`, DEBES crear inmediatamente su comando correspondiente en `app/Console/Commands/Security` siguiendo el patrón `Audit[Nombre]Command.php`.
 
 ### 6. Idioma de los Tests
 - **Descripciones en Español**: Todas las descripciones de los tests (`test('...', ...)` o `it('...', ...)`) DEBEN escribirse en español para mantener la consistencia con el idioma del proyecto.

@@ -1580,6 +1580,23 @@ ClonePeriodParameters::dispatch($targetPeriod, $sourcePeriod, 'monthly');
 // - Notifica por email en éxito y fallo
 ```
 
+### Propagación de Entidades Globales a Tenants
+
+Para la propagación de entidades globales (como AFPs, Isapres, etc.) a las tablas de los tenants (`third_company`), se deben seguir estas reglas para evitar violaciones de constraints únicos:
+
+- **Búsqueda por RUT**: Si la entidad global tiene un RUT válido (y no es el ficticio `'000000000'`), se debe usar el RUT como clave de búsqueda en `updateOrCreate`. Esto evita duplicados si la entidad ya existe por otro origen.
+- **Búsqueda por Nombre**: Si el RUT es `'000000000'` o no tiene RUT, se debe tratar como `null` y usar el **Nombre Completo (`full_name`)** como clave de búsqueda secundaria. Esto evita colisiones de nombres en la tabla destino y permite la convergencia de conceptos homónimos (como Regímenes y Desahucios).
+- **Aislamiento**: Si no aplica ninguna de las anteriores, se usa `standard_entity_id` para permitir registros múltiples con RUT nulo.
+
+### Automatización en Creación de Empresa
+
+La creación de empresas (`Company`) está acoplada al aprovisionamiento automático de parámetros globales. Esto asegura la integridad del tenant desde el segundo cero:
+
+- En `CompanyService::crearEmpresa`, después de crear el registro de la empresa y dentro de la misma transacción, se deben invocar los métodos de aprovisionamiento de:
+  - `GlobalEntityService::provisionStandardEntitiesToCompany($company->id)`
+  - `GlobalEarnDiscountService::provisionStandardEntitiesToCompany($company->id)`
+- Esto garantiza que la empresa nazca con su catálogo de AFPs, Isapres, haberes y descuentos base listos para operar.
+
 ---
 
 ## 🧪 QA & Pruebas Automatizadas
