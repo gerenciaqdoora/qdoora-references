@@ -31,3 +31,6 @@ Estás trabajando en el núcleo de la API (directorio `./qdoora-api`). Tu priori
 5. **Infraestructura y Error Handling**:
    - Uso de `LoggerService` y manejo de excepciones vía `handleError->logAndResponse`.
    - Almacenamiento de archivos (DIN, DTE, Liquidaciones) exclusivo en **S3** vía `S3FileService`.
+
+6. **Pruebas y Tests**:
+   - **Uso de Servicios Obligatorio**: Todo test DEBE usar los servicios de la aplicación (`app/Services`) para la creación y manipulación de datos en lugar de inserciones directas en base de datos (`DB::table`), garantizando que se cuestione y valide la funcionalidad de los servicios y la lógica de negocio real.
