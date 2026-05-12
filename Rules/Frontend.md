@@ -183,11 +183,11 @@ npm install nueva-libreria
 
 #### Ubicación Estricta
 
-> 📍 **REGLA**: Todos los diálogos DEBEN estar en `app/dialog`
+> 📍 **REGLA**: Todos los diálogos DEBEN estar en `app/dialog`. No crear carpetas de diálogos dentro de `modules/shared` ni en módulos específicos.
 
 #### Componentes Obligatorios
 
-**🔴 Estandarización de estructura** - Usar componentes compartidos de `/app/dialog/shared`:
+**🔴 Estandarización de estructura** - Usar componentes compartidos de `/app/dialog/shared` (Header, Footer, Botones). No recrear estas estructuras con HTML nativo.
 
 | Componente                    | Uso                     | Obligatorio                          |
 | ----------------------------- | ----------------------- | ------------------------------------ |

@@ -1243,6 +1243,16 @@ response()->json([
 
 ---
 
+#### 5. Unicidad Condicional y Reciclaje de Auxiliares (Upsert)
+
+**Patrón**: Cuando se trabaja con entidades que requieren alta precisión identificatoria (como auxiliares o empleados), y para evitar bloqueos por reintentos de operaciones incompletas:
+
+1. **Unicidad por Documento**: La búsqueda y validación de unicidad debe priorizar la clave compuesta `rut` + `identification_document_id` + `company_id`.
+2. **Validación de Nombre Condicional**: La restricción por nombre (`full_name`) solo debe aplicar si no se envían datos de identificación formal, evitando falsos positivos por alcance de nombres.
+3. **Mecanismo de Reciclaje**: Implementar métodos estilo `crearORecuperarPorRut` que actualicen y retornen el registro existente en lugar de fallar, permitiendo la continuidad del flujo.
+
+---
+
 ### Convenciones de Nombres
 
 #### Services

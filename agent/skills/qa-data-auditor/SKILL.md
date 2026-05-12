@@ -65,6 +65,13 @@ Todo endpoint nuevo necesita al mínimo dos tests de autorización:
 | Frontend Cliente (Angular 18) | Jest + Angular Testing Library | `ng test` |
 | Frontend Soporte/Admin (Angular 21) | Vitest + @testing-library/angular | `vitest` |
 
+### 5. Centralización de Seeders y Comandos de Test
+- **DataSyncCommand**: El comando `DataSyncCommand` debe centralizar SIEMPRE la ejecución de todos los seeders del sistema para garantizar que un solo comando deje el entorno listo.
+- **Comandos de Auditoría por Dominio**: Dentro de la carpeta `app/Console/Commands/Security`, debe existir un comando de consola por cada subcarpeta existente en `tests/Feature/` (ej: si existe `tests/Feature/Nomina`, debe existir un comando que ejecute específicamente esos tests).
+
+### 6. Idioma de los Tests
+- **Descripciones en Español**: Todas las descripciones de los tests (`test('...', ...)` o `it('...', ...)`) DEBEN escribirse en español para mantener la consistencia con el idioma del proyecto.
+
 ---
 
 ## Modo de Refutación

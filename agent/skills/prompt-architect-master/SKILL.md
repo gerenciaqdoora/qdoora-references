@@ -22,4 +22,6 @@ Cuando diseñes el plan, tu respuesta debe tener este formato exacto:
 > 
 > **🛡️ Puntos de Auditoría (Guardián):** [Qué vectores QD, reglas IAM o de DevOps se van a vigilar]
 > 
+> **🧪 Tests Unitarios/Funcionales Propuestos:** [Qué tests se van a crear o ejecutar para validar el cambio (obligatorio por carpeta de dominio)]
+> 
 > ***¿Apruebas este Master Prompt para comenzar la ejecución?***
