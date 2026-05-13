@@ -16,7 +16,6 @@ Tener Factor Ingreso Mínimo: 4.75 - Parametro de sueldos y gratificaciones (Fac
 Tener Días Trabajados del mes:
 Los días trabajados = 30
 − días de licencia (Ausencias dentro de liquidacion): tabla liquidacion_novedades y type esta en AbsenceSubtype (menos HORAS_POR_ATRASO)
-− días de inasistencia injustificada (HORAS POR ATRASO - Ausencias dentro del submodulo de liquidacion) ¿¿¿COMO SE CALCULA???
 − días no trabajados por inicio/término de contrato: Se revisa ultimo contrato activo en table employee_work_contract
 
 ---
@@ -47,28 +46,15 @@ Calcular: Sueldo Base \* Determinar si es mes completo o mes parcial.
 
 ---
 
-Gratificación: ¡¡ ESTANDARIZAR !!
+Gratificación:
 
 Revisar si empresa tiene gratificación
-→ payroll_earnings_discounts where key = 'GRATIFICACION' and is_active = true
-
-configuracion de la empresa:
-
-- tabla de haberes: payroll_earnings_discounts where key = 'GRATIFICACION'
-- nomina_company_settings where feature_key = 'GRATIFICACION'
-  → tiene columna config y dentro porcentaje (este no deberia considerarse, solo desde Parametro de sueldos y gratificaciones que es 25%)
-  → Tiene si es sin gratificación, anual, mensual
-  → Tiene si se usa como base de pago horas extras
-  → Tiene si se usa proporcionalidad (NO SE QUE ES)
-  → Ejemplo de config: {
-  "operacion": "PAGO_MENSUAL",
-  "porcentaje": 25,
-  "proporcionalidad": "SIN_PROPORCIONALIDAD",
-  "es_base_horas_extras": true
-  }
+→ payroll_earnings_discounts where key = 'GRATIFICACION' and is_active = true -> Siempre debe ser true, ya no es manipulable como configuracion de empleador (Ausencias / Licencias y Permisos sin Goce de Sueldo tampoco debe estar)
 
 Parametro de sueldos y gratificaciones:
 Gratificación Mínimo Mensual: 25% - Parametro de sueldos y gratificaciones
+
+Ya no aplica configuracion de empleador de la gratificacion solo a nivel de ficha de empleado
 
 Remuneraciones: En globalService tengo la siguiente variable
 public gratificationTypeOptions: any[] = [
@@ -76,7 +62,13 @@ public gratificationTypeOptions: any[] = [
 { id: 'MENSUAL_25', name: 'Mensual 25% (Sin tope)' },
 { id: 'ANUAL_TOPE_LEGAL', name: 'Anual con tope legal' },
 { id: 'SIN_GRATIFICACION', name: 'Sin gratificación' }
-];
+]; Estas 4 opciones son las validas. El 25% viene desde parametro de nomina (Gratificacion mensual minima). Agregar a la ficha checkbox si es que la gratificacion es base para pago de de hora extra (solo para gratificacion mensual con/sin tope)
+
+Calcular Tope Gratificacion minimo: (**Factor Ingreso Mínimo** (4.75) \* **Sueldo Mínimo Vigente** ($539.000)) / 12
+
+Si opcion es LEGAL_GARANTIZADA_25: se paga directamente Tope Gratificacion minimo.
+
+Si opcion es MENSUAL_25: se elije minimo(Sueldo Base \* 25%, Tope Gratificacion minimo)
 
 - Gratificación deberia crear un registro en liquidacion_novedades con haber_descuento_id al payroll_earnings_discounts where key = 'GRATIFICACION'
 - De esta manera para cuando se calcule el total haberes imponibles y no imponibles, esten considerados y solo sumar lo que este en liquidacion_novedades.
@@ -86,6 +78,8 @@ public gratificationTypeOptions: any[] = [
 ---
 
 Horas extras
+
+Configuracion de empleador si esta activo es porque quiere editar factores, si esta desactivado, muestro los factores por defecto del sistema. En ningun momento debo permitir que el usuario no puedo asignar horas extras.
 
 Revisar si empresa tiene horas extras
 → payroll_earnings_discounts where key = 'HORAS_EXTRAS' and is_active = true
@@ -111,14 +105,14 @@ Las horas se registran en liquidacion_novedades con subtype en OvertimeSubtype
 Determinar el tipo de remuneración del trabajador del ultimo contrato activo
 → employee_work_contract -> tiene informacion remuneration_type (mensual, semanal, diario, por hora)
 
-Se calcula Valor Hora Ordinaria:
+Se calcula Valor Hora Ordinaria: Sueldo Base se suma la gratificacion si esta en true el checkbox de uso para base de pago de horas extras
 
-    Tipo de Contrato	            Fórmula Valor Hora Ordinaria (VHO)
-    --------------------------------------------------------------------
-    Mensual	                        VHO=(Sueldo Base/30)×(7/Jornada Semanal)
-    Semanal	                        VHO=Sueldo Semanal/Jornada Semanal
-    Diario	                        VHO=(Sueldo Diario+Semana Corrida)/Horas Trabajadas Día
-    Por Hora	                    VHO=Valor Hora Pactado+(Semana Corrida/Horas Trabajadas Semana)
+| Tipo de Contrato Fórmula Valor Hora Ordinaria (VHO)                      |
+| ------------------------------------------------------------------------ |
+| Mensual VHO=(Sueldo Base/30)×(7/Jornada Semanal)                         |
+| Semanal VHO=Sueldo Semanal/Jornada Semanal                               |
+| Diario VHO=(Sueldo Diario+Semana Corrida)/Horas Trabajadas Día           |
+| Por Hora VHO=Valor Hora Pactado+(Semana Corrida/Horas Trabajadas Semana) |
 
 Se calcula el valor de la hora extra
 Valor HE = (Valor Hora Ordinaria) \* (1 + recargo segun tipo de OvertimeSubtype)
@@ -139,9 +133,8 @@ HORAS ATRASO
 
 - Calcular THD (Total Horas Decimal): Horas + Minutos/60
 - Se utiliza el VHO calculado anteriormente
-- Multiplicar VHO por Total Horas Decimal y anotar en negativo = (VHO _ THD) _ -1
+- Multiplicar VHO por Total Horas Decimal y anotar en negativo = (VHO - THD) \* -1
 - Este se anota en liquidacion_novedades con subtype igual a AbsenceSubtype.HORAS_POR_ATRASO
-
 - HORA EXTRA deberia crear un registro en liquidacion_novedades con haber_descuento_id al payroll_earnings_discounts where key = 'HORA_EXTRA' y subtype segun el caso
 - De esta manera para cuando se calcule el total haberes imponibles y no imponibles, esten considerados y solo sumar lo que este en liquidacion_novedades.
 
