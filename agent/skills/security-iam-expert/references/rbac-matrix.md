@@ -7,12 +7,12 @@
 
 ## 1. Roles y Scopes del Sistema
 
-| Rol | Scope JWT | Portal de Acceso | Descripción |
-|-----|-----------|-------------------|-------------|
-| `SUPER_ADMIN` | `admin` | Portal Admin | Gestiona empresas, usuarios, roles globales del ERP |
-| `SUPPORT_AGENT` | `support` | Portal Soporte | Gestiona tickets, investigación forense, suscriptores |
-| `SUBSCRIBER_ROLE` | `client` | Portal Cliente | Dueño/Admin de una empresa. Acceso completo dentro de su empresa |
-| `USER_ROLE` | `client` | Portal Cliente | Empleado con permisos granulares definidos por el SUBSCRIBER |
+| Rol               | Scope JWT | Portal de Acceso | Descripción                                                      |
+| ----------------- | --------- | ---------------- | ---------------------------------------------------------------- |
+| `ADMIN_ROLE`      | `admin`   | Portal Admin     | Gestiona empresas, usuarios, roles globales del ERP              |
+| `SUPPORT_ROLE`    | `support` | Portal Soporte   | Gestiona tickets, investigación forense, suscriptores            |
+| `SUBSCRIBER_ROLE` | `client`  | Portal Cliente   | Dueño/Admin de una empresa. Acceso completo dentro de su empresa |
+| `USER_ROLE`       | `client`  | Portal Cliente   | Empleado con permisos granulares definidos por el SUBSCRIBER     |
 
 **Regla crítica**: El scope del JWT determina qué prefijo de rutas puede consumir. Un token
 `client` no puede acceder a `/api/support/*` ni `/api/admin/*` aunque el endpoint exista.
@@ -22,6 +22,7 @@
 ## 2. Permisos Granulares por Módulo
 
 ### Módulo Contabilidad
+
 ```
 view-vouchers          → Ver comprobantes
 create-vouchers        → Crear comprobantes
@@ -31,6 +32,7 @@ export-books           → Exportar libros de compra/venta
 ```
 
 ### Módulo Remuneraciones
+
 ```
 view-liquidaciones     → Ver liquidaciones de la empresa
 create-liquidaciones   → Generar liquidaciones
@@ -41,6 +43,7 @@ manage-employees       → Crear/editar empleados
 ```
 
 ### Módulo Aduana
+
 ```
 view-din               → Ver declaraciones de importación
 create-din             → Crear nuevas DINs
@@ -50,6 +53,7 @@ view-manifest          → Consultar manifiestos
 ```
 
 ### Portal Soporte/Admin
+
 ```
 manage-tickets         → Gestionar tickets (agentes de soporte)
 view-all-companies     → Ver todas las empresas (solo admin)
@@ -205,12 +209,12 @@ class RolesAndPermissionsSeeder extends Seeder
 
 ## 6. Tabla de Decisión — ¿Qué middleware aplicar?
 
-| Escenario | Middleware / Validación |
-|-----------|------------------------|
-| Ruta pública (login, registro) | Sin middleware |
-| Ruta autenticada cualquier portal | `auth.jwt` |
-| Ruta exclusiva del portal cliente | `auth.jwt` + `portal.scope:client` |
+| Escenario                         | Middleware / Validación             |
+| --------------------------------- | ----------------------------------- |
+| Ruta pública (login, registro)    | Sin middleware                      |
+| Ruta autenticada cualquier portal | `auth.jwt`                          |
+| Ruta exclusiva del portal cliente | `auth.jwt` + `portal.scope:client`  |
 | Ruta exclusiva del portal soporte | `auth.jwt` + `portal.scope:support` |
-| Ruta exclusiva del portal admin | `auth.jwt` + `portal.scope:admin` |
-| Acción sobre recurso específico | `authorize()` en `FormRequest` |
-| Endpoint de alta criticidad | `auth.jwt` + `throttle.api:X,Y` |
+| Ruta exclusiva del portal admin   | `auth.jwt` + `portal.scope:admin`   |
+| Acción sobre recurso específico   | `authorize()` en `FormRequest`      |
+| Endpoint de alta criticidad       | `auth.jwt` + `throttle.api:X,Y`     |

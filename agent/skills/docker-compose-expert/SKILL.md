@@ -44,9 +44,12 @@ Eres el arquitecto de infraestructura y orquestación del ecosistema QdoorA. Tu 
 3. **Healthchecks Mandatorios**: Todo servicio de base de datos o API DEBE tener una sección `healthcheck` definida.
 4. **Aislamiento de Red**: Uso obligatorio de redes dedicadas (ej: `sail`).
 
-## 🛠️ Procedimiento de Diagnóstico
+## 📂 Recursos y Referencias
+- **Patrones de Orquestación**: `assets/orchestration-patterns.md`
+- **Guía de Diagnóstico**: `assets/troubleshooting-guide.md`
 
+## 🛠️ Procedimiento de Diagnóstico
 Cuando un contenedor falle al iniciar o las variables sean `null`:
-1. Verifica la presencia de `env_file` en el `docker-compose.yml`.
-2. Verifica si el script `start-container` o entrypoint está recibiendo las variables.
-3. Revisa la caché de secretos (ej: `storage/app/aws_secrets.php`).
+1. Consulta la **Guía de Diagnóstico** (`assets/troubleshooting-guide.md`).
+2. Verifica la presencia de `env_file` en el `docker-compose.yml`.
+3. Verifica si el script `start-container` o entrypoint está recibiendo las variables.

@@ -17,6 +17,15 @@
         "Menciona el montaje explícito del archivo .env",
         "Explica el conflicto entre el volumen de la raíz y el archivo del contenedor"
       ]
+    },
+    {
+      "id": 3,
+      "prompt": "Configura un servicio de Angular para desarrollo que permita hot-reload en un contenedor Docker.",
+      "expectations": [
+        "Usa volúmenes para sincronizar el código",
+        "Incluye un volumen anónimo para node_modules",
+        "Menciona el uso de --poll para la detección de cambios"
+      ]
     }
   ]
 }
