@@ -1,0 +1,38 @@
+{
+  "skill_name": "qdoora-form-request-expert",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea un FormRequest para la creación de un nuevo Centro de Costo en el Portal de Clientes.",
+      "expectations": [
+        "El método authorize utiliza la lógica de authorize-client.md",
+        "Incluye el método messages() con textos en español",
+        "Valida la existencia de la empresa mediante company_id"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Genera el método authorize para un FormRequest del Portal de Soporte que solo puede ser usado por Administradores.",
+      "expectations": [
+        "Utiliza el patrón de authorize-support.md",
+        "Implementa isExclusiveAdminEndpoint retornando true o validando ADMIN_ROLE"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Añade validación de mensajes en español para un FormRequest que tiene los campos 'name' (required), 'email' (email) y 'age' (integer).",
+      "expectations": [
+        "Todos los mensajes están en español",
+        "Se incluyen mensajes para .required, .email e .integer"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Crea un FormRequest para ELIMINAR un producto de una empresa específica (company_id en la ruta).",
+      "expectations": [
+        "Se implementa la validación de propiedad en withValidator()",
+        "Se verifica que el producto pertenezca a la empresa antes de permitir la eliminación"
+      ]
+    }
+  ]
+}

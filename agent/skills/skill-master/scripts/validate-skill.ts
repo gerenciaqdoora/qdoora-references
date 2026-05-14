@@ -35,6 +35,8 @@ function validateSkill(): void {
         process.exit(1);
     }
 
+    let errors = 0;
+
     const skillName = frontmatter.match(/name:\s*(.*)/)?.[1]?.trim();
     const folderName = path.basename(skillPath);
 
@@ -42,7 +44,33 @@ function validateSkill(): void {
         console.warn(`⚠️ Advertencia: El nombre de la skill en el frontmatter ("${skillName}") no coincide con el nombre de la carpeta ("${folderName}").`);
     }
 
-    console.log(`✅ La skill en "${skillPath}" es válida.`);
+    // Validar evals/evals.json
+    const evalsPath: string = path.join(skillPath, 'evals/evals.json');
+    if (!fs.existsSync(evalsPath)) {
+        console.error('❌ Error: El archivo evals/evals.json es OBLIGATORIO.');
+        errors++;
+    } else {
+        try {
+            const evalsJson = JSON.parse(fs.readFileSync(evalsPath, 'utf-8'));
+            if (!evalsJson.evals || evalsJson.evals.length === 0) {
+                console.error('❌ Error: El archivo evals/evals.json no tiene casos de prueba definidos.');
+                errors++;
+            }
+            if (JSON.stringify(evalsJson).includes('nombre-de-la-skill')) {
+                console.warn('⚠️ Advertencia: El archivo evals parece contener texto de marcador de posición (template).');
+            }
+        } catch (e) {
+            console.error('❌ Error: evals/evals.json no es un JSON válido.');
+            errors++;
+        }
+    }
+
+    if (errors > 0) {
+        console.log(`\n👎 Validación fallida: ${errors} error(es) encontrado(s).`);
+        (process as any).exit(1);
+    } else {
+        console.log(`\n✅ La skill en "${skillPath}" es válida y completa.`);
+    }
 }
 
 validateSkill();
