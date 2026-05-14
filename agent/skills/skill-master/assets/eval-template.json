@@ -1,0 +1,22 @@
+{
+  "skill_name": "nombre-de-la-skill",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Caso de prueba exitoso: [PROMPT]",
+      "expectations": [
+        "El archivo [X] existe",
+        "El contenido incluye [Y]",
+        "No se encuentran errores de [Z]"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Caso de borde/error: [PROMPT]",
+      "expectations": [
+        "El sistema responde con un mensaje de error claro",
+        "No se modifican archivos críticos"
+      ]
+    }
+  ]
+}

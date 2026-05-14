@@ -1,0 +1,31 @@
+{
+  "skill_name": "skill-master",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea una nueva habilidad llamada 'test-skill' para gestionar backups de bases de datos PostgreSQL.",
+      "expectations": [
+        "Se utiliza el script scaffold-skill.ts con el nombre 'test-skill'",
+        "La carpeta qdoora-references/agent/skills/test-skill/ existe",
+        "El archivo SKILL.md generado tiene el frontmatter con name: test-skill"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Valida la habilidad existente en qdoora-references/agent/skills/skill-master.",
+      "expectations": [
+        "Se utiliza el script validate-skill.ts con la ruta correcta",
+        "La salida indica que la skill es válida"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Explica las mejores prácticas para estructurar una skill de agente.",
+      "expectations": [
+        "Se hace referencia a references/best-practices.md",
+        "Se menciona la divulgación progresiva",
+        "Se menciona la eficiencia en el uso del contexto"
+      ]
+    }
+  ]
+}
