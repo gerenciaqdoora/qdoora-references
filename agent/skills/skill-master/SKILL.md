@@ -44,7 +44,7 @@ Para una ejecución impecable, sigue los flujos de trabajo documentados:
 Cuando se solicite una nueva habilidad, activa el **Workflow de Creación** y utiliza el script de scaffolding:
 
 ```bash
-npx ts-node .agents/skills/skill-master/scripts/scaffold-skill.ts --name mi-nueva-skill
+node qdoora-references/agent/skills/skill-master/scripts/scaffold-skill.js --name mi-nueva-skill
 ```
 
 ### 2. Desarrollo (Iteración)
@@ -57,7 +57,7 @@ npx ts-node .agents/skills/skill-master/scripts/scaffold-skill.ts --name mi-nuev
 
 - Valida la estructura técnica:
   ```bash
-  npx ts-node .agents/skills/skill-master/scripts/validate-skill.ts --path .agents/skills/mi-nueva-skill
+  node qdoora-references/agent/skills/skill-master/scripts/validate-skill.js --path qdoora-references/agent/skills/mi-nueva-skill
   ```
 - Define y ejecuta evals en `evals/evals.json` para asegurar que el "Delta" de mejora sea positivo.
 

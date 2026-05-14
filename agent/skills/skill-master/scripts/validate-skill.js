@@ -1,11 +1,10 @@
-// @ts-nocheck
-import * as fs from 'fs';
-import * as path from 'path';
+const fs = require('fs');
+const path = require('path');
 
-function validateSkill(): void {
-    const args: string[] = process.argv.slice(2);
-    const pathArg: string | undefined = args.find((arg: string) => arg.startsWith('--path='));
-    const skillPath: string | null = pathArg ? pathArg.split('=')[1] : null;
+function validateSkill() {
+    const args = process.argv.slice(2);
+    const pathArg = args.find(arg => arg.startsWith('--path='));
+    const skillPath = pathArg ? pathArg.split('=')[1] : null;
 
     if (!skillPath || !fs.existsSync(skillPath)) {
         console.error('❌ Error: Debes proporcionar una ruta válida con --path=/ruta/a/la/skill');
@@ -45,7 +44,7 @@ function validateSkill(): void {
     }
 
     // Validar evals/evals.json
-    const evalsPath: string = path.join(skillPath, 'evals/evals.json');
+    const evalsPath = path.join(skillPath, 'evals/evals.json');
     if (!fs.existsSync(evalsPath)) {
         console.error('❌ Error: El archivo evals/evals.json es OBLIGATORIO.');
         errors++;
@@ -67,7 +66,7 @@ function validateSkill(): void {
 
     if (errors > 0) {
         console.log(`\n👎 Validación fallida: ${errors} error(es) encontrado(s).`);
-        (process as any).exit(1);
+        process.exit(1);
     } else {
         console.log(`\n✅ La skill en "${skillPath}" es válida y completa.`);
     }

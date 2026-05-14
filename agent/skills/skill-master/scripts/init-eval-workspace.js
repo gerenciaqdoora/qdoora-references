@@ -1,39 +1,36 @@
-// @ts-nocheck
-import * as fs from 'fs';
-import * as path from 'path';
+const fs = require('fs');
+const path = require('path');
 
-function initEvalWorkspace(): void {
-    const args: string[] = process.argv.slice(2);
-    const nameArg: string | undefined = args.find((arg: string) => arg.startsWith('--skill='));
-    const iterArg: string | undefined = args.find((arg: string) => arg.startsWith('--iter='));
+function initEvalWorkspace() {
+    const args = process.argv.slice(2);
+    const nameArg = args.find(arg => arg.startsWith('--skill='));
+    const iterArg = args.find(arg => arg.startsWith('--iter='));
     
-    const skillName: string | null = nameArg ? nameArg.split('=')[1] : null;
-    const iteration: string = iterArg ? iterArg.split('=')[1] : '1';
+    const skillName = nameArg ? nameArg.split('=')[1] : null;
+    const iteration = iterArg ? iterArg.split('=')[1] : '1';
 
     if (!skillName) {
         console.error('❌ Error: Debes proporcionar el nombre de la skill con --skill=nombre');
-        (process as any).exit(1);
-        return;
+        process.exit(1);
     }
 
-    const workspacePath: string = path.join(process.cwd(), `${skillName}-workspace`, `iteration-${iteration}`);
+    const workspacePath = path.join(process.cwd(), `${skillName}-workspace`, `iteration-${iteration}`);
     
     console.log(`🧪 Inicializando espacio de evaluación para "${skillName}" (Iteración ${iteration})...`);
 
     // Leer evals.json para conocer los casos
-    const skillEvalsPath: string = path.join(process.cwd(), 'qdoora-references/agent/skills', skillName, 'evals/evals.json');
+    const skillEvalsPath = path.join(process.cwd(), 'qdoora-references/agent/skills', skillName, 'evals/evals.json');
     if (!fs.existsSync(skillEvalsPath)) {
         console.error(`❌ Error: No se encontró evals.json en ${skillEvalsPath}`);
-        (process as any).exit(1);
-        return;
+        process.exit(1);
     }
 
     const evalsData = JSON.parse(fs.readFileSync(skillEvalsPath, 'utf-8'));
     const cases = evalsData.evals || [];
 
-    cases.forEach((evalCase: any) => {
-        const caseName: string = `case-${evalCase.id}`;
-        const casePath: string = path.join(workspacePath, caseName);
+    cases.forEach(evalCase => {
+        const caseName = `case-${evalCase.id}`;
+        const casePath = path.join(workspacePath, caseName);
         
         fs.mkdirSync(path.join(casePath, 'with_skill/outputs'), { recursive: true });
         fs.mkdirSync(path.join(casePath, 'without_skill/outputs'), { recursive: true });
