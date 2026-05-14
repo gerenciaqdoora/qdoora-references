@@ -1,0 +1,35 @@
+{
+  "skill_name": "qdoora-ui-ux-master",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Diseña un componente de 'Perfil de Usuario' para el Portal de Clientes (fuse-starter). Debe incluir un formulario con nombre, RUT y saldo, usando componentes compartidos y desuscripción RxJS.",
+      "expectations": [
+        "Usa app-input-form en lugar de matInput",
+        "Implementa RutFormatPipe y FormatAmountPipe",
+        "Incluye takeUntil(this._unsubscribeAll) y finalize()",
+        "Usa una estética premium inspirada en fuse-demo"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Crea una vista de 'Gestión de Logs' para el Portal de Soporte. Usa Angular 21, Signals para el filtrado y Tailwind CSS v4 para el estilo.",
+      "expectations": [
+        "Usa Signals para manejar el estado de la lista y filtros",
+        "Define estilos dinámicos usando variables de @theme en Tailwind v4",
+        "No utiliza mat-form-field genérico",
+        "Es compatible con modo Zoneless"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Genera un diálogo de confirmación para eliminar un registro en el área de clientes.",
+      "expectations": [
+        "Se ubica en app/dialog",
+        "Usa app-dialog-header y app-dialog-footer",
+        "El botón de confirmación usa app-dialog-button-confirm",
+        "Prohíbe estrictamente el uso de [innerHTML] para el mensaje de confirmación"
+      ]
+    }
+  ]
+}
