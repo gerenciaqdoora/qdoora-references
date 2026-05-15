@@ -148,18 +148,28 @@ Todos estos valores deben ser consultados desde los parámetros globales del sis
 
 ---
 
-## 🏛️ 4. Centralización en la Contabilización
+---
 
-El asiento contable utiliza los datos consolidados del cálculo:
+## 🔍 Auditoría de Integridad del Modelo de Datos (Ficha)
 
-| Lado      | Cuenta Contable               | Origen del Monto                    |
-| :-------- | :---------------------------- | :---------------------------------- |
-| **DEBE**  | Gasto Remuneraciones          | `VTHI + VTHNI`                      |
-| **DEBE**  | Gasto SIS Empleador           | Calculado en sección 2.1            |
-| **DEBE**  | Gasto AFC Empleador           | Calculado en sección 2.3            |
-| **HABER** | Sueldos por Pagar             | Sueldo Líquido                      |
-| **HABER** | AFP por Pagar                 | Cotización AFP                      |
-| **HABER** | Salud por Pagar               | Cotización Salud                    |
-| **HABER** | AFC por Pagar                 | AFC Trabajador + AFC Empleador      |
-| **HABER** | Impuesto Único por Pagar      | Calculado en sección 2.4            |
-| **HABER** | Asignación Familiar por Pagar | Si aplica (mencionado en borrador). |
+### 1. Estado de Preparación: 85-90%
+El modelo de datos actual soporta la gran mayoría de las variables críticas para el cálculo de liquidaciones según la normativa chilena.
+
+### 2. Componentes Validados
+*   **Haberes**: Sueldo base (CLP/UF), Gratificación (Dinámica + HE Base), Semana Corrida, Jornada Semanal (44/42/40 hrs).
+*   **Contratos**: Fechas de vigencia, tipos de contrato (Indefinido/Plazo Fijo), modo de remuneración.
+*   **Instituciones Previsionales**: 
+    *   **AFP**: Datos maestros en `GlobalList` (tasa trabajador, SIS, etc.).
+    *   **Salud**: Soporte para Fonasa e Isapre (Plan en UF/Pesos/%).
+*   **Parámetros Globales**: 
+    *   **Asignación Familiar**: Tramos configurados en `GlobalScale` (tipo `ASIGNACION_FAMILIAR`).
+    *   **Topes y Factores**: IMM, Tope AFP, Tope AFC, etc., gestionados vía `GlobalVariableService`.
+
+### 3. Brechas Identificadas (Gaps Críticos)
+1.  **🏦 Información Bancaria**: El modelo `ThirdCompany` / `Employee` carece de campos para Banco, Tipo de Cuenta y Número de Cuenta. Indispensable para el pago de sueldos y archivos de Previred.
+2.  **📜 Tipos de Contrato**: Se debe evaluar la inclusión explícita o lógica calculada para "Más de 11 años" (indispensable para el cálculo de AFC Empleador al 0.8%).
+3.  **🧬 SIS Diferenciado**: El campo `gender` en `EmployeeProfile` debe ser integrado en el motor de cálculo para la selección automática de la tasa SIS (H/M) desde la `GlobalList`.
+
+### 4. Conclusión
+La ficha está **lista para iniciar el desarrollo de la lógica de cálculo**. Los campos faltantes (principalmente bancarios) no bloquean el motor de cálculo matemático, pero deben integrarse antes de la fase de dispersión de pagos.
+

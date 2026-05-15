@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-15] docs(manual): integrar reporte de auditoría de integridad del modelo de datos para liquidación
+
 - [2026-05-15] docs(manual): detallar fórmulas específicas de gratificación en borrador
 
 - [2026-05-15] docs(manual): corregir sincronización de lógica de gratificación en borrador
