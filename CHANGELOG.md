@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-15] docs(manual): corregir sincronización de lógica de gratificación en borrador
+
 - [2026-05-15] docs(manual): actualizar lógica de gratificación y base de horas extras en borrador de cálculo
 
 - [2026-04-30] docs[support]: actualización de estándares para gestión administrativa de clientes

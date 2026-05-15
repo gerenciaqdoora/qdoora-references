@@ -62,7 +62,11 @@ Todos estos valores deben ser consultados desde los parámetros globales del sis
 ### 1.3 Gratificación
 
 - **Validación de Empresa:** Verificar si está activa en `payroll_earnings_discounts` donde `key = 'GRATIFICACION' AND is_active = true`.
-- **Tipos (en `globalService`):** `LEGAL_GARANTIZADA_25`, `MENSUAL_25`, `ANUAL_TOPE_LEGAL`, `SIN_GRATIFICACION`.
+- **Tipos Dinámicos:** Definidos en `App\Enums\Nomina\GratificationType`. Se obtienen vía API (`GET /nomina/gratification-types`) con labels resueltos dinámicamente según parámetros globales (`SUELDOS_GRATIFICACIONES`).
+- **Parámetros Globales (Config/DB):** 
+    - `gratificacion_maxima`: Porcentaje base (por defecto 25% configurado en `nomina.defaults.sueldos_gratificaciones`).
+    - `factor_gratification`: Tope en IMM (por defecto 4.75 IMM).
+- **Base de Cálculo (HE):** Campo `is_gratification_he_base` en `EmployeeRemuneration`. Si es `true`, la gratificación mensual se considera base imponible para el cálculo del valor hora extra.
 - 💾 **Persistencia:** Crear registro en `liquidacion_novedades` con `haber_descuento_id` apuntando a `payroll_earnings_discounts` donde `key = 'GRATIFICACION'`.
 
 ### 1.4 Horas Extras
@@ -71,7 +75,8 @@ Todos estos valores deben ser consultados desde los parámetros globales del sis
 - **Tipos:** Enumeración `OvertimeSubtype` (`HORA_DIA`, `HORA_NOCHE`, `RECARGO_DOM`, etc.).
 - **Tipo de Remuneración:** Tabla `employee_work_contract` -> campo `remuneration_type` (mensual, semanal, diario, por hora).
 - **Cálculo Valor Hora Ordinaria (VHO):**
-  - _Mensual:_ `(Sueldo Base / 30) * (7 / Jornada Semanal)`.
+  - _Mensual:_ `((Sueldo Base + Gratificación*) / 30) * (7 / Jornada Semanal)`.
+  - _*Nota:_ La gratificación solo se suma si `is_gratification_he_base = true` en la ficha del empleado.
   - _Nota:_ `Jornada Semanal` reside en `employee_work_contract` y/o `nomina_company_settings` (`feature_key: 'CONTRATO'`).
 - 💾 **Persistencia:** Crear registro en `liquidacion_novedades` con `haber_descuento_id` a `payroll_earnings_discounts` donde `key = 'HORA_EXTRA'` y el `subtype` correspondiente.
 
