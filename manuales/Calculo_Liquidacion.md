@@ -48,21 +48,7 @@ Calcular: Sueldo Base \* Determinar si es mes completo o mes parcial.
 
 Gratificación:
 
-Revisar si empresa tiene gratificación
-→ payroll_earnings_discounts where key = 'GRATIFICACION' and is_active = true -> Siempre debe ser true, ya no es manipulable como configuracion de empleador (Ausencias / Licencias y Permisos sin Goce de Sueldo tampoco debe estar)
-
-Parametro de sueldos y gratificaciones:
-Gratificación Mínimo Mensual: 25% - Parametro de sueldos y gratificaciones
-
-Ya no aplica configuracion de empleador de la gratificacion solo a nivel de ficha de empleado
-
-Remuneraciones: En globalService tengo la siguiente variable
-public gratificationTypeOptions: any[] = [
-{ id: 'LEGAL_GARANTIZADA_25', name: 'Legal garantizada 25% (Tope 4.75 IMM)' },
-{ id: 'MENSUAL_25', name: 'Mensual 25% (Sin tope)' },
-{ id: 'ANUAL_TOPE_LEGAL', name: 'Anual con tope legal' },
-{ id: 'SIN_GRATIFICACION', name: 'Sin gratificación' }
-]; Estas 4 opciones son las validas. El 25% viene desde parametro de nomina (Gratificacion mensual minima). Agregar a la ficha checkbox si es que la gratificacion es base para pago de de hora extra (solo para gratificacion mensual con/sin tope)
+Revisar si empresa tiene gratificación en la ficha.
 
 Calcular Tope Gratificacion minimo: (**Factor Ingreso Mínimo** (4.75) \* **Sueldo Mínimo Vigente** ($539.000)) / 12
 
