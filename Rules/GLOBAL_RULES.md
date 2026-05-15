@@ -14,17 +14,16 @@
 
 > **IMPORTANTE**: El asistente NO debe ejecutar comandos que requieran instalación de dependencias o modificaciones de base de datos directamente en el sistema del usuario sin confirmación explícita, y preferiblemente debe entregarlos para ejecución manual.
 
-**Comandos que deben ser entregados al usuario para ejecución manual:**
-
-- **Instalación de librerías**: `npm install`, `composer install/require`
-- **Base de Datos**: Migraciones, seeds, `db:wipe`, etc.
-- **Framework Scaffolding**: `php artisan make:...`, `ng generate ...`
+**🔴 REGLA MANDATORIA: Ejecución de Comandos Sensibles**
+El asistente tiene **PROHIBIDO** ejecutar directamente comandos de `php artisan ...`, `composer ...` o `npm ...` que alteren el estado del sistema (migraciones, instalaciones, generación de código, seeds). 
+- **Acción**: Mencionar el comando exacto al usuario en una sección destacada.
+- **Acción**: Esperar el input del usuario o su confirmación de ejecución manual antes de proceder con pasos que dependan de dicho comando.
 
 **Responsabilidad del asistente:**
-
 - ✅ Listar claramente estos comandos al finalizar la respuesta.
 - ✅ Agruparlos en una sección "Comandos a ejecutar (en orden)".
 - ✅ Explicar brevemente el propósito de cada comando.
+- ❌ **NUNCA** intentar ejecutarlos usando `run_command` con `SafeToAutoRun: true` si son de este tipo.
 
 **Ejemplo de formato de entrega:**
 
@@ -138,3 +137,8 @@ Esto previene que archivos `.env` vacíos o desactualizados en el host sobreescr
 - **Prohibición**: NUNCA crees o edites archivos directamente dentro del directorio `/.agents/` del workspace. Ese directorio es volátil y se limpia automáticamente en cada sincronización.
 - **Flujo de Edición**: Cualquier mejora en una Skill o adición de una Regla debe realizarse en `qdoora-references/agent/`.
 - **Sincronización**: Tras cualquier cambio en la fuente de verdad, se debe ejecutar el script `update-agent-assets.sh` (aunque los Git Hooks ahora lo automatizan tras pull/merge/checkout).
+
+### Centralización de Datos Base (Seeding)
+**🔴 REGLA MANDATORIA**: Todo nuevo Seeder creado en el módulo de Nómina, Aduana, Contabilidad o General DEBE ser registrado imperativamente en el orquestador maestro `qdoora-api/app/Console/Commands/DataSyncCommand.php`. 
+- Esto garantiza que las nuevas instalaciones, despliegues en QA o reseteos de base de datos (`migrate:fresh`) incluyan toda la lógica de negocio y parámetros globales actualizados.
+- Se debe verificar la posición lógica dentro del array `$seeders` para mantener las dependencias de integridad referencial.
