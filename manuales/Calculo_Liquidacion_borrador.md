@@ -62,7 +62,6 @@ Todos estos valores deben ser consultados desde los parámetros globales del sis
 ### 1.3 Gratificación
 
 - **Validación de Empresa:** Verificar si está activa en `payroll_earnings_discounts` donde `key = 'GRATIFICACION' AND is_active = true`.
-- **Configuración:** Tabla `nomina_company_settings` donde `feature_key = 'GRATIFICACION'` (columna `config`).
 - **Tipos (en `globalService`):** `LEGAL_GARANTIZADA_25`, `MENSUAL_25`, `ANUAL_TOPE_LEGAL`, `SIN_GRATIFICACION`.
 - 💾 **Persistencia:** Crear registro en `liquidacion_novedades` con `haber_descuento_id` apuntando a `payroll_earnings_discounts` donde `key = 'GRATIFICACION'`.
 

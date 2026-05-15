@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-15] docs(manual): actualizar lógica de gratificación y base de horas extras en borrador de cálculo
+
 - [2026-04-30] docs[support]: actualización de estándares para gestión administrativa de clientes
 
 - [2026-04-26] docs(rules): agregar protocolo de refinamiento de prompts @[/qdoora-workflow-protocol]
