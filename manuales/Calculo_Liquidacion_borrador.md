@@ -67,6 +67,10 @@ Todos estos valores deben ser consultados desde los parámetros globales del sis
     - `gratificacion_maxima`: Porcentaje base (por defecto 25% configurado en `nomina.defaults.sueldos_gratificaciones`).
     - `factor_gratification`: Tope en IMM (por defecto 4.75 IMM).
 - **Base de Cálculo (HE):** Campo `is_gratification_he_base` en `EmployeeRemuneration`. Si es `true`, la gratificación mensual se considera base imponible para el cálculo del valor hora extra.
+- **Fórmulas de Cálculo:**
+    - `Tope Gratificación Mensual` = `(Factor IMM (4.75) * Sueldo Mínimo Vigente) / 12`.
+    - `LEGAL_GARANTIZADA_25` = Paga directamente el `Tope Gratificación Mensual`.
+    - `MENSUAL_25` = `min(Sueldo Base * 25%, Tope Gratificación Mensual)`.
 - 💾 **Persistencia:** Crear registro en `liquidacion_novedades` con `haber_descuento_id` apuntando a `payroll_earnings_discounts` donde `key = 'GRATIFICACION'`.
 
 ### 1.4 Horas Extras
