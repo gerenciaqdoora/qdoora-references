@@ -53,10 +53,17 @@ sync_folder() {
     done
 }
 
-# Ejecutar sincronización
-sync_folder "$SOURCE_DIR/rules" "$AGENTS_DIR/rules" "Reglas"
-sync_folder "$SOURCE_DIR/skills" "$AGENTS_DIR/skills" "Habilidades"
-sync_folder "$SOURCE_DIR/workflows" "$AGENTS_DIR/workflows" "Workflows"
+# Ejecutar sincronización de .agents
+sync_folder "$SOURCE_DIR/rules" "$AGENTS_DIR/rules" "Reglas (.agents)"
+sync_folder "$SOURCE_DIR/skills" "$AGENTS_DIR/skills" "Habilidades (.agents)"
+sync_folder "$SOURCE_DIR/workflows" "$AGENTS_DIR/workflows" "Workflows (.agents)"
+
+# Ejecutar sincronización de .claude
+CLAUDE_DIR="$WORKSPACE_ROOT/.claude"
+mkdir -p "$CLAUDE_DIR/skills"
+sync_folder "$SOURCE_DIR/rules" "$CLAUDE_DIR/rules" "Reglas (.claude)"
+sync_folder "$SOURCE_DIR/skills" "$CLAUDE_DIR/skills" "Habilidades (.claude)"
+sync_folder "$SOURCE_DIR/workflows" "$CLAUDE_DIR/workflows" "Workflows (.claude)"
 
 echo "----------------------------------------------------------------"
 echo "✨ Sincronización completada con éxito."
