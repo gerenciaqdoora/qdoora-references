@@ -3,32 +3,29 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Diseña un componente de 'Perfil de Usuario' para el Portal de Clientes (fuse-starter). Debe incluir un formulario con nombre, RUT y saldo, usando componentes compartidos y desuscripción RxJS.",
+      "prompt": "Crea un componente de formulario para el alta de empleados en fuse-starter.",
       "expectations": [
-        "Usa app-input-form en lugar de matInput",
-        "Implementa RutFormatPipe y FormatAmountPipe",
-        "Incluye takeUntil(this._unsubscribeAll) y finalize()",
-        "Usa una estética premium inspirada en fuse-demo"
+        "No se utiliza <mat-form-field> directo",
+        "Se utilizan componentes compartidos como <app-input-form>",
+        "El componente es Standalone e importa sus dependencias"
       ]
     },
     {
       "id": 2,
-      "prompt": "Crea una vista de 'Gestión de Logs' para el Portal de Soporte. Usa Angular 21, Signals para el filtrado y Tailwind CSS v4 para el estilo.",
+      "prompt": "Implementa una lista de tickets en el portal de soporte usando Angular 21.",
       "expectations": [
-        "Usa Signals para manejar el estado de la lista y filtros",
-        "Define estilos dinámicos usando variables de @theme en Tailwind v4",
-        "No utiliza mat-form-field genérico",
-        "Es compatible con modo Zoneless"
+        "Se utilizan Signals para manejar el estado de la lista",
+        "El componente no depende de zone.js (Zoneless)",
+        "Se utiliza el nuevo Control Flow (@for) en el template"
       ]
     },
     {
       "id": 3,
-      "prompt": "Genera un diálogo de confirmación para eliminar un registro en el área de clientes.",
+      "prompt": "Configura un diálogo de confirmación para eliminar un registro.",
       "expectations": [
-        "Se ubica en app/dialog",
-        "Usa app-dialog-header y app-dialog-footer",
-        "El botón de confirmación usa app-dialog-button-confirm",
-        "Prohíbe estrictamente el uso de [innerHTML] para el mensaje de confirmación"
+        "El diálogo se ubica en app/dialog",
+        "Utiliza la estructura app-dialog-header y app-dialog-footer",
+        "No se utiliza [innerHTML] para mostrar el nombre del registro"
       ]
     }
   ]

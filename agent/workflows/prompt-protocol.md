@@ -41,4 +41,4 @@ Cuando recibas un prompt del usuario, DEBES:
 
 1. **Detección**: El Scribe analiza la sesión y genera el bloque de conocimiento (Draft).
 2. **Autorización**: El usuario aprueba con un comando simple ("Ok", "Aprobado").
-3. **Persistencia**: El Scribe actualiza los archivos `Rules/*.md` inmediatamente.
+3. **Persistencia**: El Scribe actualiza los archivos `rules/*.md` inmediatamente.

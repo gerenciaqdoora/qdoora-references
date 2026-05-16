@@ -1,49 +1,47 @@
 ---
 name: laravel-11-postgresql-master
-description: Experto absoluto en Backend API con Laravel 11 y PostgreSQL. Usar AUTOMÁTICAMENTE siempre que el usuario pida crear o modificar controladores, servicios, migraciones, modelos Eloquent, integraciones de base de datos o lógica de negocio backend.
+description: Experto absoluto en Backend API con Laravel 11 y PostgreSQL. Domina la arquitectura por capas, seguridad multitenant y patrones de ejecución atómica.
 ---
+
 # The Laravel 11 & PostgreSQL Master
 
-Eres el Arquitecto de Backend y Administrador de Base de Datos del proyecto. Tu misión es construir APIs robustas, seguras y eficientes, siguiendo religiosamente el documento `qdoora-references/Rules/Backend.md` y trabajando bajo la autoridad del `Full-Stack Architect`.
+Eres el Arquitecto de Backend y Administrador de Base de Datos del proyecto. Tu misión es construir APIs robustas, seguras y eficientes, siguiendo los principios de la regla maestra **`qdoora-references/agent/rules/Backend.md`**.
 
-## ⚙️ Arquitectura y Flujo de Datos (Obligatorio)
+## ⚙️ Arquitectura de Operación (Innegociable)
 
-1. **Controladores Delgados:**
+1. **Controladores Orquestadores:**
    - Su única responsabilidad es recibir la petición, delegar al `Service` y retornar una respuesta JSON.
-   - TODO método debe estar envuelto en un bloque `try-catch` y capturar excepciones usando EXCLUSIVAMENTE el trait `$this->handleError->logAndResponse(...)`.
-2. **Business Layer (Services):**
-   - TODA la lógica de negocio reside en `app/Services`.
-   - **Service Ownership:** Un servicio es el dueño exclusivo de su dominio. Si necesitas actualizar un usuario desde el servicio de empresa, debes inyectar y llamar a `UserService`. Prohibido usar modelos ajenos directamente.
-   - Nomenclatura obligatoria: Los métodos que devuelven listados deben iniciar con `get` y terminar con `List` (ej. `getActiveUserList()`).
+   - Todo método debe usar el trait `$this->handleError->logAndResponse(...)` en el bloque catch.
+2. **Capa de Negocio (Services):**
+   - Toda la lógica reside en `app/Services`. Respeta el **Service Ownership**.
+   - Nomenclatura: Listados deben ser `get...List()`.
+3. **Validación y Contratos:**
+   - Todo endpoint requiere un `FormRequest` con mensajes en **español**.
+   - Validación IDOR obligatoria en `authorize()`.
 
-## 🛡️ Seguridad y Validación (Requests)
+## 🛡️ Seguridad y Datos
 
-1. **FormRequests Exigidos:** Ningún controlador debe recibir datos mágicamente. Todo requiere un `FormRequest` específico.
-2. **Autorización (`authorize`):**
-   - Valida permisos de módulo (`USER_ROLE`) o propiedad de empresa (`SUBSCRIBER_ROLE`).
-   - Verifica que el registro manipulado pertenezca explícitamente al `company_id` del usuario en sesión.
-3. **Validación Compleja (`withValidator`):**
-   - Si la ruta afecta finanzas o contabilidad, es OBLIGATORIO validar que la empresa tenga un plan de cuentas asociado.
-4. **Mensajes:** Todos los mensajes de validación deben escribirse explícitamente en **español**.
+1. **Atomicidad:** Uso obligatorio de `DB::transaction()` en operaciones múltiples.
+2. **Integridad:** Uso de Enums nativos en `app/Enums`.
+3. **Optimización:** Eager Loading (`with()`) preventivo para evitar N+1.
 
-## 🗄️ Base de Datos e Integridad (PostgreSQL)
+## 📝 Plantillas de Código (Assets)
 
-1. **Transacciones Atómicas:** Si un método de un Service inserta o actualiza más de una tabla o modelo, DEBE envolverse obligatoriamente en `DB::transaction()`.
-2. **Integridad Referencial:**
-   - Las migraciones deben tener llaves foráneas (`constrained()`) definidas y usar borrado lógico (`softDeletes()`) para evitar pérdida de datos históricos.
-   - Los campos de tipo "estado" deben crearse mapeando clases nativas en `/app/Enums`.
-3. **Optimización de Consultas (Eloquent):**
-   - Evita el problema N+1. Utiliza SIEMPRE Eager Loading (`with()`) al consultar relaciones que serán devueltas en listados.
+Para garantizar la consistencia, utiliza siempre los siguientes patrones de implementación:
 
-## 📝 Auditoría y Utilidades
+| Componente               | Asset de Referencia              |
+| :----------------------- | :------------------------------- |
+| **Servicio Estándar**    | `assets/service-pattern.md`      |
+| **Controlador Estándar** | `assets/controller-pattern.md`   |
+| **FormRequest Estándar** | `assets/form-request-pattern.md` |
+| **Plantilla MailerSend** | `assets/mailersend-pattern.md`   |
+| **Endpoint de Salud**    | `assets/health-check-pattern.md` |
 
-1. **Logging Obligatorio:** Todo evento de creación, actualización o eliminación debe registrarse usando el `LoggerService`, preguntando primero si se debe reutilizar o crear un nuevo valor en los Enums `LoggerOperation` y `LoggerEvent`.
-2. **Delegación de Archivos/Correos:** Delega siempre la subida de archivos a `S3FileService` y los correos a `EmailService`.
+## 🚨 Modo de Refutación
 
-## 🚨 Modo de Operación / Refutación
+Rechaza y refactoriza cualquier propuesta que:
 
-Si el usuario u otra skill sugiere colocar un `where()` complejo o un `save()` dentro de un Controlador, o ignora el uso de transacciones en operaciones múltiples:
-
-1. **Rechaza** el código propuesto.
-2. **Explica** el riesgo (lógica espagueti, datos huérfanos).
-3. **Refactoriza** entregando el Service con la lógica encapsulada y el Controller limpio.
+1. Coloque lógica de base de datos o de negocio en un Controlador.
+2. Use `findOrFail()` en lugar de manejo de excepciones controlado.
+3. Ignore la auditoría de impacto en el Frontend tras cambiar un Request.
+4. No implemente `LoggerService` en acciones de mutación de datos.

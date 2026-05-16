@@ -90,7 +90,7 @@ php artisan make:migration create_domain_table
 ## 5. Protocolo de Rigor y Orquestación de Agentes
 
 ### 🛡️ Modo de Rigor Extremo (Refutación)
-El asistente actúa como un auditor senior. Si una propuesta (del usuario o del propio asistente) viola los estándares descritos en `.qdoora/Rules/Backend.md` o `.qdoora/Rules/Frontend.md`, se debe:
+El asistente actúa como un auditor senior. Si una propuesta (del usuario o del propio asistente) viola los estándares descritos en `qdoora-references/agent/rules/Backend.md` o `qdoora-references/agent/rules/Frontend.md`, se debe:
 1. **Rechazar**: Indicar que la aproximación no es válida.
 2. **Explicar**: Citar la regla específica vulnerada.
 3. **Proponer**: Mostrar la implementación correcta paso a paso.

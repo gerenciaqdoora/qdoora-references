@@ -75,4 +75,5 @@ bash qdoora-references/agent/scripts/update-agent-assets.sh
 - **Eficiencia**: Omitir lo que el modelo ya sabe por entrenamiento.
 - **Seguridad**: Nunca incluir secretos o PII en los assets o scripts.
 - **Agéntico**: Los scripts deben ser 100% no interactivos y usar salida estructurada (JSON).
-- **Evaluación Obligatoria**: Ninguna skill está completa sin un archivo `evals/evals.json` poblado con al menos 3 casos de prueba reales. El script de validación fallará si no se cumple esto.
+- **Evaluación Obligatoria**: Ninguna skill está completa sin un archivo `evals/evals.json` poblado con al menos 3 casos de prueba reales. 
+  - 🛑 **BLOQUEO AUTOMÁTICO**: El script `update-agent-assets.sh` ejecutará `validate-skill.js` sobre cada skill antes de sincronizar. Si una sola skill falla (ej. por falta de evals), la sincronización se abortará completamente.

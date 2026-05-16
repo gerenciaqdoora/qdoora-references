@@ -1,0 +1,30 @@
+{
+  "skill_name": "security-iam-expert",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Ejecuta una tarea estándar usando la skill security-iam-expert.",
+      "expectations": [
+        "El resultado cumple con los estándares de security-iam-expert",
+        "No hay errores de sintaxis",
+        "Se sigue el flujo de trabajo definido"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Caso de borde para security-iam-expert.",
+      "expectations": [
+        "El sistema maneja el error correctamente",
+        "Se proporciona feedback claro"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Validación de integridad para security-iam-expert.",
+      "expectations": [
+        "Los assets referenciados son accesibles",
+        "Se cumple con la seguridad multitenant"
+      ]
+    }
+  ]
+}

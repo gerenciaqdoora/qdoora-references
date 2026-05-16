@@ -1,0 +1,30 @@
+{
+  "skill_name": "qa-data-auditor",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Ejecuta una tarea estándar usando la skill qa-data-auditor.",
+      "expectations": [
+        "El resultado cumple con los estándares de qa-data-auditor",
+        "No hay errores de sintaxis",
+        "Se sigue el flujo de trabajo definido"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Caso de borde para qa-data-auditor.",
+      "expectations": [
+        "El sistema maneja el error correctamente",
+        "Se proporciona feedback claro"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Validación de integridad para qa-data-auditor.",
+      "expectations": [
+        "Los assets referenciados son accesibles",
+        "Se cumple con la seguridad multitenant"
+      ]
+    }
+  ]
+}

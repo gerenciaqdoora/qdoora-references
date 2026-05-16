@@ -1,0 +1,30 @@
+{
+  "skill_name": "erp-accounting-expert",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Ejecuta una tarea estándar usando la skill erp-accounting-expert.",
+      "expectations": [
+        "El resultado cumple con los estándares de erp-accounting-expert",
+        "No hay errores de sintaxis",
+        "Se sigue el flujo de trabajo definido"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Caso de borde para erp-accounting-expert.",
+      "expectations": [
+        "El sistema maneja el error correctamente",
+        "Se proporciona feedback claro"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Validación de integridad para erp-accounting-expert.",
+      "expectations": [
+        "Los assets referenciados son accesibles",
+        "Se cumple con la seguridad multitenant"
+      ]
+    }
+  ]
+}

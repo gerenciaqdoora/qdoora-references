@@ -38,4 +38,4 @@ Si se trabaja en **Empleados, Liquidación, Previred, Vacaciones, Haberes o conf
 - **Acción**: Realizar "Auditoría de Impacto". Traducir reglas de Laravel (`required`, `nullable`, `numeric`) a tipos de TypeScript (`string`, `number`, `optional?`) de forma estricta.
 
 ## 3. Memoria del Proyecto
-- El `technical-scribe-documentarian/SKILL.md` documenta cada nuevo patrón en `qdoora-references/Rules/`.
+- El `technical-scribe-documentarian/SKILL.md` documenta cada nuevo patrón en `qdoora-references/agent/rules/`.

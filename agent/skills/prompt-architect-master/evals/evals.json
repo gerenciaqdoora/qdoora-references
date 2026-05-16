@@ -1,0 +1,30 @@
+{
+  "skill_name": "prompt-architect-master",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Ejecuta una tarea estándar usando la skill prompt-architect-master.",
+      "expectations": [
+        "El resultado cumple con los estándares de prompt-architect-master",
+        "No hay errores de sintaxis",
+        "Se sigue el flujo de trabajo definido"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Caso de borde para prompt-architect-master.",
+      "expectations": [
+        "El sistema maneja el error correctamente",
+        "Se proporciona feedback claro"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Validación de integridad para prompt-architect-master.",
+      "expectations": [
+        "Los assets referenciados son accesibles",
+        "Se cumple con la seguridad multitenant"
+      ]
+    }
+  ]
+}

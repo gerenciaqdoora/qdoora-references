@@ -1,0 +1,32 @@
+{
+  "skill_name": "laravel-11-postgresql-master",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea un servicio para gestionar el inventario de aduana.",
+      "expectations": [
+        "El servicio se crea en app/Services/Aduana",
+        "El código utiliza DB::transaction()",
+        "No se utiliza findOrFail, se lanza una excepción controlada"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Genera un controlador para el módulo de contabilidad.",
+      "expectations": [
+        "El controlador usa el trait HandlesControllerLogs",
+        "El método principal delega la lógica a un servicio inyectado",
+        "Se implementa un bloque try-catch que captura errores mediante logAndResponse"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Define un FormRequest para la creación de usuarios.",
+      "expectations": [
+        "El método authorize() valida permisos de submódulo",
+        "Los mensajes de validación están en español",
+        "Se incluye validación de pertenencia a la empresa (company_id)"
+      ]
+    }
+  ]
+}

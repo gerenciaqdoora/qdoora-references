@@ -1,37 +1,34 @@
-### Configuración Core (PostCSS Bridge)
-Para Angular 21, se recomienda el uso del plugin `@tailwindcss/postcss`.
+# Tailwind CSS v4 (@theme)
 
-**postcss.config.json:**
-```json
-{
-  "plugins": {
-    "@tailwindcss/postcss": {}
-  }
-}
-```
+> Configuración CSS-first para el Portal de Soporte.
 
-### Directivas CSS (styles.scss)
+## 🎨 Configuración en `styles.css`
+
+En Tailwind v4, la configuración se realiza directamente en el archivo CSS principal mediante la directiva `@theme`.
+
 ```css
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #1a2b48;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #38bdf8;
-  
-  /* Animaciones Custom */
-  --animate-wiggle: wiggle 1s ease-in-out infinite;
+  /* Colores QdoorA Admin */
+  --color-admin-primary: oklch(0.623 0.214 259.815);
+  --color-admin-secondary: oklch(0.446 0.03 256.802);
 
-  @keyframes wiggle {
-    0%, 100% { transform: rotate(-3deg); }
-    50% { transform: rotate(3deg); }
-  }
+  /* Tipografía */
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui;
+  --font-body: "Outfit", ui-sans-serif, system-ui;
+
+  /* Espaciado Custom */
+  --spacing-18: 4.5rem;
+}
+
+/* Clases de utilidad custom */
+@utility admin-card {
+  @apply rounded-2xl border border-white/10 bg-black/50 backdrop-blur-xl p-6;
 }
 ```
 
-### Reglas de Oro (Vanguardia)
-- **No usar tailwind.config.js**: Prefiere el bloque `@theme` dentro de los archivos CSS.
-- **Variables CSS**: Todas las personalizaciones de color deben exponerse como variables CSS estándar.
-- **Dark Mode**: Configurar `class` strategy mediante variables CSS si se requiere un toggle manual.
+## 🚨 Reglas de Uso
+- NO crear archivo `tailwind.config.js`.
+- Usar variables CSS nativas para el tipado de colores.
+- Renombrar `styles.scss` a `styles.css` para evitar warnings de Sass con el compilador de Vite.

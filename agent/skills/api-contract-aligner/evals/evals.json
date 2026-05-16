@@ -1,0 +1,30 @@
+{
+  "skill_name": "api-contract-aligner",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Ejecuta una tarea estándar usando la skill api-contract-aligner.",
+      "expectations": [
+        "El resultado cumple con los estándares de api-contract-aligner",
+        "No hay errores de sintaxis",
+        "Se sigue el flujo de trabajo definido"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Caso de borde para api-contract-aligner.",
+      "expectations": [
+        "El sistema maneja el error correctamente",
+        "Se proporciona feedback claro"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Validación de integridad para api-contract-aligner.",
+      "expectations": [
+        "Los assets referenciados son accesibles",
+        "Se cumple con la seguridad multitenant"
+      ]
+    }
+  ]
+}

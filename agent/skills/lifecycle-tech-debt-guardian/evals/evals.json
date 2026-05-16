@@ -1,0 +1,30 @@
+{
+  "skill_name": "lifecycle-tech-debt-guardian",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Ejecuta una tarea estándar usando la skill lifecycle-tech-debt-guardian.",
+      "expectations": [
+        "El resultado cumple con los estándares de lifecycle-tech-debt-guardian",
+        "No hay errores de sintaxis",
+        "Se sigue el flujo de trabajo definido"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Caso de borde para lifecycle-tech-debt-guardian.",
+      "expectations": [
+        "El sistema maneja el error correctamente",
+        "Se proporciona feedback claro"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Validación de integridad para lifecycle-tech-debt-guardian.",
+      "expectations": [
+        "Los assets referenciados son accesibles",
+        "Se cumple con la seguridad multitenant"
+      ]
+    }
+  ]
+}

@@ -66,4 +66,4 @@ Cuando se realicen operaciones de edición o eliminación y la ruta incluya `com
   - `app\Http\Requests\Admin/AduanaSubscriberRequest.php`
 - **Autorización Cliente**: `assets/authorize-client.md`
 - **Autorización Soporte**: `assets/authorize-support.md`
-- **Reglas Backend**: `qdoora-references/Rules/Backend.md`
+- **Reglas Backend**: `qdoora-references/agent/rules/Backend.md`

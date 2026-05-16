@@ -1,0 +1,32 @@
+{
+  "skill_name": "full-stack-architect",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Diseña un nuevo módulo de facturación electrónica.",
+      "expectations": [
+        "El plan incluye la sincronización de contratos (Laravel -> Angular)",
+        "Se especifica el uso de servicios para la lógica de negocio",
+        "Se menciona la necesidad de una auditoría de seguridad final"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Propón una refactorización para un proceso de carga masiva en AWS.",
+      "expectations": [
+        "Se prohíbe el uso de almacenamiento local en el contenedor",
+        "Se especifica el uso de S3 y procesamiento asíncrono",
+        "Se incluye un health check para monitorear el proceso"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Valida una nueva ruta para el portal administrativo.",
+      "expectations": [
+        "La ruta se registra bajo el grupo v1/support",
+        "Se incluye un guard con validación server-side",
+        "Se prohíbe el uso de localStorage para el token administrativo"
+      ]
+    }
+  ]
+}
