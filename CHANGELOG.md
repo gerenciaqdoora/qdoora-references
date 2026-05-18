@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-18] docs[walkthrough]: documentar mecanismo de autoreparacion S3 de paths obsoletos en el walkthrough
+
 - [2026-05-18] docs[frontend]: documentar regla maestra y estandar de uso de SecureTabService en Frontend.md
 
 - [2026-05-18] docs[walkthrough]: actualizar explicacion de bypass de popup blocker para visualizacion inline en nueva pestaña
