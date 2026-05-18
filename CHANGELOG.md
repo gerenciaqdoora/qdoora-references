@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-18] docs[walkthrough]: actualizar explicacion de bypass de popup blocker para visualizacion inline en nueva pestaña
+
 - [2026-05-18] docs[frontend]: clarificar reglas de uso entre notification-service y app-shared-alert
 
 - [2026-05-18] docs[frontend]: registrar estandares de notificaciones stacked simultaneas
