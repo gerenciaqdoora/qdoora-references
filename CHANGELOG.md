@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-18] docs[walkthrough]: documentar correccion de asignacion masiva de previsionales
+
 - [2026-05-18] docs[walkthrough]: registrar invalidador por dirty checking y parametro force de regeneracion
 
 - [2026-05-18] docs[walkthrough]: documentar refactorizacion centralizada de MIME types en S3FileService
