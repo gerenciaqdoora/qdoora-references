@@ -1,6 +1,6 @@
 # Laravel 11 — Snippets de Remediación de Seguridad
 
-> Usa este archivo al proponer correcciones backend para hallazgos del catastro Qdoora.
+> Usa este archivo al proponer correcciones backend para hallazgos del catastro QdoorA.
 > Stack: Laravel 11 · PHP 8.3 · PostgreSQL · estructura moderna sin Kernel.php
 
 ---
@@ -13,11 +13,21 @@
     $exceptions->render(function (Throwable $e, Request $request) {
         if ($request->expectsJson()) {
             $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
+            
+            // Si es un error de validación HTTP, retornar los mensajes habituales
+            if ($e instanceof \Illuminate\Validation\ValidationException) {
+                return response()->json([
+                    'message' => 'The given data was invalid.',
+                    'errors'  => $e->errors(),
+                ], 422);
+            }
+
+            // Para cualquier otro error en producción, ocultar el stack trace y detalles
             return response()->json([
                 'message' => $status === 404 ? 'Resource not found.'
                            : ($status === 403 ? 'Forbidden.'
-                           : 'An error occurred. Please try again.'),
-                // ❌ NUNCA: 'trace', 'file', 'line', 'exception'
+                           : ($status === 429 ? 'Too many attempts.'
+                           : 'An error occurred. Please try again.')),
             ], $status);
         }
     });
@@ -33,6 +43,9 @@
 // app/Http/Middleware/EnforceServerSidePermissions.php
 namespace App\Http\Middleware;
 
+use Closure;
+use Illuminate\Http\Request;
+
 class EnforceServerSidePermissions
 {
     public function handle(Request $request, Closure $next, string ...$permissions): mixed
@@ -41,11 +54,13 @@ class EnforceServerSidePermissions
         if (!$user) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
+        
         foreach ($permissions as $permission) {
             if (!$user->hasPermission($permission)) {
                 return response()->json(['message' => 'Forbidden.'], 403);
             }
         }
+        
         return $next($request);
     }
 }
@@ -59,7 +74,7 @@ class EnforceServerSidePermissions
     ]);
 })
 
-// User::hasPermission() — valida contra DB, nunca contra request
+// User.php (Model) — valida contra DB con caché atómica
 public function hasPermission(string $permission): bool
 {
     return \Cache::remember("user_{$this->id}_perm_{$permission}", 300, fn() =>
@@ -69,34 +84,41 @@ public function hasPermission(string $permission): bool
     );
 }
 
-// En cada controller action — doble capa obligatoria
+// En cada controller action — aplicar la validación robusta server-side
 public function approve(ApproveRequest $request, Liquidacion $liquidacion): JsonResponse
 {
-    Gate::authorize('approve-liquidacion', $liquidacion); // ← NUNCA omitir
+    Gate::authorize('approve-liquidacion', $liquidacion); // ← NUNCA omitir control multitenant
     // ...
 }
 ```
 
 ---
 
-## 3. Rate Limiting en Autenticación
+## 3. Rate Limiting en Autenticación y Operaciones Costosas
 **Remedia**: QD-03 (ATO brute force), QD-08 (ausencia de throttle).
 
 ```php
 // app/Http/Middleware/ApiThrottle.php
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Cache\RateLimiter;
+
 class ApiThrottle
 {
     public function __construct(private RateLimiter $limiter) {}
 
-    public function handle(Request $request, Closure $next, string $key, int $max, int $decay): Response
+    public function handle(Request $request, Closure $next, string $key, int $max, int $decay): mixed
     {
         $id = $key . ':' . $request->ip();
         if ($this->limiter->tooManyAttempts($id, $max)) {
             return response()->json([
                 'message'     => 'Too many attempts.',
                 'retry_after' => $this->limiter->availableIn($id),
-            ], 429);
+            ], 429)->header('Retry-After', $this->limiter->availableIn($id));
         }
+        
         $this->limiter->hit($id, $decay * 60);
         return $next($request);
     }
@@ -104,22 +126,27 @@ class ApiThrottle
 
 // routes/api.php
 Route::post('/login', [AuthController::class, 'login'])
-    ->middleware('throttle.api:login,5,15');           // 5 intentos → bloqueo 15 min
+    ->middleware('throttle.api:login,5,15');           // 5 intentos fallidos → bloqueo 15 min
 
 Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLink'])
     ->middleware('throttle.api:password-reset,3,60');  // 3 intentos → bloqueo 60 min
 
 Route::post('/liquidaciones/{id}/pdf', [PdfController::class, 'generate'])
-    ->middleware('throttle.api:pdf-gen,10,1');         // 10 PDFs por minuto por IP
+    ->middleware('throttle.api:pdf-gen,10,1');         // Máximo 10 PDFs por minuto
 ```
 
 ---
 
-## 4. Protección de Cambio de Email
+## 4. Protección de Cambio de Email (Evitar Secuestro de Cuenta)
 **Remedia**: QD-03 (ATO via email takeover).
 
 ```php
 // app/Http/Requests/UpdateEmailRequest.php
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Hash;
+
 class UpdateEmailRequest extends FormRequest
 {
     public function rules(): array
@@ -143,34 +170,48 @@ class UpdateEmailRequest extends FormRequest
 // app/Http/Controllers/ProfileController.php
 public function updateEmail(UpdateEmailRequest $request): JsonResponse
 {
-    $oldEmail = $request->user()->email;
-    $request->user()->update(['email' => $request->email]);
-    Mail::to($oldEmail)->queue(new EmailChangedNotification($request->user(), $oldEmail));
-    return response()->json(['message' => 'Email actualizado.']);
+    $user = $request->user();
+    $oldEmail = $user->email;
+    
+    // Actualizar correo
+    $user->update(['email' => $request->email]);
+    
+    // Notificar al correo anterior de forma segura e inmediata
+    Mail::to($oldEmail)->queue(new EmailChangedNotification($user, $oldEmail));
+    
+    return response()->json(['message' => 'Email actualizado exitosamente.']);
 }
 ```
 
 ---
 
-## 5. Respuesta de Login Mínima
+## 5. Respuesta de Login Mínima Segura
 **Remedia**: QD-09 (objeto de permisos manipulable).
 
 ```php
 // app/Http/Resources/AuthResource.php
-public function toArray(Request $request): array
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class AuthResource extends JsonResource
 {
-    return [
-        'token'      => $this->token,
-        'token_type' => 'Bearer',
-        'expires_in' => config('jwt.ttl') * 60,
-        'user' => [
-            'id'    => $this->user->id,
-            'name'  => $this->user->name,
-            'email' => $this->user->email,
-            'role'  => $this->user->role->slug,
-            // ❌ NUNCA exponer: permissions, is_admin, privileges, roles[]
-        ],
-    ];
+    public function toArray(Request $request): array
+    {
+        return [
+            'token'      => $this->token,
+            'token_type' => 'Bearer',
+            'expires_in' => config('jwt.ttl') * 60,
+            'user' => [
+                'id'    => $this->user->id,
+                'name'  => $this->user->name,
+                'email' => $this->user->email,
+                'role'  => $this->user->role->slug,
+                // ❌ NUNCA exponer: permissions, is_admin, privileges
+            ],
+        ];
+    }
 }
 ```
 
@@ -181,16 +222,21 @@ public function toArray(Request $request): array
 
 ```php
 // app/Models/Document.php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Builder;
 
 class Document extends Model
 {
-    use HasUuids; // UUID automático en creación
+    use HasUuids; // Auto-generar UUID v4 seguro e impredecible
 
     protected static function booted(): void
     {
         static::addGlobalScope('company', function (Builder $builder) {
             if (auth()->check()) {
+                // Forzar multitenancy: sólo ver registros del company_id del token
                 $builder->where('company_id', auth()->user()->company_id);
             }
         });
@@ -200,36 +246,49 @@ class Document extends Model
 // app/Http/Controllers/DocumentController.php
 public function download(string $id): JsonResponse
 {
-    $doc = Document::findOrFail($id); // 404 si no pertenece a la company del token
+    // findOrFail lanzará 404 si el documento no pertenece al company_id del token
+    $doc = Document::findOrFail($id); 
+    
+    // Presigned URL de corta duración (máximo 5-10 minutos)
     $url = Storage::disk('s3')->temporaryUrl($doc->s3_path, now()->addMinutes(5));
+    
     return response()->json(['url' => $url]);
 }
 ```
 
 ---
 
-## 7. Sanitización de Inputs
+## 7. Sanitización de Inputs y Prevención de XSS
 **Remedia**: QD-07 (Stored XSS), QD-11 (HTML injection en PDFs).
 
 ```php
-// En FormRequest — siempre sanitizar antes de validar
+// En FormRequests — Sanitizar todas las entradas antes de su validación
 protected function prepareForValidation(): void
 {
     $sanitized = [];
-    foreach (['name', 'description', 'comment', 'title'] as $field) {
-        if ($this->has($field)) {
-            $sanitized[$field] = strip_tags($this->input($field));
+    foreach ($this->all() as $key => $value) {
+        if (is_string($value)) {
+            // Sanitizar campos de texto generales
+            if (in_array($key, ['name', 'title', 'comment', 'description'])) {
+                $sanitized[$key] = strip_tags($value);
+            }
         }
     }
-    $this->merge($sanitized);
+    
+    if (!empty($sanitized)) {
+        $this->merge($sanitized);
+    }
 }
 
-// Para campos que permiten HTML controlado (ej: editores de texto)
-// Usar HTMLPurifier con configuración estricta:
-$purifier = new \HTMLPurifier();
-$config   = \HTMLPurifier_Config::createDefault();
-$config->set('HTML.Allowed', 'p,br,strong,em,ul,li,ol');
-$clean = $purifier->purify($this->input('body'), $config);
+// Para campos especiales que requieran permitir HTML formateado (editores rich text)
+// Utilizar HTMLPurifier con directivas restrictivas
+public function sanitizeRichText(string $html): string
+{
+    $purifier = new \HTMLPurifier();
+    $config   = \HTMLPurifier_Config::createDefault();
+    $config->set('HTML.Allowed', 'p,br,strong,em,ul,ol,li'); // Solo tags de formato básicos
+    return $purifier->purify($html, $config);
+}
 ```
 
 ---
@@ -239,22 +298,27 @@ $clean = $purifier->purify($this->input('body'), $config);
 
 ```php
 // app/Http/Middleware/EnforcePortalScope.php
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+
 class EnforcePortalScope
 {
     public function handle(Request $request, Closure $next, string $requiredScope): mixed
     {
-        $user = $request->user();
-        // El JWT debe incluir un claim 'portal' firmado server-side
+        // El token JWT debe incluir un claim firmado server-side llamado 'portal'
         $portalClaim = auth()->payload()->get('portal');
 
         if ($portalClaim !== $requiredScope) {
             return response()->json(['message' => 'Forbidden. Wrong portal scope.'], 403);
         }
+        
         return $next($request);
     }
 }
 
-// routes/api.php — separar rutas por portal
+// routes/api.php — Aislar y enforzar prefijos
 Route::prefix('admin')->middleware(['auth:api', 'portal.scope:admin'])->group(function () {
     Route::apiResource('users', AdminUserController::class);
     Route::apiResource('companies', AdminCompanyController::class);
@@ -271,20 +335,46 @@ Route::prefix('client')->middleware(['auth:api', 'portal.scope:client'])->group(
 
 ---
 
-## 9. Prevenir Mass Assignment
-**Remedia**: QD-09 (campos sensibles en PATCH de perfil).
+## 9. Cifrado de Secretos en Base de Datos
+**Remedia**: QD-02 (secrets expuestos).
 
 ```php
-// app/Models/User.php
-protected $fillable = [
-    'name', 'email', 'phone',  // ← solo campos seguros
-    // ❌ NUNCA en $fillable: role, is_admin, company_id, permissions, password (usar Hash)
-];
+// app/Models/SystemParameter.php
+namespace App\Models;
 
-// En controllers: nunca usar $request->all() — usar solo campos explícitos
-public function update(UpdateProfileRequest $request): JsonResponse
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Crypt;
+
+class SystemParameter extends Model
 {
-    $request->user()->update($request->only(['name', 'phone']));
-    return response()->json(['message' => 'Perfil actualizado.']);
+    // Mutator para cifrado automático al guardar en PostgreSQL
+    public function setValueAttribute(string $value): void
+    {
+        if ($this->isSensitiveField($this->key)) {
+            $this->attributes['value'] = Crypt::encryptString($value);
+        } else {
+            $this->attributes['value'] = $value;
+        }
+    }
+
+    // Accessor para descifrar automáticamente
+    public function getValueAttribute(string $value): string
+    {
+        if ($this->isSensitiveField($this->key)) {
+            try {
+                return Crypt::decryptString($value);
+            } catch (\Exception $e) {
+                return '[DECRYPT_ERROR]';
+            }
+        }
+        return $value;
+    }
+
+    private function isSensitiveField(string $key): bool
+    {
+        return in_array(strtolower($key), [
+            'smtp_password', 'aws_secret_access_key', 'api_key', 'private_key'
+        ]);
+    }
 }
 ```

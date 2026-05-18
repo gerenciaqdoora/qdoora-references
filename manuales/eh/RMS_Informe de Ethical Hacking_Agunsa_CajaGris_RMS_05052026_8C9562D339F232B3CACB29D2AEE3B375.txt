@@ -1,0 +1,1705 @@
+AA>zzzzzzzz
+
+Ethical Hacking Caja Gris | https:// qa-rms.agunsa.com/
+AGUNSA
+
+AGUNSA| Ethical Hacking
+
+Contenido
+Términos de Confidencialidad............................................................................................................. 3
+Resumen Ejecutivo .............................................................................................................................. 4
+Información relacionada al proyecto .................................................................................................. 6
+Control de Versiones del documento .......................................................................................... 6
+Equipo de Trabajo .......................................................................................................................... 6
+Datos del Proyecto ........................................................................................................................ 6
+Metodología de Trabajo ...................................................................................................................... 7
+Criterios de clasificación del riesgo ............................................................................................. 7
+Resumen de Hallazgos......................................................................................................................... 8
+Tabla de Resumen ......................................................................................................................... 8
+Categorización y Clasificación:.................................................................................................... 8
+Descripción del Flujo ........................................................................................................................... 9
+Descripción de hallazgos y evidencias............................................................................................... 18
+C01: Exposición de Credenciales en Texto Claro en API de Parámetros contiene secretos
+Críticos Comprometidos (SMTP, AWS IAM) .............................................................................. 18
+C02: Apropiación de cuenta completa (ATO) en cualquier cuenta mediante cadena de
+vulnerabilidades .......................................................................................................................... 25
+A01: Stored XSS (Cross-Site Scripting Almacenado) al ingresar o actualizar datos ............. 36
+A02: Ausencia de Rate Limiting en Operaciones CRUD .......................................................... 45
+B01: Mal manejo de errores permite ubicar rutas internas ..................................................... 50
+Checklist Batería de Pruebas ............................................................................................................. 53
+Conclusiones ..................................................................................................................................... 57
+
+2
+
+AGUNSA| Ethical Hacking
+
+Términos de Confidencialidad
+Declaración de Confidencialidad
+El presente documento contiene información confidencial y de propiedad de AGUNSA. Su
+contenido ha sido elaborado exclusivamente para fines de evaluación y certificación en el
+marco del servicio de Ethical Hacking realizado por Inside Security.
+Inside Security se compromete a mantener la confidencialidad de toda la información
+contenida en este informe, incluyendo hallazgos, evidencias, metodologías, resultados
+técnicos y cualquier otro dato asociado, y a no divulgarla, reproducirla, distribuirla ni ponerla
+a disposición de terceros sin autorización previa y expresa de AGUNSA
+El acceso a este documento estará restringido únicamente al personal de Inside Security que
+participe directamente en la ejecución, revisión y validación del servicio, bajo las obligaciones
+de confidencialidad correspondientes.
+
+3
+
+AGUNSA| Ethical Hacking
+
+Resumen Ejecutivo
+El presente informe detalla los resultados del servicio de AGUNSA, ejecutado entre el
+25/04/2026 y el 30/04/2026, cuyo objetivo principal fue identificar vulnerabilidades técnicas
+que pudieran ser explotadas por actores maliciosos externos o internos, afectando la
+confidencialidad, integridad y disponibilidad de la información.
+El alcance de la evaluación comprendió la siguiente aplicación:
+• RMS
+La evaluación fue realizada por el equipo especializado de Inside Security, empleando
+metodologías alineadas a buenas prácticas internacionales de Ethical Hacking y pruebas de
+penetración avanzadas. Las actividades incluyeron, entre otras:
+•
+•
+•
+•
+
+Pruebas de penetración (manuales y automatizadas)
+Análisis dinámico de seguridad (DAST)
+Evaluación de configuraciones de seguridad
+Identificación y validación manual de vulnerabilidades
+
+Asimismo, el alcance de pruebas técnicas realizadas comprende los siguiente:
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+
+Fingerprinting, enumeración de tecnologías, directorios, archivos ocultos.
+Configuraciones inseguras de servidores, headers de seguridad, archivos por defecto.
+Registro de usuarios, recuperación de cuenta, enumeración de usuarios.
+Login débil, brute force, credential stuffing.
+Control de acceso roto (IDOR, escalada de privilegios horizontal/vertical).
+Secuestro de sesión, fijación de sesión, cookies inseguras, logout débil.
+Inyecciones (SQLi, XSS, Command Injection, LDAP, etc.), formato de datos.
+Información sensible en errores, stack traces expuestos.
+Algoritmos débiles, TLS mal configurado, almacenamiento inseguro de contraseñas.
+DOM XSS, Web Storage, WebSockets.
+Autenticación en APIs, rate limiting,
+
+Para la clasificación de los hallazgos identificados, Inside Security utiliza el estándar CVSS
+v4.0 (Common Vulnerability Scoring System), el cual permite asignar una puntuación objetiva
+y cuantificable al nivel de criticidad de cada vulnerabilidad, facilitando la priorización de su
+remediación en función del riesgo.
+
+4
+
+AGUNSA| Ethical Hacking
+
+Como resultado de la evaluación, se identificaron 5 vulnerabilidades, las cuales se distribuyen
+según su nivel de criticidad en el gráfico presentado a continuación.
+
+Vulnerabilidades en Portal RMS
+3
+
+2
+
+2
+
+2
+
+1
+
+1
+
+0
+
+0
+
+Crítica
+
+Alta
+
+Media
+
+Baja
+
+5
+
+AGUNSA| Ethical Hacking
+
+Información relacionada al proyecto
+
+Control de Versiones del documento
+Fecha de Entrega
+
+Versión
+
+Ingeniero
+
+Revisado Por
+
+Comentarios
+
+05-05-2026
+
+1.0
+
+Ricardo Berrospi
+
+Líder Técnico
+
+Creación documento
+
+Equipo de Trabajo
+Empresa
+
+Nombre
+
+Cargo
+
+Contacto
+
+Inside Security
+
+Ricardo Berrospi
+
+Ing. de Seguridad Senior
+
+ricardo.berrospi@insidesecurity.cl
+
+Inside Security
+
+Gonzalo Ramírez
+
+Líder Técnico
+
+gonzalo.ramirez@insidesecurity.cl
+
+Inside Security
+
+Adrianny Hernández
+
+Líder de Gestión
+
+adrianny.hernandez@insidesecurity.cl
+
+Datos del Proyecto
+Nombre de Aplicación
+
+https://qa-rms.agunsa.com/
+
+Período de pruebas
+
+25/04/2026 y el 30/04/2026
+
+Alcance URL
+
+https://qa-rms.agunsa.com/
+
+Tipo de Aplicación
+
+Web
+
+Ambiente
+
+QA
+
+Focal Point
+
+Adrianny Hernández
+
+Observaciones
+
+Ninguno
+
+6
+
+AGUNSA| Ethical Hacking
+
+Metodología de Trabajo
+Para la categorización y registro de vulnerabilidades detectadas, se utiliza la metodología
+OWASP (Open Worldwide Application Security Project), la cual es aplicada tomando en cuenta
+su versión más actualizada para cada tipo de revisión o pentesting realizado (Web, Mobile,
+API). A su vez, para complementar esto y dar un enfoque más específico, también se utilizan
+las definiciones descritas en el CWE (Common Weakness Enumeration). Estos son
+frameworks mundialmente conocidos y aceptados en el ámbito del manejo y reporte de
+vulnerabilidades informáticas, los cuales permiten dar un mayor entendimiento de las
+mismas.
+Criterios de clasificación del riesgo
+Para realizar la clasificación y puntuación de las vulnerabilidades detectadas, se utiliza el
+sistema de puntuación CVSS v4.0 (Common Vulnerability Scoring System), éste es un
+framework abierto que permite capturar las principales características de una vulnerabilidad
+y genera un valor numérico que refleja el nivel de severidad, así como también una
+representación textual del score, esto se traduce a una representación cualitativa (crítico,
+alto, medio y bajo) que permitirá ayudar al equipo técnico a priorizar el proceso de gestión de
+vulnerabilidades. Los valores evaluados se muestran a continuación:
+
+Referencias: https://www.first.org/cvss/calculator/4.0 Beneficios del CVSS:
+A. Alineado con la norma PCI DSS.
+B. Estandariza la calificación de la vulnerabilidad.
+C. Prioriza el riesgo.
+D. Considera el impacto directo sobre el objetivo, así como el impacto subsecuente en otros
+sistemas.
+7
+
+AGUNSA| Ethical Hacking
+
+Resumen de Hallazgos
+En el análisis de seguridad realizado, se detectaron 5 vulnerabilidades, las cuales, de acuerdo
+con su nivel de riesgo, se catalogan de la siguiente manera:
+
+Tabla de Resumen
+Código
+C01
+C02
+A01
+
+Vulnerabilidad
+Exposición de Credenciales en Texto Claro en API de Parámetros contiene
+secretos Críticos Comprometidos (SMTP, AWS IAM)
+Apropiación de cuenta completa (ATO) en cualquier cuenta mediante
+cadena de vulnerabilidades
+Stored XSS (Cross-Site Scripting Almacenado) al ingresar o actualizar
+datos
+
+Criticidad
+Crítica
+Crítica
+Alta
+
+A02
+
+Ausencia de Rate Limiting en Operaciones CRUD
+
+Alta
+
+B01
+
+Mal manejo de errores permite ubicar rutas internas
+
+Baja
+
+Categorización y Clasificación
+Código
+
+Vulnerabilidad
+
+Criticidad
+
+C01
+
+Vulnerabilidad Crítica
+
+Crítica
+
+A01
+
+Vulnerabilidad Alta
+
+Alta
+
+M01
+
+Vulnerabilidad Media
+
+Media
+
+B01
+
+Vulnerabilidad Baja
+
+Baja
+
+I01
+
+Vulnerabilidad Informativa
+
+Informativa
+
+8
+
+AGUNSA| Ethical Hacking
+
+Descripción del Flujo
+Descripción General
+El flujo evaluado está relacionado a las distintas opciones del sistema RMS.
+Paso a Paso del Flujo Evaluado
+•
+
+Se accedió al portal https://qa-rms.agunsa.com/ con las credenciales del usuario
+insideadm, el cual es el usuario que tiene mayor visibilidad de opciones.
+
+•
+
+Después de un ingreso satisfactorio se presentó la pantalla siguiente con el usuario
+Insideadm.
+
+9
+
+AGUNSA| Ethical Hacking
+
+•
+
+Se cambió las fechas y se cambia la programación y vista (mapa visual).
+
+•
+
+Se seleccionó Asignaciones.
+
+•
+
+Se presentó la pantalla siguiente.
+
+10
+
+AGUNSA| Ethical Hacking
+
+•
+
+Del mismo modo, se eligió Notificaciones.
+
+•
+
+Se seleccionó Filtros y según la elección de Proceso, Estado y selección de fecha se
+aplican los filtros.
+
+•
+
+Se presenta una grilla de Notificaciones, se puede seleccionar cualquier registro de
+Proceso y se puede cambiar el estado del Proceso.
+
+11
+
+AGUNSA| Ethical Hacking
+
+•
+
+Se seleccionó el proceso para edición de notificación.
+
+Del mismo modo, se ingresó los datos de formulario del proceso notificado.
+
+12
+
+AGUNSA| Ethical Hacking
+
+•
+
+Se navegó hacia la Configuración y Atributos Dinámicos.
+
+•
+
+Se presentó una grilla con la posibilidad de Agregar, Editar o Eliminar Atributo.
+
+•
+
+Se agregó y editó nuevo atributo.
+
+13
+
+AGUNSA| Ethical Hacking
+
+•
+
+Se navegó hacia la Configuración y Recursos.
+
+•
+
+Se presentó una grilla con la posibilidad de Agregar, Editar Recurso o cambiar el estado de
+Activo.
+
+•
+
+Se agregó y editó nuevo Recurso.
+
+14
+
+AGUNSA| Ethical Hacking
+
+•
+
+Se navegó hacia la Configuración y Reglas Asignación
+
+•
+
+Se presentó una grilla con la posibilidad de Agregar, Editar Atributo o cambiar el estado de
+Activo.
+
+•
+
+Se agregó y nueva Regla Simple de asignación
+
+15
+
+AGUNSA| Ethical Hacking
+
+•
+
+Se agregó y nueva Regla Avanzada de asignación
+
+•
+
+Se navegó hacia la Configuración y Familia Pareo.
+
+•
+
+Se presentó una grilla con la posibilidad de Agregar, Editar, Eliminar Familia o cambiar el
+estado de Activo.
+
+•
+
+Se agregó nueva familia.
+
+16
+
+AGUNSA| Ethical Hacking
+
+•
+
+Se editó nueva familia.
+
+17
+
+AGUNSA| Ethical Hacking
+
+Descripción de hallazgos y evidencias
+A continuación, se detallan los hallazgos identificados durante la ejecución del servicio, junto
+con las evidencias técnicas recopiladas que respaldan cada vulnerabilidad detectada.
+Cada hallazgo incluye su descripción, impacto potencial, nivel de criticidad y evidencia
+asociada.
+
+C01: Exposición de Credenciales en Texto Claro en API de Parámetros contiene
+secretos Críticos Comprometidos (SMTP, AWS IAM)
+Descripción: Se ha identificado que la aplicación se puede invocar a un endpoint de
+parámetros de configuración (/api/parametros) devuelve en texto plano, sin cifrado y sin
+protección adicional un conjunto de credenciales altamente sensibles almacenadas en la
+tabla de parámetros de configuración del sistema. Entre los secretos expuestos se
+identificaron: credenciales SMTP de Gmail con capacidad de envío masivo de correo, claves
+de acceso AWS IAM con permisos de lectura y escritura sobre el bucket S3 develop-agunsa
+(región us-east-1), credenciales de conexión a ActiveMQ (broker de mensajería), y API keys de
+UptimeRobot. Todos estos secretos fueron verificados como funcionales durante el pentest
+autorizado.
+Con estas credenciales es posible acceso directo al smtp para envio de correo, al bucket S3
+develop-agunsa (región us-east-1) y se confirmó que utilizando estas credenciales se logró
+acceso con permisos de lectura y escritura al bucket develop-agunsa (región us-east-1).
+OWASP TOP 10
+CWE
+Nivel de criticidad
+Estado
+Puntuación CVSS
+URL afectada
+
+A01 - Broken Access Control
+CWE-200: Exposure of Sensitive Information to an Unauthorized Actor
+Crítico (9.4)
+VULNERABLE
+CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H
+URLs:
+GET https://qa-rms.agunsa.com/api/v1/parametros
+• Envío masivo de correo fraudulento desde la identidad corporativa de
+Agunsa Copiapó (credenciales SMTP Gmail confirmadas como
+funcionales).
+
+Impacto
+
+• Acceso no autorizado con permisos de lectura y escritura al bucket S3
+develop-agunsa (credenciales AWS IAM confirmadas como
+funcionales), exponiendo reportes de cumplimiento PACO/RSO, actas,
+logs y archivos operativos reales.
+• Posibilidad de modificación, eliminación masiva o sustitución de
+archivos críticos en S3, incluyendo la carga de contenido malicioso
+(XSS almacenado, malware).
+
+18
+
+AGUNSA| Ethical Hacking
+• Compromiso del broker de mensajería ActiveMQ mediante las
+credenciales expuestas, con potencial de interceptar o inyectar
+mensajes en los flujos operativos del aeropuerto.
+• Alto riesgo de fuga de información sensible, daño reputacional,
+posibles sanciones regulatorias por protección de datos personales y
+pérdida de confianza operacional.
+•
+
+Revocar y rotar de forma inmediata todas las credenciales
+expuestas: invalidar las claves AWS IAM (AKIAXDBDK5UOHMYESGPT),
+la contraseña Gmail (qmzaomogbrbhdmet), las credenciales ActiveMQ
+y las API keys de UptimeRobot. Generar nuevas credenciales con mayor
+entropía y distribuirlas únicamente a través de canales seguros.
+
+•
+
+Migrar el almacenamiento de secretos a un gestor dedicado: utilizar
+AWS Secrets Manager o AWS Systems Manager Parameter Store
+(SecureString) para almacenar y recuperar los secretos en tiempo de
+ejecución. Nunca almacenar credenciales en texto plano en tablas de
+base de datos.
+
+•
+
+Modificar el endpoint de parámetros para que nunca retorne valores
+sensibles: el API debe omitir o enmascarar (“****”) cualquier campo
+que contenga contraseñas, tokens, claves o credenciales, tanto en la
+respuesta JSON como en la interfaz de usuario de administración.
+
+•
+
+Aplicar el principio de menor privilegio en las políticas IAM: restringir
+el usuario IAM comprometido solo a las operaciones estrictamente
+necesarias sobre el bucket S3 específico (ej. s3:PutObject sobre
+prefijos concretos), eliminando permisos amplios de lectura/escritura
+irrestrictos.
+
+•
+
+Implementar monitoreo y alertas: activar AWS CloudTrail + GuardDuty
+para detectar accesos anómalos al bucket S3. Configurar alertas de
+Amazon SNS ante operaciones inusuales (ListBuckets, PutObject
+desde IPs externas). Habilitar S3 Access Logs.
+
+Recomendaciones
+
+Datos de prueba:
+Opción válida solo para el usuario Insideadm
+
+Evidencia:
+El punto de partida fue la interceptación del endpoint /api/v1/parámetros el cual retorna diversos
+parámetros entre ellos información de credenciales tales como cuenta de correo, de cuenta de
+AWS IAM bucket S3.
+
+19
+
+AGUNSA| Ethical Hacking
+
+Luego de obtener las credenciales se puede presentar los casos siguientes:
+a) Abuso de credenciales SMTP – Envío de correo con identidad corporativa de Agunsa
+El endpoint /api/v1/parametros retorna la configuración completa del servidor de correo bajo
+el parámetro MAILER-CONFIG, incluyendo host SMTP, puerto, usuario y contraseña en texto
+plano. Se confecciona el programa siguiente para probar el servicio y las credenciales y el
+resultado es satisfactorio. A continuación la ejecución del programa
+python sendemail.py
+send: 'ehlo [127.0.1.1]\r\n'
+reply: b'250-smtp.gmail.com at your service, [209.61.73.254]\r\n'
+reply: b'250-SIZE 35882577\r\n'
+reply: b'250-8BITMIME\r\n'
+reply: b'250-STARTTLS\r\n'
+reply: b'250-ENHANCEDSTATUSCODES\r\n'
+reply: b'250-PIPELINING\r\n'
+reply: b'250-CHUNKING\r\n'
+reply: b'250 SMTPUTF8\r\n'
+reply: retcode (250); Msg: b'smtp.gmail.com at your service, [209.61.73.254]\nSIZE
+35882577\n8BITMIME\nSTARTTLS\nENHANCEDSTATUSCODES\nPIPELINING\nCHUNKING\nSMTPUTF8'
+send: 'STARTTLS\r\n'
+reply: b'220 2.0.0 Ready to start TLS\r\n'
+reply: retcode (220); Msg: b'2.0.0 Ready to start TLS'
+send: 'ehlo [127.0.1.1]\r\n'
+reply: b'250-smtp.gmail.com at your service, [209.61.73.254]\r\n'
+reply: b'250-SIZE 35882577\r\n'
+reply: b'250-8BITMIME\r\n'
+reply: b'250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH\r\n'
+reply: b'250-ENHANCEDSTATUSCODES\r\n'
+reply: b'250-PIPELINING\r\n'
+reply: b'250-CHUNKING\r\n'
+reply: b'250 SMTPUTF8\r\n'
+reply: retcode (250); Msg: b'smtp.gmail.com at your service, [209.61.73.254]\nSIZE
+35882577\n8BITMIME\nAUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER
+XOAUTH\nENHANCEDSTATUSCODES\nPIPELINING\nCHUNKING\nSMTPUTF8'
+send: 'AUTH PLAIN AGRlc2Fycm9sbG9wcnVlYmE5QGdtYWlsLmNvbQBxbXphb21vZ2JyYmhkbWV0\r\n'
+reply: b'235 2.7.0 Accepted\r\n'
+reply: retcode (235); Msg: b'2.7.0 Accepted'
+send: 'mail from:<desarrolloprueba9@gmail.com> size=1151\r\n'
+
+20
+
+AGUNSA| Ethical Hacking
+reply: b'250 2.1.0 OK 5a478bee46e88-2ca760b0518sm23852695eec.0 - gsmtp\r\n'
+reply: retcode (250); Msg: b'2.1.0 OK 5a478bee46e88-2ca760b0518sm23852695eec.0 - gsmtp'
+send: 'rcpt to:<ricardo.berrospi@insidesecurity.cl>\r\n'
+reply: b'250 2.1.5 OK 5a478bee46e88-2ca760b0518sm23852695eec.0 - gsmtp\r\n'
+reply: retcode (250); Msg: b'2.1.5 OK 5a478bee46e88-2ca760b0518sm23852695eec.0 - gsmtp'
+send: 'data\r\n'
+reply: b'354 Go ahead 5a478bee46e88-2ca760b0518sm23852695eec.0 - gsmtp\r\n'
+reply: retcode (354); Msg: b'Go ahead 5a478bee46e88-2ca760b0518sm23852695eec.0 - gsmtp'
+data: (354, b'Go ahead 5a478bee46e88-2ca760b0518sm23852695eec.0 - gsmtp')
+send: b'Content-Type: multipart/alternative;
+boundary="===============2182893749904595032=="\r\nMIME-Version: 1.0\r\nFrom:
+desarrolloprueba9@gmail.com\r\nTo: ricardo.berrospi@insidesecurity.cl\r\nSubject: =?utf8?q?Prueba_t=C3=A9cnica_de_env=C3=ADo_de_correo_-_Pentest_autorizado?=\r\n\r\n-===============2182893749904595032==\r\nContent-Type: text/plain; charset="usascii"\r\nMIME-Version: 1.0\r\nContent-Transfer-Encoding: 7bit\r\n\r\nPrueba de envio de
+correo\r\n\r\nEste es un correo de prueba enviado durante un pentest autorizado.\r\nFecha y
+hora: 2026-04-08 20:33:26\r\n--===============2182893749904595032==\r\nContent-Type:
+text/html; charset="utf-8"\r\nMIME-Version: 1.0\r\nContent-Transfer-Encoding:
+base64\r\n\r\nCjxodG1sPgo8Ym9keT4KPGgzPlBydWViYSBkZSBlbnbDrW8gZGUgY29ycmVvPC9oMz4KPHA+RXN0\r
+\nZSBjb3JyZW8gZnVlIGVudmlhZG8gY29tbyBwYXJ0ZSBkZSB1biA8c3Ryb25nPnBlbnRlc3QgYXV0\r\nb3JpemFkbz
+wvc3Ryb25nPi48L3A+CjxwPjxzdHJvbmc+RmVjaGEgeSBob3JhOjwvc3Ryb25nPiAy\r\nMDI2LTA0LTA4IDIwOjMzOj
+I2PC9wPgo8cD5TaSBlc3TDoXMgcmVjaWJpZW5kbyBlc3RlIG1lbnNh\r\namUsIGNvbmZpcm1hIHF1ZSBsYXMgY3JlZG
+VuY2lhbGVzIFNNVFAgZnVuY2lvbmFuIGNvcnJlY3Rh\r\nbWVudGUuPC9wPgo8L2JvZHk+CjwvaHRtbD4K\r\n\r\n-===============2182893749904595032==--\r\n.\r\n'
+reply: b'250 2.0.0 OK 1775694810 5a478bee46e88-2ca760b0518sm23852695eec.0 - gsmtp\r\n'
+reply: retcode (250); Msg: b'2.0.0 OK 1775694810 5a478bee46e88-2ca760b0518sm23852695eec.0 gsmtp'
+data: (250, b'2.0.0 OK 1775694810 5a478bee46e88-2ca760b0518sm23852695eec.0 - gsmtp')
+send: 'quit\r\n'
+reply: b'221 2.0.0 closing connection 5a478bee46e88-2ca760b0518sm23852695eec.0 - gsmtp\r\n'
+reply: retcode (221); Msg: b'2.0.0 closing connection 5a478bee46e882ca760b0518sm23852695eec.0 - gsmtp'
+
+Asimismo, se puede comprobar que utilizando estas credenciales se confirmó el envío exitoso
+de correos con el remitente “Agunsa Copiapo <desarrolloprueba9@gmail.com>”. Un atacante
+puede emplear estas credenciales para suplantar la identidad corporativa, realizar campañas
+de phishing o agotar la cuota de envío del servicio. La interfaz de administración del sistema
+también expone estos valores visualmente en el módulo de parámetros.
+
+21
+
+AGUNSA| Ethical Hacking
+
+b) Abuso de credenciales AWS+IAM
+A través de AWS CLI (Command Line Interface) de Amazon Web Services el cual permite
+gestionar los servicios de la nube de AWS mediante comandos en la terminal y con las
+credenciales ubicadas en el endpoint (que resultaron ser satisfactorias) se configura el acceso
+de AWS IAM para acceder al bucket. Se aprecian objetos 2025, 2026, DESARROLLO Y QA
+
+Con el paso anterior, se confirmó el acceso de lectura; asimismo, se pueden leer
+recursivamente los archivos que contiene el bucket
+
+Asimismo, se pueden confirmar que es posible realizar operaciones de escritura en el bucket
+A continuación, se presenta el caso de carga un archivo .TXT en el bucket
+
+22
+
+AGUNSA| Ethical Hacking
+
+Por otro lado, a continuación, se presenta el caso de eliminado del archivo .TXT cargado
+
+Asimismo, para probar si es posible cargar un archivo HTML (test-xss.html) que incluya un
+payload XSS siguiente, se confecciona el siguiente archivo:
+<!DOCTYPE html>
+<html><head><title>XSS Test</title></head><body>
+<h1>Pentest - Archivo subido a S3</h1>
+<script>
+alert("XSS exitoso desde AWS S3 - " + document.domain);
+console.log("Cookies: " + document.cookie);
+</script>
+</body></html>
+
+Luego se genera una URL prefirmada
+
+Esta URL, se ingresa a un browser y el resultado es que si es accesible viendo que se puede
+ejecutar un html
+https://develop-agunsa.s3.us-east-1.amazonaws.com/QA/test-xss.html?XAmz-Algorithm=AWS4-HMAC-SHA256&X-AmzCredential=AKIAXDBDK5UOHMYESGPT%2F20260405%2Fus-east1%2Fs3%2Faws4_request&X-Amz-Date=20260405T160223Z&X-AmzExpires=3600&X-Amz-SignedHeaders=host&X-AmzSignature=7e534a3216dcf9638200cf4af364a266e19b1357d0334eebf483e07bca98
+95c0
+
+23
+
+AGUNSA| Ethical Hacking
+
+Se accedió al archivo vía prefirmada URL y se ejecutó el código JavaScript
+
+24
+
+AGUNSA| Ethical Hacking
+
+C02: Apropiación de cuenta completa (ATO) en cualquier cuenta mediante
+cadena de vulnerabilidades
+Descripción: Se ha identificado una cadena de vulnerabilidades que, combinadas, permiten
+a un atacante apoderarse completamente de cualquier cuenta del sistema. El ataque se
+puede ejecutar por dos vías independientes:
+Opción A — Fuerza Bruta sobre endpoint de autenticación
+•
+
+•
+•
+
+•
+•
+
+La API GET /api/v1/usuarios, accesible con un token de usuario
+administrador, se devuelve el listado completo de usuarios registrados
+incluyendo login, nombre, email y rol de administrador.
+Con el listado de usuarios obtenido, se realizó un ataque de fuerza bruta
+sobre el endpoint POST /api/v1/login utilizando contraseñas comunes.
+El sistema no implementa bloqueo efectivo ni CAPTCHA, permitiendo iterar
+sobre todos los usuarios. Se obtuvo acceso exitoso con el usuario
+'avenegas'.
+Una vez autenticado, el atacante puede operar dentro del sistema con
+todos los privilegios del usuario comprometido.
+Esta opción es apropiación de cuenta parcial, debido a que el usuario
+podría recuperar su contraseña y el atacante podría pedir perder el acceso.
+
+Opción B — Modificación de email + secuestro vía recuperación de contraseña (ATO
+Completo)
+•
+
+•
+
+•
+•
+
+•
+
+La API GET /api/v1/usuarios, accesible con un token de usuario
+administrador, se devuelve el listado completo de usuarios registrados
+incluyendo login, nombre, email y rol de administrador.
+La API PUT /api/v1/usuarios, accesible con un token de usuario
+administrador, permite modificar los datos de cualquier usuario objetivo,
+entre ellos su campo 'email' por uno controlado por el atacante.
+A continuación, el atacante invoca el flujo de recuperación de contraseña
+ingresando el login de la víctima.
+El sistema envía el código de recuperación de 6 dígitos al email que ahora
+controla el atacante y con ese dato puede establecer una nueva
+contraseña y toma control total e irreversible de la cuenta.
+Esta opción es apropiación de cuenta total, debido a que el usuario podría
+recuperar su contraseña y el atacante podría pedir perder el acceso.
+
+25
+
+AGUNSA| Ethical Hacking
+
+OWASP TOP 10
+
+CWE
+
+Nivel de criticidad
+Estado
+Puntuación CVSS
+
+URL afectada
+
+A01 - Broken Access Control
+A07 - Identification & Authentication Failures
+A04 - Insecure Design
+CWE-284 Improper Access Control.
+CWE-307 Improper Restriction of Excessive Authentication Attempts
+CWE-640 Weak Password Recovery Mechanism
+CWE-620 Unverified Password Change
+CWE-269 Improper Privilege Management
+Crítico (9.4)
+VULNERABLE
+CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:N/VC:H/VI:H/VA:L/SC:H/SI:H/SA:L
+URLs:
+GET
+https://qa-rms.agunsa.com/api/v1/usuarios
+POST https://qa- rms.agunsa.com/api/v1/login
+PUT
+https://qa- rms.agunsa.com/api/v1/usuarios
+POST https://qa- rms.agunsa.com/api/v1/recuperar-password
+• Toma de control total de cualquier cuenta de usuario del sistema,
+incluyendo cuentas con rol administrador.
+• Acceso a información sensible de operaciones aeroportuarias: fichas
+digitales, tableros de cumplimiento, inspecciones fiscales, logs
+internos y reportes.
+
+Impacto
+
+• Posibilidad de modificar datos operacionales críticos (cumplimiento,
+planificación, observaciones IF).
+• El ATO mediante Opción B es persistente e irreversible sin intervención
+del equipo técnico, ya que el propietario real pierde acceso al no
+controlar el email.
+• Exposición de datos personales de todos los usuarios del sistema
+(nombre, email corporativo, login, rol).
+• Riesgo de escalada de privilegios si se compromete una cuenta
+administradora
+• Aun tenga roles de Administrador, se debe restringir el endpoint GET
+/api/v1/usuarios (listar usuarios) desde aplicaciones que no sean las
+que manejen la seguridad del sistema.
+• Implementar bloqueo progresivo con backoff exponencial (ej.: bloqueo
+de 15 min tras 3 intentos fallidos).
+• Implementar alertas de seguridad por email ante múltiples intentos
+fallidos desde la misma IP.
+
+Recomendaciones
+
+• Exigir confirmación de contraseña actual antes de permitir la
+modificación del email en el perfil.
+• Enviar notificación al email anterior informando del cambio, con un
+enlace de reversión válido por 24 horas.
+• Agregar verificación adicional antes del envío del código (ej.: pregunta
+de seguridad, confirmación por segundo factor).
+• Implementar autenticación multifactor (MFA) para todas las cuentas,
+obligatorio para administradores.
+
+26
+
+AGUNSA| Ethical Hacking
+• Aplicar rate limiting por IP sobre todos los endpoints de autenticación y
+recuperación.
+
+Datos de prueba:
+Opción válida solo para el usuario Insideadm; asimismo, para pruebas de login de fuerza bruta
+no se requiere un usuario autenticado alguno del sistema.
+
+Evidencia:
+OPCIÓN A — Fuerza Bruta: Apropiación de cuenta Parcial
+Como primer paso, se ingresa a https://qa-rms.agunsa.com/ con las credenciales del usuario
+insideadm
+
+27
+
+AGUNSA| Ethical Hacking
+
+Una vez ingresado con usuario con rol de administrador, se revisa la respuesta del enpoint GET
+/api/v1/login y se obtiene un token que se empleará cuando se convoque las llamadas a otros
+enpoints.
+
+Se realiza una petición GET /api/v1/usuarios empleando el token obtenido. La respuesta
+expone el listado completo de usuarios: login, nombre, email y rol de administrador.
+
+28
+
+AGUNSA| Ethical Hacking
+
+Esta función no debería estar disponible para consumo desde la aplicación PERFILES,
+normalmente esta funcionalidad debería emplearse desde la aplicación en la que se maneja
+la seguridad del sistema.
+Asimismo, con el listado de usuarios y una contraseña candidata (Agunsa2025*), se ejecuta
+un ataque de fuerza bruta con Burp Suite Intruder. El resultado muestra un HTTP 200 para el
+usuario 'avenegas', confirmando credenciales válidas.
+
+29
+
+AGUNSA| Ethical Hacking
+
+El usuario tiene un perfil de administrador con privilegios de administrador (AdmGlobal:true)
+y con una cantidad de opciones válidas.
+
+30
+
+AGUNSA| Ethical Hacking
+
+Utilizando las credenciales obtenidas por fuerza bruta, se accede exitosamente al Sistema
+RMS con el usuario avenegas
+
+OPCIÓN B — Modificación de Email + Secuestro por Recuperación de Contraseña:
+Apropiación de cuenta Total
+Como primer paso, se ingresa a https://qa-rms.agunsa.com/ con las credenciales del usuario
+insideadm
+
+31
+
+AGUNSA| Ethical Hacking
+
+Al igual que en el anterior caso (opción A), se realiza una petición GET /api/v1/usuarios
+empleando el token obtenido. La respuesta expone el listado completo de usuarios: login,
+nombre, email y rol de administrador.
+
+Con el token de sesión obtenido, se realiza una petición PUT /api/v1/usuarios modificando el
+campo 'email' del usuario objetivo por un email controlado por el atacante
+(rberrospi@gmail.com). El servidor responde HTTP 200 confirmando la modificación exitosa.
+
+32
+
+AGUNSA| Ethical Hacking
+
+El atacante invoca el flujo de recuperación de contraseña (¿olvidó su contraseña?) ingresando
+el login de la víctima ('avenegas').
+
+33
+
+AGUNSA| Ethical Hacking
+
+El atacante recibe el correo con el código de recuperación (995877).
+
+Con este código puede establecer una nueva contraseña, completando el ATO de forma total
+e irreversible sin que el propietario legítimo sea notificado.
+
+34
+
+AGUNSA| Ethical Hacking
+
+Utilizando la nueva credencial, se accede exitosamente al Sistema PERFILES con el usuario
+avenegas, en este caso, el atacante obtiene control total y permanente sobre la cuenta de la
+víctima. El propietario legítimo no puede recuperar el acceso sin intervención del equipo de
+soporte o el administrador que accede desde el sistema de seguridad.
+
+35
+
+AGUNSA| Ethical Hacking
+
+A01: Stored XSS (Cross-Site Scripting Almacenado) al ingresar o actualizar datos
+Descripción:Se ha identificado una vulnerabilidad de tipo Stored XSS (Cross-Site Scripting
+Almacenado) en diversos enpoints, en los cuales el backend almacena el valor sin sanitizar en
+base de datos y lo devuelve tal cual en las respuestas posteriores. Cuando el frontend
+renderiza el listado de sistemas o el panel de edición, el payload HTML/JavaScript inyectado
+se ejecuta automáticamente en el navegador de cualquier usuario que acceda a la sección
+donde existe una grilla, sin requerir interacción adicional.
+OWASP TOP 10
+CWE
+Nivel de criticidad
+Estado
+Puntuación CVSS
+
+URL afectada
+
+A05:2025 – Injection
+CWE-79: Improper Neutralization of Input During Web Page Generation
+(Stored XSS)
+Alto (8.4)
+VULNERABLE
+CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:P/VC:H/VI:L/VA:N/SC:H/SI:H/SA:N
+Notificaciones
+PUT /api/v1/cambia-estado-notificacion
+POST | PUT /api/v1/atributos-dinamicos
+POST | PUT /api/v1/recursos
+POST | PUT /api/v1/regla-simple o
+POST | PUT /api/v1/regla-avanzada
+POST | PUT /api/v1/familia-pareo
+• Ejecución de JavaScript arbitrario en el navegador de cualquier usuario
+(administrador u operador) que acceda a la sección “Notificaciones”,
+sin requerir ninguna interacción adicional. El payload se ejecuta
+automáticamente al cargar la página.
+• Redirección silenciosa a sitios maliciosos, captura de credenciales
+mediante formularios falsos superpuestos (phishing interno), o
+modificación del contenido del panel de administración.
+
+Impacto
+
+• El carácter persistente del XSS (Stored) significa que el payload afecta
+a todos los usuarios que visiten la sección mientras el registro
+malicioso permanezca en la base de datos, sin necesidad de que el
+atacante mantenga una sesión activa.
+•
+
+Sanitizar y validar toda entrada en el backend antes de almacenarla:
+aplicar una lista blanca de caracteres permitidos en los campos de
+texto del endpoint /api/v1/sistemas y rechazar o sanitizar cualquier
+entrada que contenga caracteres HTML especiales (< > " ’ / \). Utilizar
+librerías especializadas como DOMPurify (frontend) o validator.js /
+sanitize-html (backend Node.js).
+
+•
+
+Implementar output encoding en el frontend al renderizar datos:
+asegurarse de que los valores recuperados de la API se rendericen
+siempre como texto plano (textContent, :innerText, v-text en Vue.js) y
+nunca como HTML (innerHTML, v-html). En Angular usar el pipe | text en
+lugar de [innerHTML].
+
+•
+
+Configurar Content Security Policy (CSP) estricta: implementar una
+cabecera CSP que restrinja la ejecución de scripts inline y de orígenes
+no autorizados, como capa de defensa adicional. Ejemplo: ContentSecurity-Policy: default-src ’self’; script-src ’self’.
+
+Recomendaciones
+
+36
+
+AGUNSA| Ethical Hacking
+
+Datos de prueba:
+Usuario: insideam
+Payload: "login": "\"><input autofocus onfocus=alert(document.domain)><input value=\""
+
+Evidencia:
+Paso 1 – Almacenamiento del payload XSS en el campo login
+A través de la interfaz de “Notificaciones” ya sea para agregar o editar sistemas se puede
+actualizar los datos.
+
+Para ello, para agregar basta dar doble click en cualquier registro y se mostrará la siguiente
+pantalla:
+
+En ese sentido se intercepta la comunicación y si bien no aparece dentro de los campos de
+entrada en forma visual, en la solicitud de interceptación aparece un campo “login” y es allí
+donde se incluye el payload XSS. Luego de ejecutar la solicitud con Burp Suite confirma que el
+
+37
+
+AGUNSA| Ethical Hacking
+
+backend responde HTTP 200 OK confirmando que el payload se persiste en base de datos
+exactamente como fue enviado, sin ningún proceso de sanitización:
+
+Luego, al cargar la sección “Notificacion” (POST /api/v1/cambia-estado-notificacion) el
+navegador ejecuta automáticamente el JavaScript del payload almacenado. El cuadro de
+diálogo alert(document.domain) se dispara desde el dominio qa-rms.agunsa.com
+confirmando la ejecución de código arbitrario en el contexto del sitio.
+
+38
+
+AGUNSA| Ethical Hacking
+
+Otras secciones vulnerables son los siguientes:
+a) En la sección “Atributos Dinámicos” se agrega un Atributo.
+
+En el endpoint POST | PUT /api/v1/atributos-dinamicos los campos vulnerables son: nombre y
+descripción con payload "\"><input autofocus onfocus=alert(document.domain)><input
+value=\""
+
+Cuando se graba esa información, al ingresas a la sección de Atributos Dinámico el navegador
+ejecuta automáticamente el JavaScript del payload almacenado. El cuadro de diálogo
+alert(document.domain) se dispara desde el dominio qa-rms.agunsa.com confirmando la
+ejecución de código arbitrario en el contexto del sitio.
+
+39
+
+AGUNSA| Ethical Hacking
+
+b) En la sección “Recursos” se agrega un Recurso.
+
+40
+
+AGUNSA| Ethical Hacking
+
+En los endpoints POST | PUT /api/v1/recursos el campo vulnerable es: nombre con payload
+"\"><input autofocus onfocus=alert(document.domain)><input value=\""
+
+Cuando se graba esa información, al ingresas a la sección de Recursos el navegador ejecuta
+automáticamente el JavaScript del payload almacenado. El cuadro de diálogo
+alert(document.domain) se dispara desde el dominio qa-rms.agunsa.com confirmando la
+ejecución de código arbitrario en el contexto del sitio.
+
+c) En la sección “Reglas Asignación” se agrega una regla simple o regla avanzada
+
+41
+
+AGUNSA| Ethical Hacking
+
+En los endpoints POST | PUT /api/v1/regla-simple o POST | PUT /api/v1/regla-avanzada el
+campo vulnerable es: nombre con payload <img src=x onerror=alert(document.domain)>
+
+Cuando se graba esa información, al ingresas a la sección de Recursos el navegador ejecuta
+automáticamente el JavaScript del payload almacenado. El cuadro de diálogo
+alert(document.domain) se dispara desde el dominio qa-rms.agunsa.com confirmando la
+ejecución de código arbitrario en el contexto del sitio.
+
+d) En la sección “Familias Pareo” se agrega una Familia
+42
+
+AGUNSA| Ethical Hacking
+
+En los endpoints POST | PUT /api/v1/familia-pareo el campo vulnerable es: nombre con
+payload <img src=x onerror=alert(document.domain)>
+
+Cuando se graba esa información, al ingresas a la sección de Recursos el navegador ejecuta
+automáticamente el JavaScript del payload almacenado. El cuadro de diálogo
+alert(document.domain) se dispara desde el dominio qa-rms.agunsa.com confirmando la
+ejecución de código arbitrario en el contexto del sitio.
+
+43
+
+AGUNSA| Ethical Hacking
+
+44
+
+AGUNSA| Ethical Hacking
+
+A02: Ausencia de Rate Limiting en Operaciones CRUD
+Descripción:Se ha identificado que los endpoints de configuración de la aplicación no
+implementan ningún mecanismo de control de frecuencia (rate limiting) sobre las operaciones
+de creación, modificación y eliminación. Un atacante autenticado con un Bearer token válido
+puede ejecutar operaciones CRUD masivas de forma automatizada —utilizando herramientas
+como Burp Suite Intruder— sin que el servidor detecte, limite ni bloquee el comportamiento
+anómalo. Los módulos afectados son los pilares de la seguridad de toda la plataforma:
+Atributos Dinámicos, Recursos, Reglas Asignación y Familias Pareo. Se confirmó la
+ejecución exitosa de operaciones CRUD consecutivas sobre el módulo de Sistemas, todas
+respondidas con HTTP 200 OK sin ningún mecanismo de detección o bloqueo.
+OWASP TOP 10
+CWE
+Nivel de criticidad
+Estado
+Puntuación CVSS
+
+Endpoints afectados
+
+A06:2025 – Insecure Design
+CWE-770: Allocation of Resources Without Limits or Throttling
+CWE-400: Uncontrolled Resource Consumption
+Alto (8.5)
+VULNERABLE
+CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:N/VC:N/VI:H/VA:H/SC:H/SI:H/SA:N
+Atributos Dinámicos: POST|PUT|DELETE /api/v1/atributos-dinamicos
+Recursos: POST|PUT|DELETE /api/v1/recursos
+Reglas Asignación: POST|PUT|DELETE /api/v1/regla-simple o
+Reglas Asignación: POST|PUT|DELETE /api/v1/regla-avanzada
+Familia Pareo: POST|PUT|DELETE /api/v1/familia-pareo
+• Eliminación masiva de sistemas registrados: un atacante puede
+eliminar automáticamente todos los sistemas integrados (GEMINI,
+INSPECCIONES, RMS, PERFILES, etc.) en segundos, dejando la
+plataforma inoperativa para todos los usuarios.
+• Modificación masiva de roles y privilegios: mediante operaciones
+PUT masivas un atacante puede alterar los permisos de todos los roles
+del sistema, escalando o revocando privilegios a escala, afectando a
+todos los usuarios de los sistemas integrados (GEMINI,
+INSPECCIONES, RMS).
+• Eliminación o creación masiva de usuarios: el endpoint de usuarios
+sin rate limiting permite eliminar todos los usuarios del sistema o crear
+cuentas falsas masivamente, comprometiendo la integridad del
+directorio de acceso.
+
+Impacto
+
+• Revocación o creación masiva de API Keys: la eliminación masiva de
+clientes API dejaría sin acceso a todos los sistemas integrados que
+dependen de autenticación por API Key, causando una interrupción
+total del ecosistema.
+La ausencia de rate limiting en módulos de seguridad convierte cualquier
+cuenta de administrador comprometida en un vector de destrucción total
+de la configuración del sistema. Sin backups automáticos ni trazabilidad
+de operaciones masivas, el daño podría ser irreversible en el corto plazo.
+•
+Recomendaciones
+
+Implementar rate limiting en todos los endpoints de escritura de
+módulos críticos: configurar límites estrictos por usuario autenticado
+y por IP para los verbos POST, PUT y DELETE en los endpoints
+/api/v1/atributos-dinamicos, /api/v1/recursos, /api/v1/regla-simple,
+
+45
+
+AGUNSA| Ethical Hacking
+/api/v1/regla-avanzada, /api/v1/familia-pareo. Utilizar express-ratelimit (Node.js) o un API Gateway con políticas de throttling. Valores
+recomendados: máximo 10 operaciones de escritura por minuto por
+usuario.
+•
+
+Implementar confirmación para operaciones destructivas masivas:
+requerir una confirmación adicional (campo de texto, CAPTCHA o doble
+aprobación) para operaciones DELETE que afecten recursos críticos del
+sistema, de modo que no puedan ejecutarse de forma automatizada sin
+interacción humana.
+
+•
+
+Implementar auditoría y alertas sobre operaciones masivas:
+registrar todas las operaciones de escritura en un log de auditoría con
+usuario, timestamp, recurso afectado e IP de origen. Configurar alertas
+automáticas ante patrones anómalos (más de N operaciones DELETE
+en X segundos por el mismo token).
+
+•
+
+Habilitar soft delete en lugar de hard delete para registros críticos:
+implementar eliminación lógica (marcar como inactivo) en lugar de
+eliminación física de la base de datos para sistemas, roles y usuarios,
+permitiendo la recuperación ante ataques de borrado masivo sin
+necesidad de restaurar backups.
+
+Datos de prueba:
+Usuario: Insideadm
+
+Evidencia:
+Los casos de funcionalidad vulnerable están asociadas a secciones con funcionalidad de
+mantención de registros “Adicionar”, “Editar”, “Eliminar”. En dicha funcionalidad se puede
+realizar operaciones masivas, en ese sentido cualquier funcionalidad que tenga una grilla y
+con las operaciones de eliminación son vulnerables.
+
+Para ejemplarizar las operaciones de CREATE en ATRIBUTOS DINÁMICOS se crearon varios
+registros con código PRUEBA: PRUEBA1, PRUEBA2, PRUEBA3, etc.
+46
+
+AGUNSA| Ethical Hacking
+
+Asimismo, para ejemplarizar las operaciones de UPDATE en ATRIBUTOS DINÁMICOS se
+actualizaron varios registros con código PRUEBA: PRUEBA1, PRUEBA2, APRUEBA3, etc.
+47
+
+AGUNSA| Ethical Hacking
+
+Asimismo, para ejemplarizar las operaciones de DELETE en ATRIBUTOS DINÁMICOS se
+actualizaron varios registros con código PRUEBA: PRUEBA1, PRUEBA2, PRUEBA3, etc.
+48
+
+AGUNSA| Ethical Hacking
+
+Como se puede apreciar ya no aparecen los registros de PRUEBA
+
+49
+
+AGUNSA| Ethical Hacking
+
+B01: Mal manejo de errores permite ubicar rutas internas
+Descripción: Se ha identificado una vulnerabilidad que da cuenta que el framework basado
+en Node.js con Express no implementa un manejador de errores personalizado para
+producción. Cuando se envía un cuerpo JSON malformado a cualquiera de los endpoints de la
+API, el servidor responde con HTTP 400 Bad Request incluyendo en el body el stack trace
+completo del error interno de Node.js, exponiendo información detallada sobre la arquitectura
+interna de la aplicación.
+Un usuario puede acceder en el stack trace a conocer Framework y runtime, Módulos internos
+con versiones y rutas, Arquitectura interna de la aplicación y cabecera de tecnología expuesta
+OWASP TOP 10
+CWE
+Nivel de criticidad
+Estado
+Puntuación CVSS
+
+URL afectada
+
+Impacto
+
+A10:2025 - Mishandling of Exceptional Conditions
+CWE-209: Generation of Error Message Containing Sensitive Information
+Bajo (2.3)
+VULNERABLE
+CVSS:4.0/AV:A/AC:H/AT:N/PR:N/UI:N/VC:L/VI:N/VA:N/SC:N/SI:N/SA:N
+URLs:
+Todas las URLs que emplean GEt, PUT, DELETE, POST que incluyen
+parámetros JSON
+Parámetro Afectado:
+{JSON MALFORMADO}
+• Reconocimiento de infraestructura facilitado: el stack trace revela el
+framework, versiones de módulos, rutas internas y arquitectura de la
+aplicación, información que un atacante utiliza para identificar
+versiones vulnerables de dependencias y vectores de ataque
+específicos.
+• Alcance genérico en el backend: al estar ausente el manejador de
+errores a nivel de middleware, todos los endpoints del backend son
+susceptibles de exponer stack traces ante entradas inesperadas, no
+solo los dos confirmados durante la prueba.
+
+•
+
+Impacto bajo de forma aislada: no hay explotación directa, pero la
+información expuesta reduce el esfuerzo necesario para un atacante en
+fases de reconocimiento previas a ataques más sofisticados.
+
+•
+
+Implementar un manejador de errores centralizado en Express:
+agregar un middleware de error al final de la cadena de Express
+(app.use((err, req, res, next) => ...)) que capture todas las excepciones
+no manejadas y devuelva únicamente un mensaje genérico al cliente (ej.
+{"error":"Bad Request"}) sin incluir el stack trace, rutas internas ni
+detalles del runtime. Los detalles del error deben registrarse
+exclusivamente en los logs del servidor.
+
+•
+
+Eliminar la cabecera X-Powered-By: deshabilitar la cabecera XPowered-By en Express mediante app.disable('x-powered-by') o usando
+el middleware Helmet (helmet()) que la elimina automáticamente junto
+con otras cabeceras de seguridad. Esto elimina la revelación del
+framework sin esfuerzo adicional.
+
+Recomendaciones
+
+50
+
+AGUNSA| Ethical Hacking
+•
+
+Configurar NODE_ENV=production: verificar que la variable de
+entorno NODE_ENV esté configurada como production, ya que algunos
+frameworks y librerías de Node.js reducen automáticamente la
+verbosidad de los errores en modo producción.
+
+•
+
+Establecer un control de Tasa (Rate Limiting): Limitar el número de
+peticiones de descarga por usuario para prevenir la exfiltración masiva
+de documentos.
+
+Datos de prueba:
+Para este caso, se empleó el usuario insideadm.
+Evidencias
+Se evidencia que cualquier solicitud que tenga un JSON malformado genera un error que no es
+controlado.
+
+51
+
+AGUNSA| Ethical Hacking
+
+52
+
+AGUNSA| Ethical Hacking
+
+Checklist Batería de Pruebas
+
+1.
+
+RECOPILACIÓN DE INFORMACIÓN
+
+Reconocimiento de fugas de información
+
+☐
+
+Fingerprint de Servidor Web
+
+X
+
+Revisar metadatos en el portal web
+
+X
+
+Enumerar Aplicaciones dentro el Servidor Web
+
+X
+
+Revisar el contenido de la página web
+
+X
+
+Identificar los puntos de entrada de la aplicación
+
+☐
+
+Trazar rutas de ejecución a través de la aplicación
+
+☐
+
+Fingerprint al Framework de Aplicación Web
+
+X
+
+Fingerprint de Aplicación Web
+
+X
+
+Mapeo de arquitectura de aplicación
+
+☐
+
+2.
+
+PRUEBAS DE CONFIGURACIÓN Y DESPLIEGUE
+
+Verificar la política de CORS
+
+X
+
+Prueba a la configuración de la plataforma de aplicaciones
+
+☐
+
+Prueba de manejo de extensiones de archivos para información confidencial
+
+X
+
+Búsqueda de copias de seguridad antigua y archivos sin referencia
+
+X
+
+Enumerar interfaces de administración de aplicación e infraestructura
+
+☐
+
+Prueba de métodos HTTP
+
+☐
+
+Verificar HTTP Strict Transport Security (HSTS)
+
+☐
+
+Prueba de RIA Cross Domain Policy
+
+☐
+
+Prueba de permisos de archivos
+
+X
+
+Búsqueda de directorios ocultos
+
+X
+
+3.
+
+PRUEBAS DE GESTIÓN DE IDENTIDAD
+
+Pruebas de definiciones de roles
+
+X
+
+Pruebas al proceso de registro de usuario
+
+X
+
+Pruebas al proceso de entrega de cuenta
+
+X
+
+53
+
+AGUNSA| Ethical Hacking
+Pruebas de enumeración y adivinación de cuentas de usuario
+
+X
+
+Pruebas de política débil o no aplicada para nombres de usuario
+
+X
+
+4.
+
+PRUEBAS DE AUTENTICACIÓN
+
+Pruebas para transporte de credenciales sobre canal no cifrado
+
+☐
+
+Pruebas de credenciales por defecto
+
+☐
+
+Pruebas de autenticación fallida por método de bloqueo débil
+
+X
+
+Pruebas de Bypass al mecanismo de autenticación MFA
+
+☐
+
+Pruebas de recuperación de contraseña vulnerable
+
+X
+
+Prueba de caché débil del explorador
+
+☐
+
+Pruebas a la política débil de contraseñas
+
+☐
+
+Pruebas de autenticación por pregunta de seguridad débil
+
+☐
+
+Pruebas de cambio de contraseña o funciones de reinicio débiles
+
+X
+
+Pruebas de autenticación débil en un canal alternativo
+
+☐
+
+Pruebas de validación de Captcha/reCaptcha
+
+☐
+
+5.
+
+PRUEBAS DE AUTORIZACIÓN
+
+Inclusión de archivos en directorios transversales
+
+X
+
+Pruebas para eludir el esquema de autorización
+
+X
+
+Prueba de escalada de privilegios
+
+X
+
+Referencia directa insegura a objetos (IDOR)
+
+X
+
+6.
+
+PRUEBAS DE GESTIÓN DE SESIONES
+
+Pruebas del esquema de gestión de sesiones
+
+X
+
+Pruebas para los atributos de las cookies
+
+☐
+
+Pruebas de fijación de sesiones
+
+☐
+
+Pruebas de variables de sesión expuestas
+
+☐
+
+Pruebas de Falsificación de solicitudes entre sitios (CSRF)
+
+☐
+
+7.
+
+PRUEBAS DE VALIDACIÓN DE ENTRADAS
+
+Pruebas de XSS (Cross Site Scripting) reflejado
+
+X
+
+Pruebas de XSS (Cross Site Scripting) almacenado
+
+X
+
+Pruebas de tampering de verbos HTTP
+
+X
+
+54
+
+AGUNSA| Ethical Hacking
+Pruebas de HTTP Parameter Pollution
+
+☐
+
+Pruebas de Inyección SQL
+
+X
+
+8.
+
+PRUEBAS PARA MANEJO DE ERRORES
+
+Divulgación de Información en Mensajes de Error
+
+X
+
+Prueba de Stack Traces
+
+X
+
+Divulgación de información en una página debug
+
+☐
+
+9.
+
+PRUEBAS DE CRIPTOGRAFÍA DÉBIL
+
+Pruebas para debilidad en la capa de transporte
+
+☐
+
+Pruebas de Padding Oracle
+
+☐
+
+Pruebas de información confidencial enviada a través de canales no cifrados
+
+☐
+
+Prueba de encriptación débil
+
+X
+
+Exposición de información sensible en la URL
+
+☐
+
+Exposición del PAN completo en pantalla / logs
+
+☐
+
+10. PRUEBAS DE LÓGICA DE NEGOCIO
+Prueba de validación de datos de lógica empresarial
+
+X
+
+Prueba de capacidad para falsificar solicitudes
+
+X
+
+Comprobaciones de integridad
+
+X
+
+Prueba para procesos en tiempo
+
+☐
+
+Prueba Número de veces que se puede usar una función Límites (rate Limit)
+
+X
+
+11. PRUEBAS DEL LADO DEL CLIENTE
+Pruebas de DOM Cross Site Scripting
+
+X
+
+Pruebas de ejecución de Javascript
+
+X
+
+Inyección HTML
+
+X
+
+Pruebas de redirección URL de lado del cliente
+
+☐
+
+Pruebas de Inyección CSS
+
+☐
+
+Pruebas de manipulación de recursos de lado del cliente
+
+☐
+
+Pruebas Cross Origin Resource Sharing (CORS)
+
+X
+
+Pruebas de flasheo entre sitios
+
+☐
+
+Prueba para Clickjacking
+
+☐
+
+55
+
+AGUNSA| Ethical Hacking
+Prueba websockets
+
+X
+
+Prueba de mensajería web
+
+☐
+
+Pruebas de almacenamiento en el navegador
+
+☐
+
+Pruebas inclusión secuencias de comandos entre
+
+☐
+
+12. PRUEBAS DE API
+Prueba de Introspección GraphQL habilitada
+
+☐
+
+56
+
+AGUNSA| Ethical Hacking
+
+Conclusiones
+En el marco de las pruebas de seguridad realizadas sobre el Portal RMS, se identificaron 5
+vulnerabilidades que podrían comprometer la seguridad de la aplicación y la protección de la
+información procesada.
+Los hallazgos detectados se relacionan principalmente con:
+•
+•
+•
+•
+•
+
+Exposición de Credenciales en Texto Claro en API de Parámetros contiene secretos
+Críticos Comprometidos (SMTP, AWS IAM).
+Apropiación de cuenta completa (ATO) en cualquier cuenta mediante cadena de
+vulnerabilidades.
+Stored XSS (Cross-Site Scripting Almacenado) al ingresar o actualizar datos.
+Ausencia de Rate Limiting en Operaciones CRUD.
+Mal manejo de errores permite ubicar rutas internas.
+
+Estas vulnerabilidades podrían permitir la alteración de datos, el acceso indebido a
+información sensible o la enumeración de recursos internos, impactando la confidencialidad,
+integridad y disponibilidad del sistema.
+Se recomienda implementar las medidas de mitigación descritas en el presente informe y
+realizar las validaciones técnicas correspondientes una vez aplicadas. Asimismo, se sugiere
+mantener coordinación con el equipo de desarrollo para verificar la correcta implementación
+de los controles y ejecutar una revalidación posterior que confirme la remediación efectiva de
+los hallazgos.
+
+57
+
+

@@ -3,27 +3,29 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Ejecuta una tarea estándar usando la skill ethical-hacking-auditor.",
+      "prompt": "Auditar un controlador de Laravel que procesa la generación de PDFs buscando vulnerabilidades de inyección HTML (QD-11) y rate limiting ausente (QD-08). Proponer la remediación adecuada.",
       "expectations": [
-        "El resultado cumple con los estándares de ethical-hacking-auditor",
-        "No hay errores de sintaxis",
-        "Se sigue el flujo de trabajo definido"
+        "Identifica correctamente el vector QD-11 y propone prepareForValidation() o strip_tags() en FormRequest.",
+        "Identifica correctamente la falta de control de frecuencia (QD-08) y sugiere aplicar el middleware de throttle.",
+        "El código de remediación sigue el estándar del archivo references/laravel-remediation.md."
       ]
     },
     {
       "id": 2,
-      "prompt": "Caso de borde para ethical-hacking-auditor.",
+      "prompt": "Evaluar un componente y guard de Angular 18/21 que valida permisos decodificando localmente el JWT desde localStorage. Proponer la remediación para mitigar QD-01 y QD-07.",
       "expectations": [
-        "El sistema maneja el error correctamente",
-        "Se proporciona feedback claro"
+        "Identifica la vulnerabilidad QD-01 (client-side auth bypass) por verificar permisos en local y propone cambiar a validación asíncrona server-side.",
+        "Identifica el riesgo de stored XSS QD-07 por el uso inseguro de [innerHTML] y propone interpolación standard o SafeRichTextComponent.",
+        "Recomienda migrar de localStorage a sessionStorage para almacenar el token de sesión."
       ]
     },
     {
       "id": 3,
-      "prompt": "Validación de integridad para ethical-hacking-auditor.",
+      "prompt": "Auditar la descarga de planillas y la inyección de secretos en la base de datos de PostgreSQL en producción buscando IDOR/BOLA (QD-05) y exposición de credenciales (QD-02). Proponer la remediación en AWS ECS y Laravel.",
       "expectations": [
-        "Los assets referenciados son accesibles",
-        "Se cumple con la seguridad multitenant"
+        "Detecta el uso de identificadores numéricos secuenciales (QD-05) y propone enforzar multitenancy mediante addGlobalScope y UUIDs.",
+        "Identifica la fuga de secretos en texto claro de PostgreSQL (QD-02) y propone inyección stateless de Secrets Manager en la Task Definition de ECS y cifrado simétrico Crypt en base de datos.",
+        "El reporte final sigue rigurosamente el formato de references/report-template.md."
       ]
     }
   ]

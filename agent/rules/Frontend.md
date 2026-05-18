@@ -51,8 +51,12 @@ Para prevenir fugas de memoria (*memory leaks*), implementamos siempre el patró
 ### 2. Estados de Carga y Feedback
 La UI nunca debe quedar bloqueada sin feedback. Usamos el operador `finalize` para asegurar que los estados de carga (`isLoading`) se limpien correctamente, tanto en éxito como en error.
 
-### 3. Notificaciones y Alertas
-Diferenciamos claramente entre feedback pasivo (`MatSnackBar`) y alertas que requieren atención o acción del usuario (`app-shared-alert`).
+### 3. Notificaciones y Alertas Stacked (Simultáneas)
+El sistema utiliza un mecanismo premium de **Notificaciones Stacked Simultáneas** gestionadas globalmente por el `NotificationService` y visualizadas a través de `NotificationStackComponent`.
+- **Bypass de Limitación**: Reemplaza el `MatSnackBar` nativo (el cual descarta alertas anteriores) permitiendo apilar múltiples notificaciones simultáneas sin pérdida de información.
+- **Manejo de Estado Reactivo**: Se gestiona mediante Signals (`notifications()`), evitando suscripciones manuales y previniendo fugas de memoria (*memory leaks*).
+- **Interactividad Premium**: El contenedor global se define con `pointer-events: none` para no bloquear los clics del usuario en la interfaz del portal, mientras que cada alerta usa `pointer-events: auto`.
+- **Prevención de XSS (QD-07)**: La inyección de mensajes se realiza exclusivamente con interpolación de texto plano `{{ }}` en el DOM, blindando el componente contra XSS almacenado o reflejado.
 
 ---
 

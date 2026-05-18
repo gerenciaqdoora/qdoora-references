@@ -1,25 +1,22 @@
 # Angular 18/21 — Snippets de Remediación de Seguridad
 
-> Usa este archivo al proponer correcciones frontend para hallazgos del catastro Qdoora.
-> Stack: Angular 18 (Portal Cliente) · Angular 21 (Portal Admin/Soporte) · Standalone Components · Signals
+> Usa este archivo al proponer correcciones frontend para hallazgos del catastro QdoorA.
+> Stack: Angular 18 (Portal Cliente) · Angular 21 (Portal Admin/Soporte) · Standalone Components · Signals · RxJS
 
 ---
 
-## 1. Guard con Validación Server-Side
+## 1. Guard con Validación Server-Side Asíncrona (Signals + RxJS)
 **Remedia**: QD-01 (client-side authorization bypass).
 
-El problema raíz es que los Guards leen permisos de `localStorage` o del token decodificado
-localmente. Esto permite a un atacante manipular la respuesta de login con Burp y obtener acceso.
-La solución es validar contra el backend en cada navegación crítica.
+Los Guards clásicos confían en la decodificación local del JWT en `localStorage` para verificar permisos. Esto es vulnerable a manipulación mediante Burp Suite. Enforzamos la re-verificación asíncrona contra la API del backend.
 
 ```typescript
-// auth.guard.ts
+// permission.guard.ts
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { map, catchError, of } from 'rxjs';
 
-// Factory que crea un guard para un permiso específico
 export const permissionGuard = (requiredPermission: string): CanActivateFn => {
   return () => {
     const auth   = inject(AuthService);
@@ -27,49 +24,66 @@ export const permissionGuard = (requiredPermission: string): CanActivateFn => {
 
     return auth.checkPermission(requiredPermission).pipe(
       map(allowed => {
-        if (!allowed) { router.navigate(['/unauthorized']); return false; }
+        if (!allowed) {
+          router.navigate(['/unauthorized']);
+          return false;
+        }
         return true;
       }),
-      catchError(() => { router.navigate(['/login']); return of(false); })
+      catchError(() => {
+        router.navigate(['/login']);
+        return of(false);
+      })
     );
   };
 };
 
-// app.routes.ts — aplicar en rutas sensibles
+// app.routes.ts — Aplicar en routing standalone
 export const routes: Routes = [
   {
-    path: 'admin/liquidaciones',
-    loadComponent: () => import('./liquidaciones/liquidaciones.component'),
-    canActivate: [permissionGuard('approve-liquidacion')],  // valida server-side
+    path: 'admin/parametros',
+    loadComponent: () => import('./parametros/parametros.component').then(c => c.ParametrosComponent),
+    canActivate: [permissionGuard('manage-settings')],
   },
 ];
 ```
 
 ```typescript
-// auth.service.ts — los permisos SIEMPRE vienen del backend
+// auth.service.ts
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { map, tap, catchError } from 'rxjs/operators';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  
+  // Estado reactivo react-safe del usuario
+  readonly currentUser = signal<any | null>(null);
 
-  // ✅ CORRECTO: revalida contra backend
+  // ✅ CORRECTO: Consulta dinámica al backend
   checkPermission(permission: string): Observable<boolean> {
     return this.http
-      .get<{ allowed: boolean }>(`/api/auth/check-permission/${permission}`)
-      .pipe(map(r => r.allowed));
+      .get<{ allowed: boolean }>(`/api/v1/auth/check-permission/${permission}`)
+      .pipe(
+        map(r => r.allowed),
+        catchError(() => of(false))
+      );
   }
 
-  // ❌ INCORRECTO — NUNCA hacer esto:
+  // ❌ EVITAR SIEMPRE: Confiar en JSON descifrado en el navegador
   // hasPermission(p: string): boolean {
-  //   const token = JSON.parse(atob(localStorage.getItem('token')!.split('.')[1]));
-  //   return token.permissions?.includes(p) ?? false;
+  //   const payload = JSON.parse(atob(localStorage.getItem('token')!.split('.')[1]));
+  //   return payload.permissions.includes(p);
   // }
 }
 ```
 
 ---
 
-## 2. Interceptor de Seguridad HTTP
-**Remedia**: QD-01 (token injection), QD-08 (manejo de 429).
+## 2. Interceptor HTTP de Seguridad Global
+**Remedia**: QD-01 (token injection), QD-08 (manejo de rate limits).
 
 ```typescript
 // security.interceptor.ts
@@ -77,11 +91,14 @@ import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
+import { TokenStorageService } from '../services/token-storage.service';
 
 export const securityInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
-  const token  = sessionStorage.getItem('access_token'); // ← sessionStorage, no localStorage
+  const tokenService = inject(TokenStorageService);
+  const token = tokenService.get();
 
+  // Inyectar Bearer token seguro de forma centralizada
   const secureReq = token
     ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
     : req;
@@ -89,22 +106,27 @@ export const securityInterceptor: HttpInterceptorFn = (req, next) => {
   return next(secureReq).pipe(
     catchError((err: HttpErrorResponse) => {
       if (err.status === 401) {
-        sessionStorage.clear();
+        tokenService.clear();
         router.navigate(['/login']);
       }
-      if (err.status === 429) {
-        // Mostrar mensaje de rate limit al usuario — no reintentar automáticamente
-        console.warn('Rate limited. Retry after:', err.headers.get('Retry-After'), 's');
-      }
+      
       if (err.status === 403) {
         router.navigate(['/unauthorized']);
       }
+      
+      if (err.status === 429) {
+        // Capturar rate limit (económico/fuerza bruta) y notificar al usuario
+        const retryAfter = err.headers.get('Retry-After') || '60';
+        console.warn(`Petición bloqueada por exceso de frecuencia. Intentar de nuevo en ${retryAfter} segundos.`);
+        // Disparar un Toast o alerta global al usuario...
+      }
+
       return throwError(() => err);
     })
   );
 };
 
-// app.config.ts — registrar interceptor
+// app.config.ts — Registrar en bootstrap
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withInterceptors([securityInterceptor])),
@@ -114,27 +136,30 @@ export const appConfig: ApplicationConfig = {
 
 ---
 
-## 3. Almacenamiento Seguro del Token
-**Remedia**: QD-01 (token en localStorage accesible por XSS).
+## 3. Almacenamiento Seguro de Sesión (`sessionStorage`)
+**Remedia**: QD-01 (XSS exfiltration).
+
+`localStorage` persiste indefinidamente y es compartido en todas las pestañas de un mismo origen, lo que aumenta la superficie de ataque ante vulnerabilidades XSS. Forzamos el uso de `sessionStorage`.
 
 ```typescript
 // token-storage.service.ts
+import { Injectable } from '@angular/core';
+
 @Injectable({ providedIn: 'root' })
 export class TokenStorageService {
-  // ✅ sessionStorage: se limpia al cerrar el tab y no es accesible entre tabs
-  // Para mayor seguridad en producción: usar cookies HttpOnly (requiere cambio en backend)
-  private readonly KEY = 'access_token';
+  private readonly TOKEN_KEY = 'access_token';
 
   save(token: string): void {
-    sessionStorage.setItem(this.KEY, token);
-    // ❌ NUNCA: localStorage.setItem('token', token)
+    // sessionStorage se limpia automáticamente al cerrar la pestaña/ventana
+    sessionStorage.setItem(this.TOKEN_KEY, token);
   }
 
   get(): string | null {
-    return sessionStorage.getItem(this.KEY);
+    return sessionStorage.getItem(this.TOKEN_KEY);
   }
 
   clear(): void {
+    sessionStorage.removeItem(this.TOKEN_KEY);
     sessionStorage.clear();
   }
 }
@@ -142,95 +167,105 @@ export class TokenStorageService {
 
 ---
 
-## 4. Rendering Seguro — Prohibición de [innerHTML]
-**Remedia**: QD-07 (Stored XSS via innerHTML), QD-11 (HTML injection).
+## 4. Renderizado Seguro — Prohibición Estricta de `[innerHTML]`
+**Remedia**: QD-07 (Stored XSS).
+
+Angular desinfecta automáticamente el contenido insertado mediante interpolación estándar `{{ }}`. El uso de `[innerHTML]` bypassa esta protección y ejecuta código JS malicioso persistente.
 
 ```typescript
-// ❌ VULNERABLE — ejecuta cualquier script almacenado en la DB
-// <div [innerHTML]="company.name"></div>
-// <td [innerHTML]="item.description"></td>
+// ❌ VULNERABLE — Ejecuta scripts inyectados en DB
+// <div [innerHTML]="parameter.value"></div>
 
-// ✅ SEGURO — usar interpolación de Angular siempre
-// <div>{{ company.name }}</div>
-// <td>{{ item.description }}</td>
+// ✅ 100% SEGURO — Interpolación nativa con sanitización automática
+// <div>{{ parameter.value }}</div>
 
-// ✅ Si necesitas renderizar HTML controlado (ej: editor de texto rico):
+// ✅ Si es estrictamente necesario renderizar HTML formateado (ej. posts de editores controlados)
+// se implementa una directiva o componente de saneamiento explícito:
+import { Component, input, computed, inject } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { computed, input } from '@angular/core';
 
 @Component({
-  template: `<div [innerHTML]="safeContent()"></div>`,
+  selector: 'app-safe-rich-text',
+  standalone: true,
+  template: `<div [innerHTML]="sanitizedContent()"></div>`
 })
-export class RichTextViewerComponent {
-  readonly content = input.required<string>();
+export class SafeRichTextComponent {
   private readonly sanitizer = inject(DomSanitizer);
+  
+  // Entrada reactiva (Signal)
+  readonly content = input.required<string>();
 
-  readonly safeContent = computed((): SafeHtml =>
-    // bypassSecurityTrustHtml SOLO cuando el contenido viene de un editor controlado
-    // NUNCA con datos directos de input de usuario no validado
-    this.sanitizer.bypassSecurityTrustHtml(this.content())
-  );
+  // Solo aplicar bypass tras justificar su procedencia y origen controlado
+  readonly sanitizedContent = computed((): SafeHtml => {
+    return this.sanitizer.bypassSecurityTrustHtml(this.content());
+  });
 }
-```
-
-**Script para auditar usos peligrosos en el codebase:**
-```bash
-echo "=== [innerHTML] sin DomSanitizer ==="
-grep -rn "\[innerHTML\]" fuse-starter/src/ --include="*.html" | \
-  grep -v "safeContent\|safeHtml\|trustHtml"
-
-echo "=== bypassSecurityTrust sin comentario de justificación ==="
-grep -rn "bypassSecurityTrust" fuse-starter/src/ --include="*.ts"
-
-echo "=== JWT en localStorage ==="
-grep -rn "localStorage.*token\|localStorage.*jwt" fuse-starter/src/ --include="*.ts"
 ```
 
 ---
 
-## 5. Formulario de Cambio de Email con Verificación
-**Remedia**: QD-03 (ATO via email change sin current_password).
+## 5. Formulario de Cambio de Email con Confirmación de Password
+**Remedia**: QD-03 (ATO via email change).
 
 ```typescript
 // email-change.component.ts
 import { Component, signal, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ProfileService } from '../../services/profile.service';
 
 @Component({
+  selector: 'app-email-change',
   standalone: true,
-  imports: [ReactiveFormsModule, /* ... */],
+  imports: [ReactiveFormsModule],
   template: `
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <input formControlName="email" type="email" placeholder="Nuevo email" />
-      <input formControlName="current_password" type="password"
-             placeholder="Contraseña actual (requerida)" />
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div>
+        <label>Nuevo Correo Electrónico</label>
+        <input formControlName="email" type="email" />
+      </div>
+      <div>
+        <label>Contraseña Actual (Requerida por seguridad)</label>
+        <input formControlName="current_password" type="password" />
+      </div>
+      
       <button type="submit" [disabled]="form.invalid || isLoading()">
-        {{ isLoading() ? 'Actualizando...' : 'Cambiar email' }}
+        {{ isLoading() ? 'Procesando...' : 'Actualizar Correo' }}
       </button>
-      @if (error()) { <p class="error">{{ error() }}</p> }
+      
+      @if (errorMessage()) {
+        <div class="alert-error">{{ errorMessage() }}</div>
+      }
     </form>
-  `,
+  `
 })
 export class EmailChangeComponent {
-  private readonly fb      = inject(FormBuilder);
-  private readonly profile = inject(ProfileService);
-
+  private readonly fb = inject(FormBuilder);
+  private readonly profileService = inject(ProfileService);
+  
   readonly isLoading = signal(false);
-  readonly error     = signal<string | null>(null);
+  readonly errorMessage = signal<string | null>(null);
 
   readonly form = this.fb.group({
-    email:            ['', [Validators.required, Validators.email]],
-    current_password: ['', [Validators.required, Validators.minLength(8)]],
+    email: ['', [Validators.required, Validators.email]],
+    current_password: ['', [Validators.required, Validators.minLength(6)]]
   });
 
-  submit(): void {
+  onSubmit(): void {
     if (this.form.invalid) return;
+    
     this.isLoading.set(true);
-    this.error.set(null);
-    this.profile.updateEmail(this.form.getRawValue()).subscribe({
-      next:     () => { /* mostrar éxito */ },
-      error:    (e) => this.error.set(e.error?.message ?? 'Error al actualizar.'),
-      complete: () => this.isLoading.set(false),
+    this.errorMessage.set(null);
+    
+    this.profileService.changeEmail(this.form.getRawValue()).subscribe({
+      next: () => {
+        // Correo modificado con éxito, mostrar mensaje y limpiar formulario
+        this.form.reset();
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.message || 'Error en el servidor.');
+        this.isLoading.set(false);
+      }
     });
   }
 }
@@ -238,48 +273,54 @@ export class EmailChangeComponent {
 
 ---
 
-## 6. Separación de Portales — Carga Dinámica por Rol
+## 6. Separación Dinámica de Portales y Lazy Loading
 **Remedia**: QD-06 (cross-portal privilege escalation).
 
-El Portal Admin y el Portal Soporte son el mismo frontend Angular 21 pero con componentes
-cargados condicionalmente según el rol del usuario autenticado. La validación de qué componentes
-están disponibles debe venir del backend, no de una condición local.
+El acceso a rutas privilegiadas y la navegación entre portales (Admin, Soporte, Cliente) se gestiona de forma diferida según el scope retornado por el backend, bloqueando la descarga de componentes no autorizados en el cliente.
 
 ```typescript
-// portal-router.service.ts — decide la ruta raíz según el scope del token
+// portal-router.service.ts
+import { Injectable, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from './auth.service';
+
 @Injectable({ providedIn: 'root' })
 export class PortalRouterService {
   private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
-  navigateToPortal(): void {
-    // El scope viene del backend — no del token decodificado localmente
-    this.auth.getPortalScope().subscribe(scope => {
-      const route = {
-        'admin':   '/admin/dashboard',
-        'support': '/support/tickets',
-        'client':  '/client/dashboard',
-      }[scope] ?? '/unauthorized';
-      inject(Router).navigate([route]);
+  routeToPortal(): void {
+    this.auth.checkPortalScope().subscribe({
+      next: (portal) => {
+        const routesMap: Record<string, string> = {
+          'admin':   '/admin/dashboard',
+          'support': '/support/tickets',
+          'client':  '/client/dashboard'
+        };
+        const dest = routesMap[portal] || '/unauthorized';
+        this.router.navigate([dest]);
+      },
+      error: () => this.router.navigate(['/login'])
     });
   }
 }
 
-// Lazy loading por portal — el backend controla qué APIs puede llamar cada scope
-const PORTAL_ROUTES: Routes = [
+// app.routes.ts — Lazy loading segregado con Guards
+export const appRoutes: Routes = [
   {
     path: 'admin',
-    loadChildren: () => import('./portals/admin/admin.routes'),
-    canActivate: [permissionGuard('portal:admin')],
+    loadChildren: () => import('./admin/admin.routes').then(r => r.adminRoutes),
+    canActivate: [permissionGuard('portal:admin')]
   },
   {
     path: 'support',
-    loadChildren: () => import('./portals/support/support.routes'),
-    canActivate: [permissionGuard('portal:support')],
+    loadChildren: () => import('./support/support.routes').then(r => r.supportRoutes),
+    canActivate: [permissionGuard('portal:support')]
   },
   {
     path: 'client',
-    loadChildren: () => import('./portals/client/client.routes'),
-    canActivate: [permissionGuard('portal:client')],
-  },
+    loadChildren: () => import('./client/client.routes').then(r => r.clientRoutes),
+    canActivate: [permissionGuard('portal:client')]
+  }
 ];
 ```
