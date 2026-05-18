@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-18] docs[walkthrough]: documentar refactorizacion centralizada de MIME types en S3FileService
+
 - [2026-05-18] docs[walkthrough]: documentar adaptacion de liquidacion de sueldo chilena, formateo de RUT y base64 logo
 
 - [2026-05-18] docs[walkthrough]: documentar mecanismo de autoreparacion S3 de paths obsoletos en el walkthrough
