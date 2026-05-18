@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-18] docs[frontend]: clarificar reglas de uso entre notification-service y app-shared-alert
+
 - [2026-05-18] docs[frontend]: registrar estandares de notificaciones stacked simultaneas
 
 - [2026-05-15] docs(manual): integrar reporte de auditoría de integridad del modelo de datos para liquidación
