@@ -75,6 +75,15 @@ El sistema utiliza un mecanismo premium de **Notificaciones Stacked Simultáneas
 - **Interactividad Premium**: El contenedor global se define con `pointer-events: none` para no bloquear los clics del usuario en la interfaz del portal, mientras que cada alerta usa `pointer-events: auto`.
 - **Prevención de XSS (QD-07)**: La inyección de mensajes se realiza exclusivamente con interpolación de texto plano `{{ }}` en el DOM, blindando el componente contra XSS almacenado o reflejado.
 
+### 4. Apertura Segura de Archivos y Descargas (`SecureTabService`)
+
+Para abrir o descargar documentos (PDFs, planillas Excel, archivos adjuntos) de forma asíncrona (ej: tras peticiones HTTP o polling de generación) sin ser bloqueado por los bloqueadores de popups de navegadores modernos (Safari, Chrome, Firefox), es obligatorio el uso de `SecureTabService`.
+
+- **Bypass de Popup Blocker**: Abre síncronamente una pestaña en blanco (`window.open('', '_blank')`) en el hilo de ejecución inmediato del clic del usuario, inyectando un loader premium animado.
+- **Redirección e Interfaz Fluida**: Retorna una referencia `SecureTabRef` que permite realizar la redirección dinámica (`redirect(url)`) asíncronamente una vez generado el archivo, manteniendo el portal principal intacto.
+- **Limpieza de Recursos**: Permite cerrar la pestaña (`close()`) de forma transparente ante fallos de servidor para no dejar ventanas vacías colgando.
+- **Prevención de XSS (QD-07)**: Sanitiza rigurosamente los textos principales y secundarios inyectados en la nueva pestaña para impedir inyecciones de código HTML/JS reflejadas.
+
 ---
 
 > [!TIP]
