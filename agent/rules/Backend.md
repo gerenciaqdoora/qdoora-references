@@ -61,6 +61,21 @@ Todo cambio en un `FormRequest` requiere una **Auditoría de Impacto** en el Fro
 
 Cada acción significativa debe dejar huella. El `LoggerService` es la herramienta obligatoria para registrar el qué, quién y cuándo de cada operación, utilizando los Enums de operación y evento correspondientes.
 
+### 4. Dominio de Nómina y Liquidaciones (Chile)
+
+Para la liquidación de sueldos en Chile, la gestión de descuentos por atraso y la visualización del Sueldo Base se rige bajo los siguientes estándares imperativos:
+
+- **Descuento por Atraso como Menor Haber**: Los atrasos reducen directamente la base imponible del mes. No son descuentos previsionales, sino un menor haber.
+  - La gratificación legal se calcula utilizando el **Sueldo Base Ajustado** (`Sueldo Base Pactado - Atrasos`).
+  - Las Horas Extras se calculan utilizando el **Sueldo Base Pactado** (sin restar atrasos).
+  - El total imponible (VTHI) se reduce restando los atrasos.
+- **Visualización en PDF (Liquidación)**:
+  - **Sueldo Base**: Se presenta explícitamente el `Sueldo Base Pactado`, restando el `(-) Horas de Atraso`, y mostrando el `Sueldo Base Ajustado` resultante de forma agrupada.
+  - **Clasificación y Ordenamiento**:
+    - **Haberes Imponibles**: Primero el bloque de Sueldo Base, luego la Gratificación, luego las Horas Extras, y finalmente otros haberes ordenados **alfabéticamente**.
+    - **Haberes No Imponibles**: Separados y ordenados **alfabéticamente**.
+  - **Desglose Tributable**: El total tributable se detalla como un desglose (`base tributable`) directamente debajo de la línea del Impuesto Único de Segunda Categoría.
+
 ---
 
 ## 🏥 Infraestructura y Disponibilidad
@@ -68,6 +83,10 @@ Cada acción significativa debe dejar huella. El `LoggerService` es la herramien
 ### 1. Gestión de Archivos y Comunicaciones
 
 - **S3**: Almacenamiento exclusivo en la nube vía `S3FileService`. Nada se guarda en el disco local del contenedor.
+- **Persistencia de Paths de S3 vs URLs Firmadas**:
+  - En la base de datos se debe almacenar únicamente la ruta relativa limpia del archivo en S3 (ej. `companies/1/logo/logo_xxxx.png`).
+  - Al responder a las peticiones del frontend, el backend debe firmar estas rutas temporales usando `S3FileService::getSignedUrl()`.
+  - En los endpoints de actualización general (PUT/PATCH JSON), se debe validar si el campo enviado por el frontend ya es una URL firmada (ej. si comienza con `http` o `https`) para evitar sobreescribir la ruta de la base de datos con un enlace temporal caduco. Si se recibe `null`, se procede a la eliminación física del archivo en S3 y a limpiar el campo en la base de datos.
 - **MailerSend**: Los correos de alta prioridad deben usar plantillas premium para garantizar una imagen profesional y consistente.
 
 ### 2. Health Checks
