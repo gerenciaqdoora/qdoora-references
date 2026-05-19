@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-19] docs(rules): actualizar estándares y reglas de ingeniería backend, frontend, soporte y globales
+
 - [2026-05-19] docs(rules): actualizar estandares de backend y frontend para liquidaciones
 
 - [2026-05-18] docs[walkthrough]: documentar correccion de asignacion masiva de previsionales

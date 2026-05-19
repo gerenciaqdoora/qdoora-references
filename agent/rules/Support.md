@@ -1,5 +1,5 @@
 ---
-trigger: model_decision
+trigger: always_on
 ---
 
 # 📘 Estándares de Ingeniería: Portal de Soporte y Admin
