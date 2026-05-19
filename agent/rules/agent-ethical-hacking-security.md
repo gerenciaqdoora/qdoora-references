@@ -1,6 +1,5 @@
 ---
-trigger: always_on
-glob: "**/*"
+trigger: model_decision
 description: Master Skill de Auditoría Qdoora (OWASP + Agunsa 2026)
 ---
 

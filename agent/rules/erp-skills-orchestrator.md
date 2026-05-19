@@ -1,6 +1,5 @@
 ---
-trigger: always_on
-glob: "**/*"
+trigger: model_decision
 description: Enrutador de Especialistas basado en el Mapa de Módulos QdoorA
 ---
 

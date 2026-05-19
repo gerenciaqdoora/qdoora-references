@@ -1,3 +1,7 @@
+---
+trigger: model_decision
+---
+
 # 📘 Estándares de Ingeniería: Portal de Soporte y Admin
 
 > Guía maestra de principios, seguridad y arquitectura para el portal de alta jerarquía de QdoorA (Angular 21).

@@ -1,3 +1,7 @@
+---
+trigger: model_decision
+---
+
 # 📘 Estándares de Ingeniería Frontend (Angular)
 
 > Guía maestra de principios, estética y arquitectura para el desarrollo de interfaces en el ecosistema QdoorA.

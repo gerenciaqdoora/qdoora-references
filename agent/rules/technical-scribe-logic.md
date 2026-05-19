@@ -1,6 +1,5 @@
 ---
-trigger: always_on
-glob: "**/*.{php,ts,md,json}"
+trigger: model_decision
 description: Orquestación del Escribano Técnico (Documentación Viva y Soporte)
 ---
 

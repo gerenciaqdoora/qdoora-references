@@ -1,6 +1,5 @@
 ---
-trigger: always_on
-glob: "**/*"
+trigger: model_decision
 description: Guardián de Seguridad (IAM/Hacking), DevOps, QA y Deuda Técnica
 ---
 

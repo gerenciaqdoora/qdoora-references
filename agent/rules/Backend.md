@@ -1,3 +1,7 @@
+---
+trigger: model_decision
+---
+
 # 📘 Estándares de Ingeniería Backend (Laravel 11)
 
 > Guía maestra de principios, arquitectura y mandatos lógicos para el desarrollo del núcleo API en QdoorA.

@@ -1,3 +1,7 @@
+---
+trigger: model_decision
+---
+
 # 🌐 Global Development & Interaction Rules
 
 ## 0. Reglas de Comportamiento del Asistente
