@@ -88,9 +88,7 @@ sync_folder "$SOURCE_DIR/skills" "$AGENTS_DIR/skills" "Habilidades (.agents)"
 sync_folder "$SOURCE_DIR/workflows" "$AGENTS_DIR/workflows" "Workflows (.agents)"
 
 # Ejecutar sincronización de .claude
-sync_folder "$SOURCE_DIR/rules" "$CLAUDE_DIR/rules" "Reglas (.claude)"
 sync_folder "$SOURCE_DIR/skills" "$CLAUDE_DIR/skills" "Habilidades (.claude)"
-sync_folder "$SOURCE_DIR/workflows" "$CLAUDE_DIR/workflows" "Workflows (.claude)"
 
 # 🌐 SINCRONIZACIÓN CLAUDE CODE (CLAUDE.md)
 echo "🌐 Sincronizando CLAUDE.md universal..."
