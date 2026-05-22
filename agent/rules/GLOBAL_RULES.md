@@ -108,6 +108,11 @@ Al concluir cada tarea significativa, se debe invocar proactivamente al skill `t
 1. Evaluar si se ha implementado un nuevo patrón.
 2. Actualizar estos archivos de reglas si es necesario para que el conocimiento sea persistente.
 
+### 📐 Diseño de Planes (Prompt Architect)
+**🔴 REGLA MANDATORIA**: Todas las tareas complejas planificadas a través del `prompt-protocol` deben definir un **"Contexto Acotado"** estricto y **"Anti-Patrones"**. 
+- El agente ejecutor tiene prohibido explorar archivos irrelevantes (ej: `node_modules`, dependencias) o hacer búsquedas globales indiscriminadas.
+- Esto mitiga alucinaciones, asegura la máxima velocidad y protege el límite de tokens de contexto.
+
 ### 🏢 Gestión de Planes de Empresa Única (Aduana)
 Para planes con restricción de empresa única (ej. Aduana):
 1. **Navegación**: Reemplazar listados y creación de empresas por redirección directa a la edición de la empresa existente mediante `PlanGuard`.

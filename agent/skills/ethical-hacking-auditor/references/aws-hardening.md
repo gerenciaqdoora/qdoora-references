@@ -265,3 +265,46 @@ Storage::disk('s3')->temporaryUrl($path, now()->addMinutes(5));
 // ❌ INCORRECTO: Evitar expiraciones prolongadas o infinitas
 // Storage::disk('s3')->temporaryUrl($path, now()->addHours(24));
 ```
+
+---
+
+## 7. SQS Queues — Mínimo Privilegio y Encriptación
+**Remedia**: QD-14 (Falta de encriptación), QD-12 (Exceso de privilegios en colas).
+
+### A. Políticas IAM para Colas (Least Privilege)
+Evitar conceder `sqs:*`. Los workers de Laravel solo necesitan recibir y eliminar mensajes procesados, y los publicadores solo enviar.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SQSWorkerPermissions",
+      "Effect": "Allow",
+      "Action": [
+        "sqs:ReceiveMessage",
+        "sqs:DeleteMessage",
+        "sqs:GetQueueAttributes"
+      ],
+      "Resource": "arn:aws:sqs:us-east-1:ACCOUNT_ID:qdoora-prod-queue"
+    },
+    {
+      "Sid": "SQSPublisherPermissions",
+      "Effect": "Allow",
+      "Action": [
+        "sqs:SendMessage"
+      ],
+      "Resource": "arn:aws:sqs:us-east-1:ACCOUNT_ID:qdoora-prod-queue"
+    }
+  ]
+}
+```
+
+### B. Encriptación en Reposo (SSE-KMS)
+Todas las colas SQS deben crearse con Server-Side Encryption (SSE) configurado para proteger payloads sensibles.
+
+```bash
+aws sqs set-queue-attributes \
+  --queue-url https://sqs.us-east-1.amazonaws.com/ACCOUNT_ID/qdoora-prod-queue \
+  --attributes KmsMasterKeyId="alias/aws/sqs",KmsDataKeyReusePeriodSeconds="300"
+```

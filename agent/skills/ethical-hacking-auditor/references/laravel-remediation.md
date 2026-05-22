@@ -378,3 +378,85 @@ class SystemParameter extends Model
     }
 }
 ```
+
+---
+
+## 10. Validación de Payloads en Jobs Asíncronos (SQS)
+**Remedia**: QD-12 (Message Poisoning, Deserialización Insegura, SSRF).
+
+```php
+// app/Jobs/ProcessData.php
+namespace App\Jobs;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
+
+class ProcessData implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public function __construct(private array $payload) {}
+
+    public function handle(): void
+    {
+        // 1. Validar estrictamente la estructura y tipos del payload
+        $validator = Validator::make($this->payload, [
+            'url' => ['required', 'url'],
+            'id'  => ['required', 'integer', 'min:1'],
+        ]);
+
+        if ($validator->fails()) {
+            \Log::warning('SQS Poisoning Attempt Detected', ['errors' => $validator->errors()]);
+            return;
+        }
+
+        $validated = $validator->validated();
+
+        // 2. Prevenir SSRF validando que la URL no apunte a IPs internas de AWS (169.254.x.x) o localhost
+        $parsedUrl = parse_url($validated['url'], PHP_URL_HOST);
+        $ip = gethostbyname($parsedUrl);
+        
+        if (preg_match('/^(127\.|169\.254\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.)/', $ip)) {
+            \Log::critical('SSRF Attempt in Job', ['url' => $validated['url']]);
+            return;
+        }
+
+        // 3. Procesamiento seguro
+        $response = Http::timeout(5)->get($validated['url']);
+    }
+}
+```
+
+---
+
+## 11. Configuración de Content-Disposition en S3
+**Remedia**: QD-13 (Stored XSS vía uploads directos).
+
+```php
+// app/Http/Controllers/UploadController.php
+public function upload(Request $request): JsonResponse
+{
+    $request->validate([
+        'file' => ['required', 'file', 'max:5120']
+    ]);
+
+    $file = $request->file('file');
+    $path = "companies/".auth()->user()->company_id."/uploads";
+
+    // Forzar Content-Disposition: attachment al subir a S3
+    // Esto asegura que el navegador descargue el archivo en lugar de renderizarlo (previniendo XSS de SVG/HTML)
+    $storedPath = Storage::disk('s3')->putFileAs(
+        $path, 
+        $file, 
+        $file->hashName(), 
+        ['ContentDisposition' => 'attachment; filename="'.$file->getClientOriginalName().'"']
+    );
+
+    return response()->json(['path' => $storedPath]);
+}
+```

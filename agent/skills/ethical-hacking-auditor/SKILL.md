@@ -6,13 +6,13 @@ description: >
   WSTG con conocimiento específico de los 11 vectores de riesgo identificados en la auditoría
   integral multientorno. Detecta: client-side authorization bypass, IDOR con IDs secuenciales
   en S3, ATO por email takeover, BFLA en endpoints sin Gate::authorize(), Stored XSS via [innerHTML],
-  fuga de secrets en endpoints de parámetros, y cross-app privilege escalation entre portales
-  de administración y clientes.
+  fuga de secrets en endpoints de parámetros, cross-app privilege escalation entre portales
+  de administración y clientes, SSRF y Message Poisoning en colas SQS, y Stored XSS avanzado en S3.
 
   Usar AUTOMÁTICAMENTE siempre que el usuario pida: auditar seguridad, revisar código en busca
   de vulnerabilidades, evaluar endpoints de API, detectar fallos de autenticación/autorización,
   buscar inyecciones, revisar headers HTTP, analizar gestión de sesiones, evaluar configuración
-  AWS/ECS, revisar Guards de Angular, verificar Middleware de Laravel, o cualquier tarea de
+  AWS/ECS/SQS, revisar Guards de Angular, verificar Middleware de Laravel, o cualquier tarea de
   ethical hacking, pentesting, security review o hardening. Activar incluso si el usuario no usa
   la palabra "hacking" pero el contexto refiere a encontrar o prevenir vulnerabilidades en el ERP.
 ---
@@ -58,6 +58,9 @@ Lee `references/qdoora-vectors.md` para los curl tests completos de cada vector.
 | QD-09 | Login response expone objeto completo de permisos modificable | Autenticación | 🟠 ALTO |
 | QD-10 | APP_DEBUG=true en QA/Prod: stack traces con rutas internas y SQL queries | Errores | 🟡 MEDIO |
 | QD-11 | HTML Injection en generación de PDFs vía parámetros directos | Validación Entradas | 🟡 MEDIO |
+| QD-12 | SQS Message Poisoning / SSRF: Deserialización insegura en jobs | Lógica / Deserialización | 🔴 CRÍTICO |
+| QD-13 | Stored XSS vía S3 (uploads .svg/.html) sin Content-Disposition | Validación Entradas | 🟠 ALTO |
+| QD-14 | Fuga de datos / Falta de SSE-KMS en reposo para colas SQS | Configuración | 🟠 ALTO |
 
 ---
 
@@ -72,7 +75,7 @@ Para cada dominio: reporta **Hallazgo**, **Evidencia**, **Severidad**, **Impacto
 
 ### 2. Configuración y Despliegue (OTG-CONFIG)
 - CORS wildcard + credenciales, HSTS, Security Headers, métodos HTTP peligrosos.
-- **Vectores QdoorA**: Secrets en ECS sin Secrets Manager (**QD-02**), APP_DEBUG (**QD-10**), headers faltantes.
+- **Vectores QdoorA**: Secrets en ECS sin Secrets Manager (**QD-02**), APP_DEBUG (**QD-10**), SQS sin cifrado SSE-KMS (**QD-14**).
 - → Lee `references/aws-hardening.md` para el checklist completo de infraestructura.
 
 ### 3. Gestión de Identidad (OTG-IDENT)
@@ -95,7 +98,7 @@ Para cada dominio: reporta **Hallazgo**, **Evidencia**, **Severidad**, **Impacto
 
 ### 7. Validación de Entradas (OTG-INPVAL)
 - SQLi, XSS reflejado y almacenado, Command Injection, HTTP Parameter Pollution.
-- **Vectores QdoorA**: Stored XSS en campos CRUD renderizados con `[innerHTML]` (**QD-07**), HTML injection en PDFs DomPDF (**QD-11**).
+- **Vectores QdoorA**: Stored XSS en campos CRUD renderizados con `[innerHTML]` (**QD-07**), HTML injection en PDFs DomPDF (**QD-11**), Stored XSS en subidas de S3 sin attachment (**QD-13**).
 - → Lee `references/laravel-remediation.md` para sanitización. Lee `references/angular-remediation.md` para prohibición de `[innerHTML]`.
 
 ### 8. Manejo de Errores (OTG-ERR)
@@ -108,8 +111,8 @@ Para cada dominio: reporta **Hallazgo**, **Evidencia**, **Severidad**, **Impacto
 - **Vector QdoorA**: Presigned URLs de S3 con expiración excesiva, bucket con acceso público no bloqueado (**QD-05**).
 
 ### 10. Lógica de Negocio (OTG-BUSLOGIC)
-- Race conditions, manipulación de parámetros, flujos de proceso, abuso de servicios.
-- **Vector QdoorA**: Rate limiting ausente en generación de PDFs/DTEs/emails → DoS económico (**QD-08**). Operaciones financieras sin `DB::transaction()` → race condition en aprobación de liquidaciones.
+- Race conditions, manipulación de parámetros, flujos de proceso, abuso de servicios, deserialización insegura.
+- **Vector QdoorA**: Rate limiting ausente en generación de PDFs/DTEs/emails → DoS económico (**QD-08**). Operaciones financieras sin `DB::transaction()` → race condition en aprobación de liquidaciones. Manipulación de colas y Message Poisoning/SSRF (**QD-12**).
 
 ### 11. Lado del Cliente (OTG-CLIENT)
 - DOM XSS, JS externo sin SRI, Web Storage con datos sensibles, Clickjacking, Open Redirect.

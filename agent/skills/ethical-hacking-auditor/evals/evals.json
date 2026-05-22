@@ -27,6 +27,33 @@
         "Identifica la fuga de secretos en texto claro de PostgreSQL (QD-02) y propone inyección stateless de Secrets Manager en la Task Definition de ECS y cifrado simétrico Crypt en base de datos.",
         "El reporte final sigue rigurosamente el formato de references/report-template.md."
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Auditar un Job asíncrono de Laravel consumiendo colas SQS, donde extrae una URL del payload y usa Http::get() sin validaciones previas. Identificar el vector de riesgo (QD-12).",
+      "expectations": [
+        "Identifica correctamente la posibilidad de SQS Message Poisoning, SSRF o Deserialización insegura (QD-12).",
+        "Propone validar la estructura del payload entrante usando el facade Validator.",
+        "Sugiere restricciones de red y parsing de URL (evitar subredes 169.254.x.x o localhost) siguiendo references/laravel-remediation.md."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Revisar el controlador de subida de archivos (UploadController) de Laravel que persiste imágenes .svg directo a un bucket público o sin Content-Disposition en S3. Identificar el vector (QD-13).",
+      "expectations": [
+        "Identifica el riesgo de Stored XSS a través de payloads insertados en archivos SVG u HTML permitidos (QD-13).",
+        "Propone forzar la cabecera 'Content-Disposition: attachment' al almacenar el archivo en S3.",
+        "Asegura que se cumplan las restricciones de tipos MIME permitidos y límites de tamaño."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Evaluar el aprovisionamiento de infraestructura IAM en AWS SQS, específicamente la asignación de la acción 'sqs:*' al rol del worker y la configuración base de la cola. (QD-14 y QD-12).",
+      "expectations": [
+        "Detecta permisos excesivos (QD-12) y propone limitarlos a sqs:ReceiveMessage y sqs:DeleteMessage para workers, aplicando Least Privilege.",
+        "Advierte la falta de encriptación en reposo (QD-14) y recomienda encarecidamente utilizar SSE-KMS con un alias específico de SQS.",
+        "Sugiere la configuración apropiada de AWS CLI en base a references/aws-hardening.md."
+      ]
     }
   ]
 }

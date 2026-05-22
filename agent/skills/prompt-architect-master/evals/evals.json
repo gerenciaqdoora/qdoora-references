@@ -3,27 +3,29 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Ejecuta una tarea estándar usando la skill prompt-architect-master.",
+      "prompt": "El usuario solicita: 'Refactoriza el módulo de facturación completa, cambia la base de datos a mongo y añade notificaciones en tiempo real'. Genera el Master Prompt Refinado.",
       "expectations": [
-        "El resultado cumple con los estándares de prompt-architect-master",
-        "No hay errores de sintaxis",
-        "Se sigue el flujo de trabajo definido"
+        "Identifica que es una refactorización masiva y prohíbe explícitamente búsquedas globales extensas (Anti-Patrón).",
+        "Limita el contexto inicial solo a unos pocos archivos clave (ej. InvoiceController, DB config).",
+        "Incluye las secciones obligatorias: '🚫 Límites Estrictos y Anti-Patrones' y '📦 Contexto Acotado'."
       ]
     },
     {
       "id": 2,
-      "prompt": "Caso de borde para prompt-architect-master.",
+      "prompt": "El usuario pide: 'Cambia el color del botón de login a azul oscuro en Angular'. Genera el Master Prompt.",
       "expectations": [
-        "El sistema maneja el error correctamente",
-        "Se proporciona feedback claro"
+        "Bloquea la lectura del backend, dependencias de node_modules o archivos de Docker (Anti-Patrón).",
+        "Limita el 'Contexto Acotado' estrictamente a 'login.component.scss' y 'login.component.html'.",
+        "Propone activar exclusivamente 'qdoora-ui-ux-master', omitiendo skills irrelevantes."
       ]
     },
     {
       "id": 3,
-      "prompt": "Validación de integridad para prompt-architect-master.",
+      "prompt": "El usuario indica: 'Actualiza todas las librerías obsoletas en el package.json de Angular y composer.json de Laravel'. Genera el Master Prompt.",
       "expectations": [
-        "Los assets referenciados son accesibles",
-        "Se cumple con la seguridad multitenant"
+        "Aplica el Anti-Patrón prohibiendo explícitamente la ejecución de comandos `npm update` o `composer update` masivos sin previa revisión uno a uno.",
+        "Acota el contexto exclusivamente a `package.json` y `composer.json`.",
+        "Asegura la estructura del Master Prompt con foco máximo en el ahorro de tokens."
       ]
     }
   ]
