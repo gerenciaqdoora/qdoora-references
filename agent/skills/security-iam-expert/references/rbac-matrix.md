@@ -1,220 +1,114 @@
 # Matriz de Roles, Permisos y Scopes — Qdoora ERP
 
-> Usa este archivo al definir roles, permisos, separación de portales, middleware de scope,
-> o al validar si un usuario puede ejecutar una acción específica en el ERP.
+> Usa este archivo al definir reglas de acceso, separación de portales, validaciones en FormRequests o al decidir si un usuario puede ejecutar una acción específica en el ERP.
 
 ---
 
-## 1. Roles y Scopes del Sistema
+## 1. Arquitectura de Permisos de Qdoora (Multinivel)
 
-| Rol               | Scope JWT | Portal de Acceso | Descripción                                                      |
-| ----------------- | --------- | ---------------- | ---------------------------------------------------------------- |
-| `ADMIN_ROLE`      | `admin`   | Portal Admin     | Gestiona empresas, usuarios, roles globales del ERP              |
-| `SUPPORT_ROLE`    | `support` | Portal Soporte   | Gestiona tickets, investigación forense, suscriptores            |
-| `SUBSCRIBER_ROLE` | `client`  | Portal Cliente   | Dueño/Admin de una empresa. Acceso completo dentro de su empresa |
-| `USER_ROLE`       | `client`  | Portal Cliente   | Empleado con permisos granulares definidos por el SUBSCRIBER     |
+El sistema de permisos de Qdoora NO utiliza tablas de permisos genéricas (`role_permission`). Utiliza un modelo de autorización en capas basado en el contexto del usuario:
 
-**Regla crítica**: El scope del JWT determina qué prefijo de rutas puede consumir. Un token
-`client` no puede acceder a `/api/support/*` ni `/api/admin/*` aunque el endpoint exista.
+1. **Scope del Portal (JWT)**: Determina qué portal (Client, Support, Admin) puede consumir la petición.
+2. **Tenancy / Empresa (`user_company_permission`)**: Determina a qué empresas tiene acceso el usuario y qué tipo de acciones generales puede hacer en ellas (`show`, `update`, `transaction`).
+3. **Submódulo Funcional (`users_permission_submodule`)**: Autorización granular CRUD (`review`, `create`, `update`, `delete`) por cada submódulo del sistema (Ej: `PLAN_DE_CUENTA`, `COMPROBANTE`).
 
 ---
 
-## 2. Permisos Granulares por Módulo
+## 2. Permisos a Nivel de Empresa (`user_company_permission`)
 
-### Módulo Contabilidad
+Esta tabla rige el acceso y la mutación global de una empresa.
 
-```
-view-vouchers          → Ver comprobantes
-create-vouchers        → Crear comprobantes
-approve-vouchers       → Aprobar comprobantes (cierre de periodo)
-view-reports           → Ver reportes contables
-export-books           → Exportar libros de compra/venta
-```
-
-### Módulo Remuneraciones
-
-```
-view-liquidaciones     → Ver liquidaciones de la empresa
-create-liquidaciones   → Generar liquidaciones
-approve-liquidaciones  → Aprobar y pagar liquidaciones
-export-previred        → Exportar archivo Previred
-view-employees         → Ver empleados
-manage-employees       → Crear/editar empleados
-```
-
-### Módulo Aduana
-
-```
-view-din               → Ver declaraciones de importación
-create-din             → Crear nuevas DINs
-upload-documents       → Adjuntar documentos a despachos
-approve-dispatch       → Aprobar y cerrar despachos
-view-manifest          → Consultar manifiestos
-```
-
-### Portal Soporte/Admin
-
-```
-manage-tickets         → Gestionar tickets (agentes de soporte)
-view-all-companies     → Ver todas las empresas (solo admin)
-manage-companies       → Crear/editar/suspender empresas (solo admin)
-manage-users           → Gestionar usuarios globales (solo admin)
-view-audit-logs        → Ver logs de auditoría (solo admin)
-```
+| Permiso | Descripción |
+| :--- | :--- |
+| `show` | Permite visualizar la empresa en el selector y leer sus datos. |
+| `update` | Permite actualizar la configuración general de la empresa. |
+| `transaction` | **Crítico**: Permite generar transacciones operativas en la empresa (facturas, comprobantes, pagos). Debe validarse antes de acciones masivas o contables. |
 
 ---
 
-## 3. Implementación de Roles en Laravel 11
+## 3. Permisos a Nivel de Submódulo (`users_permission_submodule`)
+
+Define el CRUD por usuario en cada submódulo. Se valida utilizando el Enum `App\Enums\UserOperationSubmodule`.
 
 ```php
-// database/migrations/xxxx_create_roles_permissions_tables.php
-Schema::create('roles', function (Blueprint $table) {
-    $table->id();
-    $table->string('name')->unique();    // SUPER_ADMIN, SUBSCRIBER_ROLE, etc.
-    $table->string('scope');            // admin, support, client
-    $table->timestamps();
-});
+namespace App\Enums;
 
-Schema::create('permissions', function (Blueprint $table) {
-    $table->id();
-    $table->string('slug')->unique();   // view-liquidaciones, approve-vouchers, etc.
-    $table->string('module');           // accounting, payroll, customs, support
-    $table->timestamps();
-});
-
-Schema::create('role_permission', function (Blueprint $table) {
-    $table->foreignId('role_id')->constrained()->onDelete('cascade');
-    $table->foreignId('permission_id')->constrained()->onDelete('cascade');
-    $table->primary(['role_id', 'permission_id']);
-});
-
-Schema::create('role_user', function (Blueprint $table) {
-    $table->foreignId('user_id')->constrained()->onDelete('cascade');
-    $table->foreignId('role_id')->constrained()->onDelete('cascade');
-    $table->primary(['user_id', 'role_id']);
-});
-```
-
-```php
-// app/Models/User.php
-public function roles(): BelongsToMany
+enum UserOperationSubmodule: string
 {
-    return $this->belongsToMany(Role::class);
-}
-
-public function hasRole(string $role): bool
-{
-    return $this->roles()->where('name', $role)->exists();
-}
-
-public function hasPermission(string $permission): bool
-{
-    return \Cache::remember("perm_{$this->id}_{$permission}", 300, fn() =>
-        $this->roles()
-             ->whereHas('permissions', fn($q) => $q->where('slug', $permission))
-             ->exists()
-    );
-}
-
-public function getPortalScope(): string
-{
-    if ($this->hasRole('SUPER_ADMIN'))   return 'admin';
-    if ($this->hasRole('SUPPORT_AGENT')) return 'support';
-    return 'client';
+    case REVIEW = 'review';
+    case CREATE = 'create';
+    case UPDATE = 'update';
+    case DELETE = 'delete';
 }
 ```
 
 ---
 
-## 4. FormRequest con authorize() — Validación RBAC por Recurso
+## 4. Validación en Backend (FormRequests y Policies)
+
+**⚠️ Regla Estricta:** Todo FormRequest que cree, actualice, elimine o liste recursos DEBE validar ambas capas (Empresa y Submódulo) en su método `authorize()`.
 
 ```php
-// app/Http/Requests/Payroll/ApproveLiquidacionRequest.php
-class ApproveLiquidacionRequest extends FormRequest
+use App\Enums\UserOperationSubmodule;
+use Illuminate\Support\Facades\Gate;
+
+class StoreVoucherRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // ✅ Validación en dos capas:
-        // 1. ¿El usuario tiene el permiso funcional?
-        // 2. ¿La liquidación pertenece a su empresa?
-        $liquidacion = $this->route('liquidacion');
+        // 1. Validar permiso de Submódulo (Ej: CREATE en COMPROBANTE)
+        $hasSubmodulePerm = Gate::check('access-submodule', [
+            'COMPROBANTE', 
+            UserOperationSubmodule::CREATE
+        ]);
 
-        return $this->user()->hasPermission('approve-liquidaciones')
-            && $liquidacion->company_id === $this->user()->company_id;
+        // 2. Validar permiso de Empresa (Ej: transaction)
+        $companyId = $this->header('X-Company-Id') ?? $this->user()->company_selected_id;
+        $hasCompanyPerm = Gate::check('company-action', [
+            $companyId, 
+            'transaction'
+        ]);
+
+        return $hasSubmodulePerm && $hasCompanyPerm;
     }
 
     public function rules(): array
     {
-        return [
-            'observations' => ['nullable', 'string', 'max:500'],
-        ];
-    }
-
-    // ❌ NUNCA dejar authorize() en true sin validación:
-    // public function authorize(): bool { return true; } ← BFLA vulnerability (QD-04)
-}
-```
-
----
-
-## 5. Seeder de Roles y Permisos
-
-```php
-// database/seeders/RolesAndPermissionsSeeder.php
-class RolesAndPermissionsSeeder extends Seeder
-{
-    public function run(): void
-    {
-        // Roles
-        $admin   = Role::firstOrCreate(['name' => 'SUPER_ADMIN',    'scope' => 'admin']);
-        $support = Role::firstOrCreate(['name' => 'SUPPORT_AGENT',  'scope' => 'support']);
-        $owner   = Role::firstOrCreate(['name' => 'SUBSCRIBER_ROLE','scope' => 'client']);
-        $user    = Role::firstOrCreate(['name' => 'USER_ROLE',       'scope' => 'client']);
-
-        // Permisos por módulo
-        $allPerms = [
-            // Contabilidad
-            ['slug' => 'view-vouchers',    'module' => 'accounting'],
-            ['slug' => 'create-vouchers',  'module' => 'accounting'],
-            ['slug' => 'approve-vouchers', 'module' => 'accounting'],
-            // Nómina
-            ['slug' => 'view-liquidaciones',    'module' => 'payroll'],
-            ['slug' => 'create-liquidaciones',  'module' => 'payroll'],
-            ['slug' => 'approve-liquidaciones', 'module' => 'payroll'],
-            // Aduana
-            ['slug' => 'view-din',      'module' => 'customs'],
-            ['slug' => 'create-din',    'module' => 'customs'],
-            ['slug' => 'approve-dispatch', 'module' => 'customs'],
-            // Admin
-            ['slug' => 'manage-companies', 'module' => 'admin'],
-            ['slug' => 'manage-users',     'module' => 'admin'],
-            ['slug' => 'view-audit-logs',  'module' => 'admin'],
-        ];
-
-        foreach ($allPerms as $perm) {
-            Permission::firstOrCreate($perm);
-        }
-
-        // SUPER_ADMIN tiene todos los permisos
-        $admin->permissions()->sync(Permission::pluck('id'));
-
-        // SUBSCRIBER_ROLE tiene todos los permisos de cliente
-        $clientPerms = Permission::whereNotIn('module', ['admin'])->pluck('id');
-        $owner->permissions()->sync($clientPerms);
+        return [ ... ];
     }
 }
 ```
+*(Nota: Asume que las Gates `access-submodule` y `company-action` se registran en AuthServiceProvider verificando contra `users_permission_submodule` y `user_company_permission`)*.
 
 ---
 
-## 6. Tabla de Decisión — ¿Qué middleware aplicar?
+## 5. Implementación en el Frontend (Angular)
 
-| Escenario                         | Middleware / Validación             |
-| --------------------------------- | ----------------------------------- |
-| Ruta pública (login, registro)    | Sin middleware                      |
-| Ruta autenticada cualquier portal | `auth.jwt`                          |
-| Ruta exclusiva del portal cliente | `auth.jwt` + `portal.scope:client`  |
-| Ruta exclusiva del portal soporte | `auth.jwt` + `portal.scope:support` |
-| Ruta exclusiva del portal admin   | `auth.jwt` + `portal.scope:admin`   |
-| Acción sobre recurso específico   | `authorize()` en `FormRequest`      |
-| Endpoint de alta criticidad       | `auth.jwt` + `throttle.api:X,Y`     |
+### Frontend Service (State)
+Nunca confíes los permisos al Payload del JWT (esto engorda el JWT y retrasa la actualización de accesos).
+El Portal Cliente (Angular 18) debe utilizar un servicio inyectable (ej. `PermissionService`) soportado por **Signals** que, al montar un módulo, descargue de un endpoint ligero los permisos correspondientes.
+
+### Ocultar Elementos UI (Directivas)
+Para ocultar botones o secciones, utiliza una directiva personalizada o un control de flujo:
+
+```html
+<!-- Ejemplo con sintaxis Angular 17/18 Control Flow + Signal -->
+@if (permissionService.hasAccess('COMPROBANTE', 'create')()) {
+  <button (click)="createVoucher()">Crear Comprobante</button>
+}
+```
+
+> **Advertencia de Seguridad (Anti-Patrón):** Ocultar el botón en el frontend NO reemplaza la validación en el `FormRequest`. Es solo UX. Si un usuario inyecta una petición por Postman, el backend debe rechazarla.
+
+---
+
+## 6. JWT y Scopes (El JWT Delgado)
+
+El token JWT **solamente** debe contener:
+- Identificador de usuario (`sub`).
+- Rol genérico (`role`).
+- Scope de acceso al portal (`portal_scope`: `client`, `support`, `admin`).
+- (Opcional) Empresa seleccionada en el header o payload ligero.
+
+**Prohibido:**
+❌ Incluir arrays de permisos `[ { submodule: '...', create: true } ]` dentro del JWT. Esto provoca la vulnerabilidad de Information Disclosure, JWTs pesados y riesgo de persistencia local.

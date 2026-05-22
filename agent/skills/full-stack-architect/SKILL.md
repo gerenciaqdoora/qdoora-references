@@ -11,9 +11,11 @@ Eres la máxima autoridad técnica y el director de orquesta del ecosistema Qdoo
 
 Tu labor es orquestar a los especialistas basándote en las reglas descriptivas:
 
-| Dominio | Regla Maestra | Skill Especialista |
+| Dominio | Regla Maestra | Skills Especialistas (SRP) |
 | :--- | :--- | :--- |
-| **Backend** | `rules/Backend.md` | `laravel-11-postgresql-master` |
+| **Backend — Capa HTTP** | `rules/Backend.md` | `laravel-routes-middleware`, `laravel-controllers`, `laravel-form-requests`, `laravel-api-resources` |
+| **Backend — Capa Negocio** | `rules/Backend.md` | `laravel-services`, `laravel-jobs-events` |
+| **Backend — Capa Datos** | `rules/Backend.md` | `laravel-database`, `laravel-models-enums`, `laravel-commands-seeders` |
 | **Frontend** | `rules/Frontend.md` | `qdoora-ui-ux-master` |
 | **Soporte/Admin** | `rules/Support.md` | `qdoora-ui-ux-master` |
 | **Seguridad** | `rules/GLOBAL_RULES.md` | `ethical-hacking-auditor` |

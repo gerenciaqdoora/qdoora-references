@@ -1,0 +1,32 @@
+{
+  "evals": [
+    {
+      "name": "Autorización Anti-IDOR",
+      "description": "Verifica que authorize() no devuelva true por defecto y valide pertenencia o roles.",
+      "input": "Crea el FormRequest para eliminar un documento, asegurando que solo lo pueda hacer el dueño de la empresa.",
+      "expected_output_patterns": [
+        "Company::where"
+      ],
+      "forbidden_output_patterns": [
+        "return true;"
+      ]
+    },
+    {
+      "name": "Unicidad Multitenant",
+      "description": "Verifica que las reglas unique() apliquen el scope company_id.",
+      "input": "En el StoreProductRequest, valida que el sku del producto sea único para la empresa actual.",
+      "expected_output_patterns": [
+        "Rule::unique",
+        "->where\\('company_id'"
+      ]
+    },
+    {
+      "name": "Mensajes en Español",
+      "description": "Verifica que el método messages() esté implementado y devuelva texto en español.",
+      "input": "Agrega mensajes personalizados para las validaciones requeridas del request.",
+      "expected_output_patterns": [
+        "obligatorio|requerido|válido|existe"
+      ]
+    }
+  ]
+}

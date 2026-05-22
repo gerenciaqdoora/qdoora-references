@@ -1,36 +1,29 @@
 # Laravel 11 — Autenticación JWT y Protección de API
 
-> Usa este archivo al trabajar en AuthController, bootstrap/app.php, rutas de api.php,
-> configuración de JWTAuth, middleware, o cualquier lógica de autenticación del backend.
+> Patrones de implementación para AuthController, AuthService, JWT config, middleware de scope
+> y rate limiting. Para la arquitectura de permisos (Submódulo/Empresa), consulta `rbac-matrix.md`.
 
 ---
 
-## 1. Configuración JWTAuth para ECS Fargate
+## 1. Configuración JWTAuth (ECS Fargate)
 
 ```php
-// config/jwt.php — valores críticos para ECS stateless
+// config/jwt.php
 return [
-    'ttl'              => env('JWT_TTL', 60),         // 60 minutos — access token
-    'refresh_ttl'      => env('JWT_REFRESH_TTL', 20160), // 14 días — refresh token
+    'ttl'              => env('JWT_TTL', 60),           // 60 min — access token
+    'refresh_ttl'      => env('JWT_REFRESH_TTL', 20160),// 14 días — refresh token
     'algo'             => env('JWT_ALGO', 'HS256'),
     'required_claims'  => ['iss', 'iat', 'exp', 'nbf', 'sub', 'jti', 'company_id', 'portal'],
-    'blacklist_enabled'=> env('JWT_BLACKLIST_ENABLED', true), // para logout real
+    'blacklist_enabled'=> env('JWT_BLACKLIST_ENABLED', true),
     'blacklist_grace_period' => env('JWT_BLACKLIST_GRACE_PERIOD', 0),
 ];
-
-// .env
-JWT_SECRET=<generado_con_php_artisan_jwt:secret>
-JWT_TTL=60
-JWT_REFRESH_TTL=20160
-JWT_BLACKLIST_ENABLED=true
 ```
 
 ---
 
-## 2. AuthController — Delgado y Seguro
+## 2. AuthController (Delgado)
 
 ```php
-// app/Http/Controllers/Auth/AuthController.php
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -45,7 +38,6 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): JsonResponse
     {
-        // Toda la lógica vive en el Service, no aquí
         $result = $this->authService->login($request->validated());
         return (new AuthResource($result))->response()->setStatusCode(200);
     }
@@ -66,11 +58,20 @@ class AuthController extends Controller
     {
         return response()->json(['data' => auth()->user()]);
     }
+
+    public function checkPermission(string $permission): JsonResponse
+    {
+        $allowed = auth('api')->user()->hasPermission($permission);
+        return response()->json(['allowed' => $allowed]);
+    }
 }
 ```
 
+---
+
+## 3. AuthService
+
 ```php
-// app/Services/Auth/AuthService.php
 namespace App\Services\Auth;
 
 use App\Models\User;
@@ -87,25 +88,22 @@ class AuthService
 
         $user = Auth::guard('api')->user();
 
-        // Añadir claims personalizados al token
         $customClaims = [
             'company_id' => $user->company_id,
             'portal'     => $this->resolvePortalScope($user),
         ];
 
         $token = JWTAuth::claims($customClaims)->fromUser($user);
-
         return ['token' => $token, 'user' => $user];
     }
 
     public function logout(): void
     {
-        Auth::guard('api')->logout(); // invalida el token en la blacklist
+        Auth::guard('api')->logout();
     }
 
     public function refresh(): array
     {
-        // Rotation: el token viejo queda inválido, se emite uno nuevo
         $newToken = Auth::guard('api')->refresh(true, true);
         return ['token' => $newToken, 'user' => Auth::guard('api')->user()];
     }
@@ -123,10 +121,9 @@ class AuthService
 
 ---
 
-## 3. AuthResource — Respuesta Mínima (Anti QD-09)
+## 4. AuthResource (Respuesta Mínima)
 
 ```php
-// app/Http/Resources/Auth/AuthResource.php
 public function toArray(Request $request): array
 {
     return [
@@ -137,8 +134,7 @@ public function toArray(Request $request): array
             'id'     => $this->user->id,
             'name'   => $this->user->name,
             'email'  => $this->user->email,
-            'portal' => $this->user->portal_scope, // solo el scope, no el objeto de permisos
-            // ❌ NUNCA exponer: permissions[], is_admin, roles[], privileges
+            'portal' => $this->user->portal_scope,
         ],
     ];
 }
@@ -146,59 +142,37 @@ public function toArray(Request $request): array
 
 ---
 
-## 4. Rutas — Separación por Portal (bootstrap/app.php + api.php)
+## 5. Rutas por Portal y Middleware de Scope
 
 ```php
-// bootstrap/app.php — registro de middlewares
+// bootstrap/app.php
 ->withMiddleware(function (Middleware $middleware) {
     $middleware->alias([
         'auth.jwt'     => \App\Http\Middleware\JwtAuthenticate::class,
         'portal.scope' => \App\Http\Middleware\EnforcePortalScope::class,
-        'can.do'       => \App\Http\Middleware\EnforceServerSidePermissions::class,
         'throttle.api' => \App\Http\Middleware\ApiThrottle::class,
     ]);
 })
 
-// routes/api.php — grupos por portal con scope enforcement
+// routes/api.php
 Route::prefix('auth')->group(function () {
-    Route::post('login',   [AuthController::class, 'login'])
-         ->middleware('throttle.api:login,5,15');
+    Route::post('login',   [AuthController::class, 'login'])->middleware('throttle.api:login,5,15');
     Route::post('logout',  [AuthController::class, 'logout'])->middleware('auth.jwt');
     Route::post('refresh', [AuthController::class, 'refresh'])->middleware('auth.jwt');
     Route::get('me',       [AuthController::class, 'me'])->middleware('auth.jwt');
-
-    // Endpoint de validación server-side para Guards de Angular (anti QD-01)
-    Route::get('check-permission/{permission}', [AuthController::class, 'checkPermission'])
-         ->middleware('auth.jwt');
+    Route::get('check-permission/{permission}', [AuthController::class, 'checkPermission'])->middleware('auth.jwt');
 });
 
-// Rutas del Portal Cliente
-Route::prefix('client')->middleware(['auth.jwt', 'portal.scope:client'])->group(function () {
-    Route::apiResource('vouchers',     \App\Http\Controllers\Client\VoucherController::class);
-    Route::apiResource('liquidaciones',\App\Http\Controllers\Client\LiquidacionController::class);
-    // ...
-});
-
-// Rutas del Portal Soporte
-Route::prefix('support')->middleware(['auth.jwt', 'portal.scope:support'])->group(function () {
-    Route::apiResource('tickets', \App\Http\Controllers\Support\TicketController::class);
-    // ...
-});
-
-// Rutas del Portal Admin
-Route::prefix('admin')->middleware(['auth.jwt', 'portal.scope:admin'])->group(function () {
-    Route::apiResource('users',     \App\Http\Controllers\Admin\UserController::class);
-    Route::apiResource('companies', \App\Http\Controllers\Admin\CompanyController::class);
-    // ...
-});
+Route::prefix('client')->middleware(['auth.jwt', 'portal.scope:client'])->group(function () { /* ... */ });
+Route::prefix('support')->middleware(['auth.jwt', 'portal.scope:support'])->group(function () { /* ... */ });
+Route::prefix('admin')->middleware(['auth.jwt', 'portal.scope:admin'])->group(function () { /* ... */ });
 ```
 
 ---
 
-## 5. Middleware de Scope por Portal
+## 6. EnforcePortalScope Middleware
 
 ```php
-// app/Http/Middleware/EnforcePortalScope.php
 namespace App\Http\Middleware;
 
 class EnforcePortalScope
@@ -220,47 +194,26 @@ class EnforcePortalScope
 
 ---
 
-## 6. Validación de Permiso Server-Side (Anti QD-01)
+## 7. Rate Limiting para Auth
 
 ```php
-// app/Http/Controllers/Auth/AuthController.php
-public function checkPermission(string $permission): JsonResponse
+namespace App\Http\Middleware;
+
+class ApiThrottle
 {
-    $user    = auth('api')->user();
-    $allowed = $user->hasPermission($permission);
+    public function handle(Request $request, Closure $next, string $key, int $max, int $decay): Response
+    {
+        $id = $key . ':' . ($request->user()?->id ?? $request->ip());
 
-    return response()->json(['allowed' => $allowed]);
-}
+        if ($this->limiter->tooManyAttempts($id, $max)) {
+            return response()->json([
+                'message'     => 'Too many attempts.',
+                'retry_after' => $this->limiter->availableIn($id),
+            ], 429);
+        }
 
-// app/Models/User.php
-public function hasPermission(string $permission): bool
-{
-    return \Cache::remember("user_{$this->id}_perm_{$permission}", 300, fn() =>
-        $this->roles()
-             ->whereHas('permissions', fn($q) => $q->where('slug', $permission))
-             ->exists()
-    );
-}
-```
-
----
-
-## 7. Rate Limiting en Auth Endpoints
-
-```php
-// app/Http/Middleware/ApiThrottle.php
-public function handle(Request $request, Closure $next, string $key, int $max, int $decay): Response
-{
-    $id = $key . ':' . ($request->user()?->id ?? $request->ip());
-
-    if ($this->limiter->tooManyAttempts($id, $max)) {
-        return response()->json([
-            'message'     => 'Too many attempts.',
-            'retry_after' => $this->limiter->availableIn($id),
-        ], 429);
+        $this->limiter->hit($id, $decay * 60);
+        return $next($request);
     }
-
-    $this->limiter->hit($id, $decay * 60);
-    return $next($request);
 }
 ```

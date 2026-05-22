@@ -1,0 +1,37 @@
+{
+  "evals": [
+    {
+      "name": "Delegación Try-Catch",
+      "description": "Verifica que el método delegue al servicio envuelto en try-catch.",
+      "input": "Crea el controlador para almacenar un nuevo Centro de Costo.",
+      "expected_output_patterns": [
+        "try \\{",
+        "catch",
+        "\\$this->loggerService->log",
+        "return response\\(\\)->json"
+      ]
+    },
+    {
+      "name": "HandlesControllerLogs Obligatorio",
+      "description": "Verifica que se utilice el trait de manejo centralizado de errores.",
+      "input": "Crea un controlador vacío para el módulo de Soporte.",
+      "expected_output_patterns": [
+        "use HandlesControllerLogs;",
+        "\\$this->handleError->logAndResponse"
+      ]
+    },
+    {
+      "name": "Cero Lógica de Negocio",
+      "description": "Verifica que el controlador actúe como pasarela sin interactuar con Modelos directamente.",
+      "input": "En el CompanyController, crea el método show para buscar una empresa por su ID.",
+      "expected_output_patterns": [
+        "\\$this->companyService->"
+      ],
+      "forbidden_output_patterns": [
+        "Company::find",
+        "Company::where",
+        "->save\\(\\)"
+      ]
+    }
+  ]
+}

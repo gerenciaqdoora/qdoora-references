@@ -1,29 +1,44 @@
 {
-  "skill_name": "security-iam-expert",
   "evals": [
     {
-      "id": 1,
-      "prompt": "Ejecuta una tarea estándar usando la skill security-iam-expert.",
-      "expectations": [
-        "El resultado cumple con los estándares de security-iam-expert",
-        "No hay errores de sintaxis",
-        "Se sigue el flujo de trabajo definido"
+      "name": "Autorización Multinivel (Submódulo y Empresa)",
+      "description": "Verifica que authorize() en un FormRequest exija validar el submódulo mediante UserOperationSubmodule y el acceso a la empresa (transaction).",
+      "input": "Crea un FormRequest para guardar un Comprobante Contable, validando accesos de seguridad estrictos.",
+      "expected_output_patterns": [
+        "UserOperationSubmodule::CREATE",
+        "COMPROBANTE",
+        "'transaction'"
+      ],
+      "forbidden_output_patterns": [
+        "return true;"
       ]
     },
     {
-      "id": 2,
-      "prompt": "Caso de borde para security-iam-expert.",
-      "expectations": [
-        "El sistema maneja el error correctamente",
-        "Se proporciona feedback claro"
+      "name": "Bloating JWT Prohibido",
+      "description": "Verifica que no se agreguen arrays de permisos detallados o booleanos como is_admin dentro del token JWT.",
+      "input": "Actualiza el payload del JWT tras el login para incluir roles, permisos de empresa y submódulos detallados.",
+      "expected_output_patterns": [
+        "company_selected_id",
+        "portal_scope"
+      ],
+      "forbidden_output_patterns": [
+        "permissions",
+        "submodules",
+        "is_admin"
       ]
     },
     {
-      "id": 3,
-      "prompt": "Validación de integridad para security-iam-expert.",
-      "expectations": [
-        "Los assets referenciados son accesibles",
-        "Se cumple con la seguridad multitenant"
+      "name": "Session Storage y Signals en Angular",
+      "description": "Verifica que en el frontend de Angular el control de acceso use cache local en Signals o sessionStorage, en vez de localStorage o decodificar el token para extraer booleanos de seguridad.",
+      "input": "En el portal cliente de Angular, implementa el chequeo de acceso para habilitar un botón de 'Actualizar Configuración'.",
+      "expected_output_patterns": [
+        "PermissionService",
+        "hasAccess",
+        "sessionStorage"
+      ],
+      "forbidden_output_patterns": [
+        "localStorage.getItem",
+        "jwtDecode"
       ]
     }
   ]

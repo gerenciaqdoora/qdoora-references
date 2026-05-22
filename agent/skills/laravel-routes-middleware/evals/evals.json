@@ -1,0 +1,34 @@
+{
+  "evals": [
+    {
+      "name": "Versionado Estricto",
+      "description": "Verifica que todas las rutas se registren bajo el prefijo v1/.",
+      "input": "Crea el grupo de rutas para el módulo de Empleados, incluyendo un endpoint para listar.",
+      "expected_output_patterns": [
+        "prefix.*v1",
+        "Route::get\\("
+      ]
+    },
+    {
+      "name": "Rate Limiting Sensible",
+      "description": "Verifica la aplicación de middleware throttle a endpoints críticos.",
+      "input": "Agrega un endpoint de login para un nuevo portal de auditores.",
+      "expected_output_patterns": [
+        "middleware.*throttle\\.api"
+      ]
+    },
+    {
+      "name": "Canales de Broadcast Protegidos",
+      "description": "Verifica que los canales validen la propiedad por companyId o userId.",
+      "input": "Crea la configuración de un canal de broadcast para notificar la finalización del cierre contable de una empresa.",
+      "expected_output_patterns": [
+        "Broadcast::channel",
+        "companyId",
+        "where\\('id', \\$companyId\\)"
+      ],
+      "forbidden_output_patterns": [
+        "return true;"
+      ]
+    }
+  ]
+}

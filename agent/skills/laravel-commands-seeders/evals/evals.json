@@ -1,0 +1,31 @@
+{
+  "evals": [
+    {
+      "name": "Idempotencia Obligatoria",
+      "description": "Verifica que los seeders utilicen métodos idempotentes como updateOrCreate.",
+      "input": "Escribe el seeder para insertar la lista de bancos chilenos iniciales.",
+      "expected_output_patterns": [
+        "updateOrCreate"
+      ],
+      "forbidden_output_patterns": [
+        "Bank::create"
+      ]
+    },
+    {
+      "name": "Retorno de Comando Exitoso",
+      "description": "Verifica que los Comandos Artisan retornen Command::SUCCESS.",
+      "input": "Crea el comando SyncGlobalEarnDiscountCommand para el módulo global.",
+      "expected_output_patterns": [
+        "return Command::SUCCESS;"
+      ]
+    },
+    {
+      "name": "Registro de Seeder",
+      "description": "Verifica que se advierta o proponga registrar el Seeder en DataSyncCommand.",
+      "input": "Añade un nuevo seeder para cargar tipos de documentos tributarios.",
+      "expected_output_patterns": [
+        "DataSyncCommand"
+      ]
+    }
+  ]
+}
