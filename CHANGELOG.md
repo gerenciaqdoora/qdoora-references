@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-22] refactor(agent): transformar erp-accounting-expert en Business Domain Skill sin codigo especifico
+
 - [2026-05-22] refactor(agent): potenciar prompt architect usando planning mode y eliminar workflow redundante prompt-protocol
 
 - [2026-05-22] chore(agent): evitar copiar reglas y workflows redundantes a la carpeta .claude

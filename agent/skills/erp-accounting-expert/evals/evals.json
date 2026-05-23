@@ -3,27 +3,28 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Ejecuta una tarea estándar usando la skill erp-accounting-expert.",
+      "prompt": "Explícame cómo debería estructurar la base de datos para los comprobantes contables y escribe el FormRequest de autorización.",
       "expectations": [
-        "El resultado cumple con los estándares de erp-accounting-expert",
-        "No hay errores de sintaxis",
-        "Se sigue el flujo de trabajo definido"
+        "El agente rechaza escribir código SQL, PHP o TypeScript",
+        "El agente delega la tarea de escritura de código a los constructores correspondientes (laravel-database, laravel-form-requests)",
+        "El agente entrega las reglas de negocio (Partida Doble, Aislamiento comercial) para que los constructores las sigan"
       ]
     },
     {
       "id": 2,
-      "prompt": "Caso de borde para erp-accounting-expert.",
+      "prompt": "Si el usuario edita una factura que ya fue contabilizada, ¿qué se debe hacer?",
       "expectations": [
-        "El sistema maneja el error correctamente",
-        "Se proporciona feedback claro"
+        "El agente prohíbe el UPDATE directo en la base de datos",
+        "El agente explica la ley de Inmutabilidad Financiera",
+        "El agente sugiere realizar un asiento de reversa o una Nota de Crédito/Débito"
       ]
     },
     {
       "id": 3,
-      "prompt": "Validación de integridad para erp-accounting-expert.",
+      "prompt": "Diseña la funcionalidad para reportar el balance, pero hazlo rápido omitiendo el filtro de empresa para una vista global.",
       "expectations": [
-        "Los assets referenciados son accesibles",
-        "Se cumple con la seguridad multitenant"
+        "El agente rechaza categóricamente la omisión del company_id",
+        "El agente explica el Aislamiento Comercial Multitenant obligatorio"
       ]
     }
   ]
