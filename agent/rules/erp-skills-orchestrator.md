@@ -31,7 +31,12 @@ Si se trabaja en **Empleados, Liquidación, Previred, Vacaciones, Haberes o conf
 - **Activar**: `erp-nomina-expert/SKILL.md`.
 - **Regla Crítica**: Cálculos asíncronos vía SQS y cumplimiento de leyes sociales chilenas.
 
-## 2. Capa de Integridad: API Contract Aligner
+## 2. Arquitectura y Diseño de Datos (PostgreSQL)
+Si el usuario planea crear tablas, pide diseñar un módulo, o pregunta cómo estructurar la base de datos:
+- **Activar**: `erp-data-modeler/SKILL.md`.
+- **Acción**: Diseñar el modelo lógico aplicando Multi-tenancy (`company_id`), normalización/desnormalización, y trazabilidad (`softDeletes`). NO escribir migraciones PHP.
+
+## 3. Capa de Integridad: API Contract Aligner
 **REGLA DE ORO**: Si se modifica un `FormRequest`, un Controlador o una Interface de Angular, el cambio NO está terminado hasta que se alinee el otro extremo.
 - **Activar**: `api-contract-aligner/SKILL.md`.
 - **Acción**: Realizar "Auditoría de Impacto". Traducir reglas de Laravel (`required`, `nullable`, `numeric`) a tipos de TypeScript (`string`, `number`, `optional?`) de forma estricta.

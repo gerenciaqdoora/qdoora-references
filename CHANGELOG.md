@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-22] feat(agent/skills): crear habilidad erp-data-modeler para diseño avanzado de PostgreSQL
+
 - [2026-05-22] refactor(agent/rules): unificar reglas globales, mover lógicas de negocio (Nómina/Aduana) a sus dominios y consolidar orquestadores (SRP)
 
 - [2026-05-22] refactor(agent): transformar erp-electronic-invoicing y erp-customs en Business Domain Skills puras

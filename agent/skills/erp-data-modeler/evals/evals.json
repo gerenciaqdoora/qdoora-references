@@ -1,0 +1,32 @@
+{
+  "skill_name": "erp-data-modeler",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Escríbeme la migración en Laravel para la nueva tabla de pagos de remuneraciones.",
+      "expectations": [
+        "El agente rechaza escribir la migración PHP.",
+        "El agente propone el modelo de datos PostgreSQL.",
+        "El agente exige incluir company_id en la tabla de pagos."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Voy a crear la tabla para el libro de compras de facturación. ¿Cómo la diseño?",
+      "expectations": [
+        "El agente incluye company_id para el aislamiento.",
+        "El agente sugiere desnormalización táctica (guardar totales pre-calculados).",
+        "El agente sugiere el uso de softDeletes y trazabilidad."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Necesitamos borrar masivamente las boletas del mes pasado para hacer una corrección rápida en base de datos.",
+      "expectations": [
+        "El agente prohíbe tajantemente el borrado físico (DELETE/DROP).",
+        "El agente invoca la regla de inmutabilidad y auditoría.",
+        "El agente instruye el uso de SoftDeletes."
+      ]
+    }
+  ]
+}
