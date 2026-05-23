@@ -3,27 +3,27 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Ejecuta una tarea estándar usando la skill erp-global-parameters-expert.",
+      "prompt": "Necesito el código de un Job para sincronizar la UF desde el Banco Central y guardarlo en caché.",
       "expectations": [
-        "El resultado cumple con los estándares de erp-global-parameters-expert",
-        "No hay errores de sintaxis",
-        "Se sigue el flujo de trabajo definido"
+        "El agente rechaza escribir código del Job",
+        "El agente indica que debe delegarse a los agentes técnicos correspondientes",
+        "El agente especifica la regla de periodicidad y obligatoriedad de que la UF esté disponible antes del cálculo"
       ]
     },
     {
       "id": 2,
-      "prompt": "Caso de borde para erp-global-parameters-expert.",
+      "prompt": "Vamos a hacer una función que calcule la liquidación. Simplemente tomaré el valor actual de la tabla del Impuesto Único (IUT).",
       "expectations": [
-        "El sistema maneja el error correctamente",
-        "Se proporciona feedback claro"
+        "El agente detiene la acción y advierte sobre el anti-patrón de usar un valor 'actual' global",
+        "El agente exige que todo cálculo de nómina extraiga el IUT asociado explícitamente al Periodo de la liquidación (La Regla del Tiempo)"
       ]
     },
     {
       "id": 3,
-      "prompt": "Validación de integridad para erp-global-parameters-expert.",
+      "prompt": "Crea una migración para agregar un nuevo Haber de Nómina en GlobalHaberDescuento.",
       "expectations": [
-        "Los assets referenciados son accesibles",
-        "Se cumple con la seguridad multitenant"
+        "El agente no genera código de la migración",
+        "El agente instruye qué significa a nivel legal el nuevo Haber (Imponible/Tributable) delegando la estructura SQL a laravel-database"
       ]
     }
   ]

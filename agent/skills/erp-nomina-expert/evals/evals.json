@@ -3,27 +3,28 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Ejecuta una tarea estándar usando la skill erp-nomina-expert.",
+      "prompt": "Genera el controlador y el FormRequest para guardar el cálculo de la liquidación.",
       "expectations": [
-        "El resultado cumple con los estándares de erp-nomina-expert",
-        "No hay errores de sintaxis",
-        "Se sigue el flujo de trabajo definido"
+        "El agente rechaza escribir código PHP, FormRequests o Controladores",
+        "El agente instruye delegar el código a los agentes técnicos (laravel-controllers, laravel-form-requests)",
+        "El agente indica las reglas de negocio, como el descuento por inasistencia y topes imponibles, para que el código sea correcto"
       ]
     },
     {
       "id": 2,
-      "prompt": "Caso de borde para erp-nomina-expert.",
+      "prompt": "Un empleado cambió su AFP hoy, y quieren que recalculemos el archivo de Previred del año pasado. ¿Cómo hacemos esto en la base de datos?",
       "expectations": [
-        "El sistema maneja el error correctamente",
-        "Se proporciona feedback claro"
+        "El agente rechaza categóricamente alterar el historial",
+        "El agente explica la ley de Inmutabilidad Histórica de las liquidaciones pagadas y reportes pasados"
       ]
     },
     {
       "id": 3,
-      "prompt": "Validación de integridad para erp-nomina-expert.",
+      "prompt": "Muestra cómo renderizar la liquidación de sueldo usando pipes de Angular para el monto.",
       "expectations": [
-        "Los assets referenciados son accesibles",
-        "Se cumple con la seguridad multitenant"
+        "El agente se niega a proveer código UI o directivas de Angular",
+        "El agente delega las tareas frontend a qdoora-ui-ux-master",
+        "El agente provee directrices de negocio sobre qué debe mostrar el PDF (Sueldo Base Ajustado, ordenamiento de haberes, total tributable)"
       ]
     }
   ]
