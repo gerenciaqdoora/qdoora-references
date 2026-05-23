@@ -8,9 +8,9 @@ trigger: always_on
 
 > [!IMPORTANT]
 > Estas reglas son vitales para la estabilidad de la sesión y la calidad del código.
-> 1. **Cero Bloqueos de UI**: NUNCA utilizar el sistema de "Implementation Plan" u otros artefactos de planificación intermedios que congelen la interfaz del usuario. Proceder directamente a la ejecución técnica.
+> 1. **Cero Bloqueos Injustificados**: NO utilices el sistema de "Implementation Plan" u otros artefactos de planificación intermedios para tareas triviales, consultas o arreglos menores. Usa tu juicio y procede directamente a la ejecución técnica si no hay ambigüedad o impacto arquitectónico.
 > 2. **Investigación de Consistencia**: Antes de proponer una clave de datos (`key`), un atributo de API o un patrón de código, se debe realizar una búsqueda exhaustiva (grep/list_dir) en otros módulos (ej: `CompanyList`, `EmployeeList`, `Laravel Resources`) para asegurar que coincida con el estándar REAL de la aplicación. No se permiten suposiciones.
-> 3. **Refinamiento de Prompts (Opcional)**: Para activar el flujo de refinamiento y diseño previo a la ejecución, se debe invocar el comando `@[/qdoora-workflow-protocol]`. Esto garantiza que el asistente proponga un **Master Prompt Refinado** antes de realizar cambios estructurales.
+> 3. **Planning Mode (Opcional)**: Para tareas de alto impacto (refactorizaciones, nuevos flujos), DEBES usar el modo de planificación nativo (`implementation_plan.md`) y esperar la aprobación del usuario antes de alterar archivos críticos.
 
 ## 1. Reglas Generales de Interacción y Ejecución de Comandos
 
@@ -108,16 +108,17 @@ Al concluir cada tarea significativa, se debe invocar proactivamente al skill `t
 1. Evaluar si se ha implementado un nuevo patrón.
 2. Actualizar estos archivos de reglas si es necesario para que el conocimiento sea persistente.
 
-### 📐 Diseño de Planes (Prompt Architect)
-**🔴 REGLA MANDATORIA**: Todas las tareas complejas planificadas a través del `prompt-protocol` deben definir un **"Contexto Acotado"** estricto y **"Anti-Patrones"**. 
+### 📐 Diseño de Planes (Planning Mode)
+**🔴 REGLA MANDATORIA**: Todas las tareas complejas planificadas a través de `implementation_plan.md` deben definir un **"Contexto Acotado"** estricto y **"Anti-Patrones"**. 
 - El agente ejecutor tiene prohibido explorar archivos irrelevantes (ej: `node_modules`, dependencias) o hacer búsquedas globales indiscriminadas.
 - Esto mitiga alucinaciones, asegura la máxima velocidad y protege el límite de tokens de contexto.
 
-### 🏢 Gestión de Planes de Empresa Única (Aduana)
-Para planes con restricción de empresa única (ej. Aduana):
-1. **Navegación**: Reemplazar listados y creación de empresas por redirección directa a la edición de la empresa existente mediante `PlanGuard`.
-2. **Toolbar**: Ocultar el selector interactivo y mostrar un badge informativo premium con los datos técnicos (ej: Despachador y Código).
-3. **Persistencia**: Asegurar que los datos técnicos críticos (`agent_name`, `agent_code`) estén siempre presentes en el objeto de sesión del usuario (`User.php -> toLoginResponse`) para evitar inconsistencias visuales en el toolbar.
+### 📜 Orquestación del Escribano Técnico (Documentación)
+Al concluir cada tarea significativa, debes documentar la memoria del proyecto:
+1. **Lógica de API, Scopes y Models**: Documentar en `qdoora-references/agent/rules/Backend.md`.
+2. **Componentes Cliente, Signals y UI**: Documentar en `qdoora-references/agent/rules/Frontend.md`.
+3. **Memoria de Soporte & Admin**: Vigilar que los cambios de lógica compartida se anoten en `qdoora-references/agent/rules/Support.md`.
+4. **Validación de Seguridad**: Si se resuelve un vector (QD-01 a QD-11), el parche estándar debe añadirse a los manuales de Frontend o Backend respectivos.
 
 ---
 

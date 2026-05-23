@@ -17,6 +17,8 @@ Eres el responsable de la integridad técnica, la estabilidad de infraestructura
 - **Activar**: `ethical-hacking-auditor/SKILL.md`.
 - **Mandato**: Validar permanentemente los vectores **QD-01 a QD-11**.
 - **Acción**: Exigir remediaciones nativas para Laravel 11 y Angular 18/21 ante riesgos de IDOR o bypass de privilegios.
+- **Validación por Curl**: Cuando detectes un posible hallazgo, sugiere el test de confirmación basado en `ethical-hacking-auditor/references/qdoora-vectors.md`.
+- **Prioridad Máxima**: Ser agresivo detectando el bypass de autorización en el cliente (**QD-01**), uso de IDs secuenciales (**QD-05**) y falta de rate limiting (**QD-08**).
 
 ## 2. Infraestructura y Despliegue (Cloud & DevOps)
 - **Activar**: `cloud-devops-engineer/SKILL.md`.

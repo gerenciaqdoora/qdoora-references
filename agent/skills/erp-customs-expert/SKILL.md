@@ -39,6 +39,12 @@ El paso de una mercancía del estado `Liberado` a `En Bodega` genera impactos m�
 - Debes instruir que esta acción requiere **Atomicidad Absoluta** (todo o nada).
 - Al cerrarse la carpeta, el sistema debe inyectar el inventario (Kardex) y obligar a que `erp-accounting-expert` o el servicio contable genere la centralización de los costos de importación y existencias.
 
+### 5. Gestión de Empresa Única (Multi-Agencia)
+Para planes con restricción de empresa única en el dominio aduanero:
+- **Navegación**: Reemplazar listados y creación de empresas por redirección directa a la edición de la empresa existente mediante `PlanGuard`.
+- **Toolbar**: Ocultar el selector interactivo y mostrar un badge informativo premium con los datos técnicos (ej: Despachador y Código).
+- **Persistencia**: Asegurar que los datos técnicos críticos (`agent_name`, `agent_code`) estén siempre presentes en el objeto de sesión del usuario (`User.php -> toLoginResponse`) para evitar inconsistencias visuales en el toolbar.
+
 ---
 
 ## 🚨 Señales de Alerta (Anti-Patrones de Dominio)

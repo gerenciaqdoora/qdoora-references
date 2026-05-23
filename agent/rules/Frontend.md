@@ -88,15 +88,6 @@ Para abrir o descargar documentos (PDFs, planillas Excel, archivos adjuntos) de 
 - **Limpieza de Recursos**: Permite cerrar la pestaña (`close()`) de forma transparente ante fallos de servidor para no dejar ventanas vacías colgando.
 - **Prevención de XSS (QD-07)**: Sanitiza rigurosamente los textos principales y secundarios inyectados en la nueva pestaña para impedir inyecciones de código HTML/JS reflejadas.
 
-### 5. Gestión de Ausencias y Cálculos Dinámicos en Diálogos
-
-Al registrar ausencias o licencias en los diálogos de nómina, se debe aplicar el principio de **cálculo adaptativo de base imponible**:
-
-- **Priorización de Renta Imponible**: Si el usuario introduce una **Renta Imponible** (`taxable_income`) personalizada para la ausencia, esta debe utilizarse obligatoriamente como la base diaria para el cálculo del descuento (`amount`).
-- **Fallback a Sueldo Base**: Si la Renta Imponible es nula, vacía o igual a $0$, la fórmula debe retornar al sueldo base planificado de la liquidación actual.
-- **Fórmula de Descuento Diaria (Base 30)**:
-  $$\text{base} = \text{taxable\_income} > 0 ? \text{taxable\_income} : \text{base\_salary}$$
-  $$\text{monto\_descuento} = -\text{round}\left( \frac{\text{base}}{30} \times \text{días\_ausencia} \right)$$
 
 ---
 

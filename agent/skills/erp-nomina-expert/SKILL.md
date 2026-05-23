@@ -37,6 +37,12 @@ Todos los montos que entran o salen de una liquidación se clasifican rígidamen
 ### 3. `LIQUIDACIONES` (Cálculo de Nómina)
 El núcleo del sistema. Todo cálculo debe seguir este orden y fórmulas:
 - **Menor Haber por Atrasos:** Los atrasos/inasistencias **no son un descuento**, son un Menor Haber. Restan directamente del Sueldo Base Pactado para generar el *Sueldo Base Ajustado*.
+- **Gestión de Ausencias (Cálculo Adaptativo de Base Imponible):**
+  - **Priorización de Renta Imponible**: Si hay una **Renta Imponible** (`taxable_income`) personalizada para la ausencia, se utiliza obligatoriamente como la base diaria.
+  - **Fallback a Sueldo Base**: Si la Renta Imponible es nula o $0$, la fórmula retorna al sueldo base planificado de la liquidación actual.
+  - **Fórmula de Descuento Diaria (Base 30)**:
+    $$\text{base} = \text{taxable\_income} > 0 ? \text{taxable\_income} : \text{base\_salary}$$
+    $$\text{monto\_descuento} = -\text{round}\left( \frac{\text{base}}{30} \times \text{días\_ausencia} \right)$$
 - **Gratificación Legal:** Se calcula (generalmente) usando el Art. 50 del Código del Trabajo (25% del sueldo base y otros imponibles, con un Tope Legal anual de 4.75 Ingresos Mínimos Mensuales, dividido en 12).
 - **Total Imponible:** Suma de haberes imponibles (limitado por los Topes Imponibles vigentes en UF para AFP/Salud y AFC).
 - **Leyes Sociales:** Cálculo exacto en base a tasas vigentes (Dictadas por el módulo de Parámetros Globales).
