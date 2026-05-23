@@ -1,0 +1,29 @@
+{
+  "skill_name": "angular-shared-components-expert",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea un formulario con un campo de texto usando <mat-form-field> y un <input>.",
+      "expectations": [
+        "El agente rechaza usar <mat-form-field> o <input>",
+        "El agente propone usar app-input-form"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Necesito hacer una tabla usando <table mat-table>.",
+      "expectations": [
+        "El agente prohíbe el uso de tablas nativas de material",
+        "El agente exige el uso de generic-table o app-table-without-pagination"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Crea un campo para ingresar dinero y ponle el pipe currency.",
+      "expectations": [
+        "El agente rechaza el formateo manual con pipe currency",
+        "El agente instruye el uso de app-shared-amount-input-form"
+      ]
+    }
+  ]
+}
