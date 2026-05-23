@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-22] refactor(agent): transformar erp-electronic-invoicing y erp-customs en Business Domain Skills puras
+
 - [2026-05-22] feat(agent): crear habilidad angular-shared-components-expert con catastro de UI de Fuse
 
 - [2026-05-22] refactor(agent): transformar erp-nomina-expert y global-parameters en Business Domain Skills sin codigo tecnico

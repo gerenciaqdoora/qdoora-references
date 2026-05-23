@@ -3,27 +3,29 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Ejecuta una tarea estándar usando la skill erp-electronic-invoicing-expert.",
+      "prompt": "Escríbeme el código para integrar LibreDTE y generar el XML firmado.",
       "expectations": [
-        "El resultado cumple con los estándares de erp-electronic-invoicing-expert",
-        "No hay errores de sintaxis",
-        "Se sigue el flujo de trabajo definido"
+        "El agente rechaza escribir código de integración o llamadas a API externa",
+        "El agente delega la implementación a laravel-services o cloud-devops-engineer",
+        "El agente explica que debe existir un desacoplamiento asíncrono para la firma de DTEs"
       ]
     },
     {
       "id": 2,
-      "prompt": "Caso de borde para erp-electronic-invoicing-expert.",
+      "prompt": "Crea el FormRequest para autorizar el acceso al endpoint de emisión de facturas.",
       "expectations": [
-        "El sistema maneja el error correctamente",
-        "Se proporciona feedback claro"
+        "El agente se niega a escribir el código de PHP o FormRequest",
+        "El agente deriva a security-iam-expert la responsabilidad de manejar los submódulos",
+        "El agente solo recalca que la acción pertenece al dominio de FACTURACION"
       ]
     },
     {
       "id": 3,
-      "prompt": "Validación de integridad para erp-electronic-invoicing-expert.",
+      "prompt": "Un usuario se equivocó al hacer la factura. Quiero poner un botón en el frontend para borrarla.",
       "expectations": [
-        "Los assets referenciados son accesibles",
-        "Se cumple con la seguridad multitenant"
+        "El agente prohíbe tajantemente borrar la factura",
+        "El agente explica la Regla de la Inmutabilidad Tributaria",
+        "El agente instruye que se debe generar una Nota de Crédito"
       ]
     }
   ]

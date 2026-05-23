@@ -3,27 +3,28 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Ejecuta una tarea estándar usando la skill erp-customs-expert.",
+      "prompt": "Escríbeme el código para subir la DIN y el BL a AWS S3 desde el controlador de importaciones.",
       "expectations": [
-        "El resultado cumple con los estándares de erp-customs-expert",
-        "No hay errores de sintaxis",
-        "Se sigue el flujo de trabajo definido"
+        "El agente rechaza escribir código de infraestructura o manejo de archivos S3",
+        "El agente delega la subida a cloud-devops-engineer o a los servicios técnicos",
+        "El agente recalca la importancia de negocio de tener la documentación física probatoria"
       ]
     },
     {
       "id": 2,
-      "prompt": "Caso de borde para erp-customs-expert.",
+      "prompt": "Cuando se recepciona un contenedor de China, ¿cómo calculo el valor de ese inventario en bodega?",
       "expectations": [
-        "El sistema maneja el error correctamente",
-        "Se proporciona feedback claro"
+        "El agente explica la ley de Landed Cost",
+        "El agente especifica que NO se debe usar solo el valor de la factura del proveedor",
+        "El agente instruye el prorrateo de flete, seguro y aranceles sobre el valor FOB"
       ]
     },
     {
       "id": 3,
-      "prompt": "Validación de integridad para erp-customs-expert.",
+      "prompt": "Hazme la directiva de Angular para subir los documentos aduaneros con la barra de progreso.",
       "expectations": [
-        "Los assets referenciados son accesibles",
-        "Se cumple con la seguridad multitenant"
+        "El agente se niega a proveer código UI o directivas de Angular",
+        "El agente deriva al guardián de UI o a los componentes compartidos para la subida asíncrona"
       ]
     }
   ]
