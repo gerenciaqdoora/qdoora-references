@@ -108,8 +108,10 @@ Al concluir cada tarea significativa, se debe invocar proactivamente al skill `t
 1. Evaluar si se ha implementado un nuevo patrón.
 2. Actualizar estos archivos de reglas si es necesario para que el conocimiento sea persistente.
 
-### 📐 Diseño de Planes (Planning Mode)
-**🔴 REGLA MANDATORIA**: Todas las tareas complejas planificadas a través de `implementation_plan.md` deben definir un **"Contexto Acotado"** estricto y **"Anti-Patrones"**. 
+### 📐 Diseño de Planes (Planning Mode) y Parada Estricta
+**🔴 REGLA MANDATORIA**: Todas las tareas complejas planificadas a través de `implementation_plan.md` (o cuando se invoque a `/prompt-architect-master`) están sujetas a una **PARADA OBLIGATORIA (HARD STOP)**.
+- El agente **DEBE** generar el artefacto de plan con `request_feedback = true` y **DETENER SU EJECUCIÓN** de inmediato (esperando feedback nativo). No puede encadenar herramientas de ejecución en el mismo turno.
+- El plan debe definir un **"Contexto Acotado"** estricto y **"Anti-Patrones"**. 
 - El agente ejecutor tiene prohibido explorar archivos irrelevantes (ej: `node_modules`, dependencias) o hacer búsquedas globales indiscriminadas.
 - Esto mitiga alucinaciones, asegura la máxima velocidad y protege el límite de tokens de contexto.
 

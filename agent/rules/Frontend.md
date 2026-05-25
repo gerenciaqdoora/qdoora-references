@@ -89,6 +89,23 @@ Para abrir o descargar documentos (PDFs, planillas Excel, archivos adjuntos) de 
 - **Prevención de XSS (QD-07)**: Sanitiza rigurosamente los textos principales y secundarios inyectados en la nueva pestaña para impedir inyecciones de código HTML/JS reflejadas.
 
 
+### 5. Estándar de Diálogos y Paneles Personalizados (MatDialog)
+
+Para asegurar la coherencia estética en todos los modales (incluyendo diálogos de cambio de contraseña obligatoria, formularios, etc.) y evitar defectos visuales comunes como el sangrado de esquinas blancas (corner bleed) y el recorte de bordes en alertas:
+
+- **Estructura HTML**: Usa la clase `standard-dialog-container` en el contenedor raíz y `standard-dialog-content` para la sección central del cuerpo del diálogo:
+  ```html
+  <div class="standard-dialog-container relative">
+      <app-dialog-header title="..." subtitle="..." [showCloseButton]="..."></app-dialog-header>
+      <div class="standard-dialog-content">
+          <!-- Alertas y campos del formulario aquí -->
+      </div>
+      <app-dialog-footer>...</app-dialog-footer>
+  </div>
+  ```
+- **Panel Class y Remoción de Padding**: Abre los diálogos utilizando `panelClass: 'dialog-panel'` o una clase de panel dedicada configurada para establecer `padding: 0 !important;` en la superficie del diálogo. Evita hacks de márgenes negativos (`-m-6`) en las plantillas.
+- **Esquinas Redondeadas Continuas**: El contenedor principal de diálogos de Angular Material (`.mdc-dialog__surface`) debe tener la propiedad `overflow: hidden !important` activa globalmente en el sistema para obligar al renderizado de cabeceras, fondos y pies de página a seguir el `border-radius: 13px` del modal sin sangrados ni bordes blancos visibles.
+
 ---
 
 > [!TIP]
