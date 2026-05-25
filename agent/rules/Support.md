@@ -49,6 +49,9 @@ Adoptamos el patrón funcional de Angular 18+ para la inyección de cabeceras de
 ### 2. Integridad de Datos Críticos
 Antes de cualquier modificación en interfaces de administración, es obligatorio realizar una **Auditoría de Impacto** mediante el `api-contract-aligner` para garantizar que la vista de administración refleje fielmente las reglas de negocio del Backend.
 
+### 3. Pre-carga de Datos Contables (Resolvers)
+Es obligatorio que las vistas complejas que consumen el plan de cuentas (PUC), categorías de cuentas maestras u otras variables globales inmutables carguen sus datos a través de **Route Resolvers** funcionales mediante `inject()`. Esto evita fallos en el ciclo de vida de renderizado de componentes que asumen estructuras pre-cargadas en `ActivatedRoute.data` y previene estados inconsistentes o vacíos.
+
 ---
 
 > [!TIP]

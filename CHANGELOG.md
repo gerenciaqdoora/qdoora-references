@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-25] docs(rules): documentar estandar de Route Resolvers en portal de soporte
+
 - [2026-05-25] docs(workflow): agregar protocolo de secuencia obligatorio de Agunsa
 
 - [2026-05-24] docs[agent]: actualizar reglas globales de desarrollo y estandarización frontend
