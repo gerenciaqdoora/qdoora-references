@@ -25,9 +25,7 @@ mkdir -p "$AGENTS_DIR/rules"
 mkdir -p "$AGENTS_DIR/skills"
 mkdir -p "$AGENTS_DIR/workflows"
 
-mkdir -p "$CLAUDE_DIR/rules"
 mkdir -p "$CLAUDE_DIR/skills"
-mkdir -p "$CLAUDE_DIR/workflows"
 
 # 🧪 VALIDACIÓN OBLIGATORIA DE SKILLS
 echo "🔍 Validando integridad de Habilidades..."

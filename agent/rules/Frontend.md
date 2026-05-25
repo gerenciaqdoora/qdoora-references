@@ -2,113 +2,98 @@
 trigger: always_on
 ---
 
-# 📘 Estándares de Ingeniería Frontend (Angular)
+# 🎨 Estándares de Ingeniería Frontend (Angular)
 
-> Guía maestra de principios, estética y arquitectura para el desarrollo de interfaces en el ecosistema QdoorA.
+> Guía maestra de principios, estética y arquitectura para el desarrollo de interfaces. Como asistente, DEBES aplicar estas reglas de forma obligatoria en todo el ecosistema UI/UX de QdoorA.
 
 ---
 
-## 🏗️ Filosofía de Desarrollo
+## Filosofía de Desarrollo
 
-El frontend de QdoorA no es solo código; es una **experiencia premium**. Buscamos interfaces reactivas, seguras y visualmente impactantes que eliminen cualquier rastro de diseño genérico.
+El frontend de QdoorA exige una **experiencia premium**. ESTÁS OBLIGADO a construir interfaces reactivas, seguras y visualmente impactantes. TIENES PROHIBIDO entregar diseños genéricos, planos o descuidados.
 
 ### 1. Modern Angular (Standalone & Signals)
+UTILIZA exclusivamente las capacidades modernas del framework para garantizar el máximo rendimiento y la mantenibilidad del código:
+- **Standalone Components**: Diseña bajo una arquitectura 100% libre de módulos (`NgModules`). Cada componente que crees debe ser completamente autosuficiente.
+- **Signals**: BASA la reactividad granular y el manejo de estados estrictamente en Signals, especialmente dentro del Portal de Soporte e interfaces reactivas de alta jerarquía.
+- **Control Flow**: CONFIGURA de forma mandatoria la nueva sintaxis estructurada (`@if`, `@for`, `@switch`). TIENES TERMINANTEMENTE PROHIBIDO utilizar directivas estructurales heredadas (`*ngIf`, `*ngFor`).
 
-Adoptamos las capacidades modernas del framework para garantizar rendimiento y mantenibilidad:
+### 2. Reutilización y Consistencia Estricta
+> [!IMPORTANT]
+> **REGLA DE ORO**: ANTES de escribir un solo elemento de interfaz, ESTÁS OBLIGADO a revisar exhaustivamente el directorio `/app/modules/shared`. TIENES PROHIBIDO reinventar la rueda; debes refinarla y reutilizarla.
 
-- **Standalone Components**: Arquitectura sin módulos, donde cada componente es autosuficiente.
-- **Signals**: Reactividad granular para el manejo de estado, especialmente en el Portal de Soporte (Angular 21).
-- **Control Flow**: Uso obligatorio de la sintaxis `@if`, `@for`, `@switch` para un renderizado más limpio y eficiente.
-
-### 2. Reutilización y Consistencia
-
-**Regla de Oro**: Antes de construir cualquier componente nuevo, es obligatorio revisar `/app/modules/shared`. No reinventamos la rueda; la refinamos.
-
-- El uso de componentes compartidos (`app-input-form`, `app-table`, etc.) garantiza que un cambio de diseño se refleje instantáneamente en toda la plataforma.
+- EMPLEA de forma mandatoria los componentes compartidos existentes (`app-input-form`, `app-table`, etc.) para garantizar la consistencia visual y asegurar que cualquier cambio estético se propague inmediatamente a toda la plataforma.
 
 ---
 
-## 🎨 Estética y Diseño QdoorA
+## 💎 Estética y Diseño Premium QdoorA
 
-Nuestras interfaces deben generar un "Wow factor" inmediato.
-
-- **Tipografía**: Uso de fuentes con carácter (Outfit, Space Grotesk) evitando valores por defecto del navegador.
-- **Composición**: Uso generoso del espacio negativo y composiciones asimétricas para romper la monotonía de las cuadrículas tradicionales.
-- **Profundidad**: Aplicación de gradientes sutiles y transparencias en capas para crear jerarquía visual.
+Tus diseños deben generar un impacto visual inmediato de alta fidelidad:
+- **Tipografía**: CONFIGURA fuentes con carácter e identidad propio (Outfit, Space Grotesk). TIENES PROHIBIDO dejar las tipografías por defecto del navegador o del framework.
+- **Composición**: UTILIZA de forma generosa el espacio negativo y diseña composiciones asimétricas limpias para romper la monotonía de las cuadrículas tradicionales.
+- **Profundidad**: APLICA gradientes sutiles, desenfoques de fondo (_backdrop-blur_) y transparencias en capas para construir una jerarquía visual moderna y limpia.
 
 ---
 
 ## 🔐 Seguridad y Calidad del Lado del Cliente
 
-### 1. Blindaje contra XSS (QD-07)
-
-Está terminantemente prohibido el uso de `[innerHTML]` para renderizar datos provenientes de la API. La seguridad del usuario es innegociable.
+### 1. Blindaje contra Inyecciones XSS (Vector QD-07)
+- **TIENES TERMINANTEMENTE PROHIBIDO el uso de la directiva `[innerHTML]`** para renderizar datos dinámicos provenientes de la API. Si requieres mostrar texto, hazlo exclusivamente mediante interpolación segura `{{ }}`. La seguridad es innegociable.
 
 ### 2. Gestión de Sesión Segura
+- ALMACENA el token de autenticación estrictamente en `sessionStorage`. TIENES PROHIBIDO utilizar `localStorage` para el portal administrativo y de soporte con el fin de mitigar riesgos de persistencia ante ataques de secuestro de sesión.
+- CONFIGURA los Guards para que revaliden activamente los permisos contra el backend en cada salto de navegación crítica; nunca confíes ciegamente en el payload decodificado del JWT en el cliente.
 
-- El token de autenticación debe residir en `sessionStorage`. Evitamos `localStorage` para mitigar riesgos de persistencia ante posibles ataques.
-- Los Guards deben revalidar permisos contra el backend en navegaciones críticas; no confiamos únicamente en el payload del JWT.
-
-### 3. Integridad de Contratos
-
-Antes de definir interfaces de datos, es obligatorio sincronizar con el Backend mediante el `api-contract-aligner`. Las reglas de validación de Laravel (required, nullable) deben mapearse exactamente a tipos de TypeScript.
+### 3. Integridad Inamovible de Contratos
+- ESTÁS OBLIGADO a sincronizar los tipos de datos con el Backend utilizando la lógica del `api-contract-aligner` antes de escribir cualquier interfaz de TypeScript. Las restricciones de Laravel (`required`, `nullable`, tipos de datos) deben verse reflejadas exactamente en tus definiciones de código del Frontend.
 
 ---
 
-## 🛠️ Patrones Operativos
+## ⚙️ Patrones Operativos Obligatorios
 
 ### 1. Gestión de Memoria (RxJS)
-
-Para prevenir fugas de memoria (_memory leaks_), implementamos siempre el patrón de desuscripción con `_unsubscribeAll` y el operador `takeUntil`.
+- EVITA activamente las fugas de memoria (_memory leaks_). Cuando utilices flujos observables de RxJS que no manejen ciclos de vida autocompletables, IMPLEMENTA obligatoriamente el patrón de desuscripción centralizado utilizando una propiedad privada `_unsubscribeAll: Subject<any>` combinada con el operador `takeUntil`.
 
 ### 2. Estados de Carga y Feedback
-
-La UI nunca debe quedar bloqueada sin feedback. Usamos el operador `finalize` para asegurar que los estados de carga (`isLoading`) se limpien correctamente, tanto en éxito como en error.
+- NUNCA dejes la interfaz de usuario congelada o bloqueada sin feedback visual. ESTÁS OBLIGADO a utilizar el operador `finalize` en tus flujos de peticiones HTTP para asegurar que los estados de carga (`isLoading = false`) se limpien de forma determinista, tanto en escenarios de éxito como de error de red.
 
 ### 3. Notificaciones y Alertas Stacked (Simultáneas)
-
-Diferenciamos claramente los casos de uso para las alertas dentro del ecosistema:
-
-- **Feedback Pasivo e Informativo (`NotificationService`)**: Reemplaza el uso histórico de `MatSnackBar`. Debe usarse para confirmaciones de éxito (ej. "Perfil actualizado"), advertencias informativas o errores no bloqueantes. Las notificaciones se apilan automáticamente sin bloquear la pantalla y desaparecen tras su duración, no requiriendo interacción obligatoria.
-- **Alertas Críticas o Bloqueantes (`app-shared-alert`)**: Debe usarse cuando el sistema requiere una decisión explícita, advertencias críticas (ej. "Estás a punto de eliminar datos permanentes") o atención inmediata y obligatoria. Obliga al usuario a tomar una acción antes de continuar.
-
-El sistema utiliza un mecanismo premium de **Notificaciones Stacked Simultáneas** gestionadas globalmente por el `NotificationService` y visualizadas a través de `NotificationStackComponent`.
-
-- **Bypass de Limitación**: Reemplaza el `MatSnackBar` nativo (el cual descarta alertas anteriores) permitiendo apilar múltiples notificaciones simultáneas sin pérdida de información.
-- **Manejo de Estado Reactivo**: Se gestiona mediante Signals (`notifications()`), evitando suscripciones manuales y previniendo fugas de memoria (_memory leaks_).
-- **Interactividad Premium**: El contenedor global se define con `pointer-events: none` para no bloquear los clics del usuario en la interfaz del portal, mientras que cada alerta usa `pointer-events: auto`.
-- **Prevención de XSS (QD-07)**: La inyección de mensajes se realiza exclusivamente con interpolación de texto plano `{{ }}` en el DOM, blindando el componente contra XSS almacenado o reflejado.
+DIFERENCIA estrictamente los casos de uso para alertas dentro del sistema:
+- **Feedback Pasivo e Informativo (`NotificationService`)**: Utilízalo para confirmaciones de éxito (ej. "Perfil actualizado"), advertencias o errores no bloqueantes. Estas alertas se deben apilar simultáneamente sin borrar las anteriores y desaparecerán solas de forma reactiva mediante Signals (`notifications()`), configurando el contenedor con `pointer-events: none` y las alertas con `pointer-events: auto` para no interferir con los clics del usuario. Inyecta los textos exclusivamente con `{{ }}` para blindar contra el vector **QD-07**. TIENES PROHIBIDO usar `MatSnackBar` nativo.
+- **Alertas Críticas o Bloqueantes (`app-shared-alert`)**: Utilízalas obligatoriamente cuando el sistema requiera una decisión explícita o advertencias destructivas (ej. "Eliminar datos permanentes"). Este patrón debe capturar el foco e impedir que el usuario continúe sin interactuar.
 
 ### 4. Apertura Segura de Archivos y Descargas (`SecureTabService`)
-
-Para abrir o descargar documentos (PDFs, planillas Excel, archivos adjuntos) de forma asíncrona (ej: tras peticiones HTTP o polling de generación) sin ser bloqueado por los bloqueadores de popups de navegadores modernos (Safari, Chrome, Firefox), es obligatorio el uso de `SecureTabService`.
-
-- **Bypass de Popup Blocker**: Abre síncronamente una pestaña en blanco (`window.open('', '_blank')`) en el hilo de ejecución inmediato del clic del usuario, inyectando un loader premium animado.
-- **Redirección e Interfaz Fluida**: Retorna una referencia `SecureTabRef` que permite realizar la redirección dinámica (`redirect(url)`) asíncronamente una vez generado el archivo, manteniendo el portal principal intacto.
-- **Limpieza de Recursos**: Permite cerrar la pestaña (`close()`) de forma transparente ante fallos de servidor para no dejar ventanas vacías colgando.
-- **Prevención de XSS (QD-07)**: Sanitiza rigurosamente los textos principales y secundarios inyectados en la nueva pestaña para impedir inyecciones de código HTML/JS reflejadas.
-
+Para abrir o descargar documentos (PDFs, planillas, adjuntos) de forma asíncrona tras peticiones HTTP o polling, ESTÁS OBLIGADO a implementar el `SecureTabService` para burlar los bloqueadores de popups de navegadores modernos:
+1. ABRE síncronamente una pestaña en blanco (`window.open('', '_blank')`) en el hilo inmediato del clic del usuario e inyecta el loader animado premium de la plataforma.
+2. UTILIZA la referencia `SecureTabRef` devuelta para redirigir la pestaña dinámicamente (`redirect(url)`) una vez que el servidor responda de forma asíncrona.
+3. CIERRA la pestaña (`close()`) de forma limpia y transparente si el backend llega a fallar, evitando dejar ventanas vacías colgando en el navegador.
 
 ### 5. Estándar de Diálogos y Paneles Personalizados (MatDialog)
-
-Para asegurar la coherencia estética en todos los modales (incluyendo diálogos de cambio de contraseña obligatoria, formularios, etc.) y evitar defectos visuales comunes como el sangrado de esquinas blancas (corner bleed) y el recorte de bordes en alertas:
-
-- **Estructura HTML**: Usa la clase `standard-dialog-container` en el contenedor raíz y `standard-dialog-content` para la sección central del cuerpo del diálogo:
-  ```html
-  <div class="standard-dialog-container relative">
-      <app-dialog-header title="..." subtitle="..." [showCloseButton]="..."></app-dialog-header>
-      <div class="standard-dialog-content">
-          <!-- Alertas y campos del formulario aquí -->
-      </div>
-      <app-dialog-footer>...</app-dialog-footer>
-  </div>
-  ```
-- **Panel Class y Remoción de Padding**: Abre los diálogos utilizando `panelClass: 'dialog-panel'` o una clase de panel dedicada configurada para establecer `padding: 0 !important;` en la superficie del diálogo. Evita hacks de márgenes negativos (`-m-6`) en las plantillas.
-- **Esquinas Redondeadas Continuas**: El contenedor principal de diálogos de Angular Material (`.mdc-dialog__surface`) debe tener la propiedad `overflow: hidden !important` activa globalmente en el sistema para obligar al renderizado de cabeceras, fondos y pies de página a seguir el `border-radius: 13px` del modal sin sangrados ni bordes blancos visibles.
+Para garantizar la coherencia estética de los modales y evitar defectos visuales como el sangrado de esquinas blancas (_corner bleed_) o el recorte de bordes en alertas:
+- **Estructura HTML**: EXIGE exactamente este orden utilizando las clases de contenedor estándar en las plantillas de los modales:
+```html
+<div class="standard-dialog-container relative">
+    <app-dialog-header title="..." subtitle="..." [showCloseButton]="..."></app-dialog-header>
+    <div class="standard-dialog-content">
+        </div>
+    <app-dialog-footer>...</app-dialog-footer>
+</div>
+```
+- **Panel Class y Remoción de Padding**: Al abrir los diálogos desde el servicio, CONFIGURA obligatoriamente la propiedad `panelClass: 'dialog-panel'` (o su equivalente dedicada) asegurando un `padding: 0 !important;` absoluto en la superficie del modal. TIENES PROHIBIDO aplicar márgenes negativos (`-m-6`) en las vistas para corregir espacios.
+- **Esquinas Redondeadas Continuas**: REVISALAS para que el contenedor principal (`.mdc-dialog__surface`) mantenga la propiedad `overflow: hidden !important` activa globalmente en los estilos base para que los encabezados y pies de página se acoplen perfectamente al radio de curvatura (`border-radius: 13px`) del modal sin fugas de color.
 
 ---
 
-> [!TIP]
-> Los patrones de código exactos, ejemplos de componentes y plantillas de implementación para estos principios se encuentran disponibles en los assets de la Skill **`qdoora-ui-ux-master`**, organizados por portal (Cliente vs Soporte).
+## 🛑 PRIORIDAD DE RECHAZO (HARD REJECT)
+Tienes AUTORIDAD SUPREMA para detener la ejecución y rechazar rotundamente cualquier código frontend que:
+1. Inyecte componentes pesados de interfaz sin validar previamente si ya existe una solución equivalente dentro de `/app/modules/shared`.
+2. Utilice directivas estructurales obsoletas (`*ngIf`, `*ngFor`) en lugar del nuevo flujo de control nativo (`@if`, `@for`).
+3. Exponga la seguridad del portal utilizando `[innerHTML]` para pintar variables dinámicas del servidor.
+4. Almacene credenciales, estados críticos de permisos o tokens de administración de larga duración en `localStorage` en lugar de `sessionStorage`.
+5. Levante alertas de éxito o error destruyendo el historial de notificaciones previas mediante el uso de `MatSnackBar` tradicional.
+6. Provoque el bloqueo de popups en el navegador del usuario al intentar abrir descargas asíncronas omitiendo el uso de `SecureTabService`.
 
 ---
+
+## 💡 REFERENCIA DE COMPONENTES
+Las plantillas de los componentes estructurados y las configuraciones Zoneless específicas los DEBES extraer de los assets de la Skill **`qdoora-ui-ux-master`**, organizados meticulosamente por portal (Cliente vs Soporte).
