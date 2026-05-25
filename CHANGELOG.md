@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-25] docs(workflow): agregar protocolo de secuencia obligatorio de Agunsa
+
 - [2026-05-24] docs[agent]: actualizar reglas globales de desarrollo y estandarización frontend
 
 - [2026-05-22] feat(agent/skills): crear habilidad erp-data-modeler para diseño avanzado de PostgreSQL
