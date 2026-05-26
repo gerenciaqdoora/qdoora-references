@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-26] docs(rules): actualizar directrices sobre el uso de NotificationService y QdooraAlertService en Support.md
+
 - [2026-05-26] docs(rules): documentar patron de alertas atomicas y seguras en support.md
 
 - [2026-05-25] docs[agent]: actualizar documentacion del planificador y evaluaciones

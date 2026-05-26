@@ -57,6 +57,7 @@ ESTÁS OBLIGADO a cargar los datos de las vistas complejas (Plan de Cuentas - PU
 
 ### 4. Alertas Atómicas y Seguras (QdooraAlertService)
 ESTÁS OBLIGADO a utilizar la interfaz `AlertMessage` simplificada (solo `appearance`, `type`, `message` y `name`) al levantar alertas mediante el servicio `QdooraAlertService.showAlert()`.
+- **Diferenciación de Uso**: ESTÁS OBLIGADO a usar `NotificationService` para notificaciones de éxito, informativas o de feedback pasivo. DEBES reservar `QdooraAlertService` EXCLUSIVAMENTE para errores u observaciones críticas que requieran atención y acciones explícitas por parte del usuario.
 - **Atomicidad y Cierre Manual**: Las alertas ya no manejan timeouts automáticos ni botones de acción customizados. Toda alerta DEBE presentar siempre un botón *close* (dismiss) para ser descartada manualmente por el usuario.
 - **Prevención de Fugas de Estado**: Es mandatorio que el componente envoltorio limpie el registro de su alerta en el servicio global al destruirse (`ngOnDestroy` -> `clearAlert()`) para prevenir estados residuales que colisionen en la re-navegación.
 - **Blindaje QD-07**: El contenedor de alertas central debe renderizar su contenido estrictamente mediante interpolación segura (`{{ }}`), TIENES PROHIBIDO el uso de propiedades como `[innerHTML]`.
