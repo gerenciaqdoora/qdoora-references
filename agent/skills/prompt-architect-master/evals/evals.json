@@ -3,29 +3,39 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "El usuario solicita: 'Refactoriza el módulo de facturación completa, cambia la base de datos a mongo y añade notificaciones en tiempo real'. Genera el Master Prompt Refinado.",
+      "prompt": "El usuario solicita: 'Refactoriza el módulo de facturación completa, cambia la base de datos a mongo y añade notificaciones en tiempo real'.",
       "expectations": [
-        "Identifica que es una refactorización masiva y prohíbe explícitamente búsquedas globales extensas (Anti-Patrón).",
-        "Limita el contexto inicial solo a unos pocos archivos clave (ej. InvoiceController, DB config).",
-        "Incluye las secciones obligatorias: '🚫 Límites Estrictos y Anti-Patrones' y '📦 Contexto Acotado'."
+        "Identifica que es una refactorización masiva y prohíbe explícitamente búsquedas globales extensas en Anti-Patrones.",
+        "Limita el 'Contexto Acotado' inicial solo a unos pocos archivos clave (ej. InvoiceController, DB config).",
+        "Incluye la frase exacta de parada: 'PLAN GENERADO. MODO PAUSA ACTIVADO.'"
       ]
     },
     {
       "id": 2,
-      "prompt": "El usuario pide: 'Cambia el color del botón de login a azul oscuro en Angular'. Genera el Master Prompt.",
+      "prompt": "El usuario pide: 'Cambia el color del botón de login a azul oscuro en Angular'.",
       "expectations": [
-        "Bloquea la lectura del backend, dependencias de node_modules o archivos de Docker (Anti-Patrón).",
+        "Bloquea la lectura del backend, dependencias de node_modules o archivos de Docker en Anti-Patrones.",
         "Limita el 'Contexto Acotado' estrictamente a 'login.component.scss' y 'login.component.html'.",
-        "Propone activar exclusivamente 'qdoora-ui-ux-master', omitiendo skills irrelevantes."
+        "Activa exclusivamente la skill 'qdoora-ui-ux-master', omitiendo skills de backend o base de datos."
       ]
     },
     {
       "id": 3,
-      "prompt": "El usuario indica: 'Actualiza todas las librerías obsoletas en el package.json de Angular y composer.json de Laravel'. Genera el Master Prompt.",
+      "prompt": "El usuario indica: 'Actualiza todas las librerías obsoletas en el package.json de Angular y composer.json de Laravel'.",
       "expectations": [
-        "Aplica el Anti-Patrón prohibiendo explícitamente la ejecución de comandos `npm update` o `composer update` masivos sin previa revisión uno a uno.",
-        "Acota el contexto exclusivamente a `package.json` y `composer.json`.",
-        "Asegura la estructura del Master Prompt con foco máximo en el ahorro de tokens."
+        "Prohíbe explícitamente la ejecución automática de comandos `npm update` o `composer update` masivos.",
+        "Acota el contexto exclusivamente a la lectura de `package.json` y `composer.json`.",
+        "No genera código de actualización, sino un plan para revisar las dependencias una a una."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "El usuario indica: 'Crea un nuevo endpoint para listar usuarios'.",
+      "description": "Prueba de Integridad Estructural y formato de Máquina de Estados.",
+      "expectations": [
+        "El output contiene EXACTAMENTE los 6 encabezados obligatorios: Objetivo, Skills a Activar, Contexto Acotado, Anti-Patrones, Plan de Ejecución, Auditoría y Documentación.",
+        "El modelo NO escribe código PHP, solo genera el plan en markdown.",
+        "La última línea del output contiene la frase exacta: 'PLAN GENERADO. MODO PAUSA ACTIVADO. Esperando aprobación del usuario para proceder.'"
       ]
     }
   ]

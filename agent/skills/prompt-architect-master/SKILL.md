@@ -28,6 +28,11 @@ Debes generar el documento utilizando exactamente esta estructura para garantiza
 - **Plan de Ejecución (Builder):** [Paso a paso técnico y secuencial de los archivos a crear o modificar].
 - **Auditoría (Guardián) y Documentación (Scribe):** [Vectores de seguridad a vigilar (QD-XX) y qué se registrará en la documentación viva al finalizar].
 
+## PASO DE EVALUACIÓN INTERNA (Self-Eval)
+Antes de invocar la pausa del sistema, estás OBLIGADO a revisar internamente el artefacto generado. 
+¿Contiene exactamente los 6 encabezados mencionados arriba? 
+- Si falta alguno (especialmente Skills o Auditoría), corrígelo y agrégalo antes de presentar el plan.
+
 ## FLUJO POST-APROBACIÓN (Solo para conocimiento, NO ejecutar)
 El agente ejecutor asumirá el control solo cuando el usuario responda "Aprobado", siguiendo este orden:
 1. Construcción acotada al whitelist.

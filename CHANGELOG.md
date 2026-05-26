@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-25] docs[agent]: actualizar documentacion del planificador y evaluaciones
+
 - [2026-05-25] docs(agent): formatear reglas globales y completar prompt-executor-master
 
 - [2026-05-25] docs(rules): documentar estandar de Route Resolvers en portal de soporte
