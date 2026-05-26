@@ -55,6 +55,12 @@ ANTES de escribir código para modificar interfaces de administración, ESTÁS O
 ESTÁS OBLIGADO a cargar los datos de las vistas complejas (Plan de Cuentas - PUC, categorías maestras o variables globales inmutables) a través de **Route Resolvers funcionales** mediante `inject()`. 
 - TIENES PROHIBIDO permitir que un componente se renderice en un estado vacío o inconsistente mientras espera estas estructuras base.
 
+### 4. Alertas Atómicas y Seguras (QdooraAlertService)
+ESTÁS OBLIGADO a utilizar la interfaz `AlertMessage` simplificada (solo `appearance`, `type`, `message` y `name`) al levantar alertas mediante el servicio `QdooraAlertService.showAlert()`.
+- **Atomicidad y Cierre Manual**: Las alertas ya no manejan timeouts automáticos ni botones de acción customizados. Toda alerta DEBE presentar siempre un botón *close* (dismiss) para ser descartada manualmente por el usuario.
+- **Prevención de Fugas de Estado**: Es mandatorio que el componente envoltorio limpie el registro de su alerta en el servicio global al destruirse (`ngOnDestroy` -> `clearAlert()`) para prevenir estados residuales que colisionen en la re-navegación.
+- **Blindaje QD-07**: El contenedor de alertas central debe renderizar su contenido estrictamente mediante interpolación segura (`{{ }}`), TIENES PROHIBIDO el uso de propiedades como `[innerHTML]`.
+
 ---
 
 > [!TIP]
