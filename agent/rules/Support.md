@@ -62,6 +62,9 @@ ESTÁS OBLIGADO a utilizar la interfaz `AlertMessage` simplificada (solo `appear
 - **Prevención de Fugas de Estado**: Es mandatorio que el componente envoltorio limpie el registro de su alerta en el servicio global al destruirse (`ngOnDestroy` -> `clearAlert()`) para prevenir estados residuales que colisionen en la re-navegación.
 - **Blindaje QD-07**: El contenedor de alertas central debe renderizar su contenido estrictamente mediante interpolación segura (`{{ }}`), TIENES PROHIBIDO el uso de propiedades como `[innerHTML]`.
 
+### 5. Estructura de Módulos (Directorio Raíz)
+TIENES PROHIBIDO colocar nuevos módulos o dominios dentro de `src/app/modules/`. La arquitectura del portal exige que todos los módulos de vistas y características residan estrictamente en la raíz `src/modules/` (ej. `src/modules/admin`, `src/modules/auth`, `src/modules/shared`). La carpeta `src/app/` se reserva exclusivamente para la configuración central del sistema (`core`, `layout`).
+
 ---
 
 > [!TIP]
