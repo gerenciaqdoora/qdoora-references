@@ -9,6 +9,7 @@ Este documento detalla la transición desde el uso básico de IA hasta el **Ecos
 En este nivel, la IA funciona de manera genérica. No hay conocimiento del proyecto, estándares de seguridad ni arquitectura. Por lo general es el uso que se le da cuando se conoce la herramienta.
 
 ```mermaid
+%%{init: {'theme': 'neutral'}}%%
 sequenceDiagram
     autonumber
     actor U as 👤 Usuario (Developer)
@@ -28,6 +29,7 @@ sequenceDiagram
 La IA actúa como "Copiloto". El desarrollador intenta inyectar contexto copiando y pegando archivos o reglas. Es un proceso frágil y dependiente del humano. Practicamente es un prompt refinado por otro modelo de IA con algo de contexto que es lo que nosotros le entregamos.
 
 ```mermaid
+%%{init: {'theme': 'neutral'}}%%
 sequenceDiagram
     autonumber
     actor U as 👤 Usuario (Developer)
@@ -47,6 +49,7 @@ sequenceDiagram
 El usuario utiliza las herramientas de QdoorA (**Workflows, Rules y Skills**) directamente. Se incluye el hito de validación del plan técnico y el ciclo de aprendizaje al finalizar la tarea.
 
 ```mermaid
+%%{init: {'theme': 'neutral'}}%%
 sequenceDiagram
     autonumber
     actor U as 👤 Usuario (Developer)
@@ -86,11 +89,13 @@ sequenceDiagram
 Es el nivel de madurez absoluta. El sistema activa el protocolo `/qdoora-workflow-protocol` desde el inicio, asegurando que la estrategia sea perfecta antes de la ejecución.
 
 ```mermaid
+%%{init: {'theme': 'neutral'}}%%
 sequenceDiagram
     autonumber
     actor U as 👤 Usuario (Estrategia)
     participant W as 🚥 Workflow (Protocolo)
     participant PA as 📐 Prompt Architect (Skill)
+    participant PE as ⚡ Prompt Executor (Skill)
     participant R as 📜 Reglas (Contexto)
     participant S as 🧠 Skills (Expertos)
     participant G as 🛡️ Guardián (Seguridad)
@@ -107,22 +112,20 @@ sequenceDiagram
 
     U->>W: "Aprobado" (Inicia Fase 2: Ejecución)
 
-    W->>S: Orquesta Skills Expertas y Reglas de Dominio
-    
-    W-->>U: Propone Plan de Implementación Técnico
-    Note over U: Validación de archivos y cambios específicos
-    U->>W: Aprobación Humana de Ejecución Final
-
     rect rgb(245, 245, 245)
-        Note over S: Construcción y Alineación
+        Note over W, PE: Fase 2: Ejecución Técnica
+        W->>PE: Activa Prompt Executor Master
+        PE->>S: Orquesta Skills Expertas y Reglas de Dominio
         S->>S: Sincronización de Contratos API (Laravel <=> Angular)
     end
-
-    S->>G: Entrega para Auditoría (Fase 2: Blindaje)
+    
+    PE->>G: Entrega para Auditoría (Fase 3: Blindaje)
     G->>G: Validación de Vectores QD-01 a QD-11 (Hacking/IAM)
-    G-->>W: Visto Bueno (Certificación de Seguridad OK)
+    G-->>PE: Visto Bueno (Certificación de Seguridad OK)
+    
+    PE-->>W: Retorna Código Validado
 
-    Note over W, U: Fase 3: Entrega
+    Note over W, U: Fase 4: Entrega
     W-->>U: Entrega Final de Código + Walkthrough
 
     U->>S: Activa Scribe (Technical Documentarian)
@@ -147,6 +150,6 @@ La diferencia fundamental radica en el **Doble Check Humano** y la **Prevención
 | :---------------- | :------------------------------------------------ | :------------------------------------------------------------------- |
 | **Refinamiento**  | Activación de **Prompt Architect** vía Workflow.  | Bloquea la ejecución prematura y refina la intención estratégica.    |
 | **Validación**    | **Hito de Aprobación Obligatorio** (Fase 1).      | Asegura alineación total entre humano e IA antes de gastar recursos. |
-| **Ejecución**     | Orquestación de **Skills** especializadas.        | Genera código de alta calidad basado en el Master Prompt aprobado.   |
-| **Blindaje**      | Auditoría ofensiva del **Guardián** (Fase 2).     | Garantiza inmunidad ante vectores QD-01 a QD-11.                     |
-| **Entrega**       | Documentación técnica vía **Scribe** (Fase 3).     | Cierra el círculo con aprendizaje automático de patrones nuevos.      |
+| **Ejecución**     | Orquestación vía **Prompt Executor** y **Skills**.| Genera código de alta calidad basado en el Master Prompt aprobado.   |
+| **Blindaje**      | Auditoría ofensiva del **Guardián** (Fase 3).     | Garantiza inmunidad ante vectores QD-01 a QD-11.                     |
+| **Entrega**       | Documentación técnica vía **Scribe** (Fase 4).     | Cierra el círculo con aprendizaje automático de patrones nuevos.      |
