@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-26] docs(security): agregar reporte de hallazgos de auditoria
+
 - [2026-05-26] docs(ia): rediseñar diagramas de secuencia Mermaid y agregar Prompt Executor
 
 - [2026-05-26] docs: actualizar reglas de estructura de modulos en Support.md
