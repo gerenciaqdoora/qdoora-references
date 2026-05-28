@@ -82,6 +82,19 @@ Para garantizar la coherencia estética de los modales y evitar defectos visuale
 - **Panel Class y Remoción de Padding**: Al abrir los diálogos desde el servicio, CONFIGURA obligatoriamente la propiedad `panelClass: 'dialog-panel'` (o su equivalente dedicada) asegurando un `padding: 0 !important;` absoluto en la superficie del modal. TIENES PROHIBIDO aplicar márgenes negativos (`-m-6`) en las vistas para corregir espacios.
 - **Esquinas Redondeadas Continuas**: REVISALAS para que el contenedor principal (`.mdc-dialog__surface`) mantenga la propiedad `overflow: hidden !important` activa globalmente en los estilos base para que los encabezados y pies de página se acoplen perfectamente al radio de curvatura (`border-radius: 13px`) del modal sin fugas de color.
 
+### 6. Estándar de Encabezados (Headers) en Vistas (`HeaderPremiumComponent`)
+TIENES TERMINANTEMENTE PROHIBIDO utilizar el antiguo `<app-header>`. Todas las vistas del portal que requieran un encabezado de sección deben utilizar OBLIGATORIAMENTE el `<app-header-premium>` para asegurar consistencia con el diseño de QdoorA.
+- **Botón de Acción Principal**: Utiliza `[isAvailableButton]="true"`, `[buttonLabel]="'Nombre'"` y escucha el evento `(action)="método()"`.
+- **Buscador Integrado**: Actívalo con `[isSearchable]="true"` y escucha el evento `(search)="método($event)"`.
+- **Filtros Adicionales (Ej. Period Picker)**: Para alinear elementos adicionales a la derecha del buscador y el botón, DEBES proyectarlos dentro de la etiqueta usando el slot `filters`:
+  ```html
+  <app-header-premium [title]="'Cuentas'" [isSearchable]="true" [isAvailableButton]="true">
+      <div filters>
+          <app-period-picker></app-period-picker>
+      </div>
+  </app-header-premium>
+  ```
+
 ---
 
 ## 🛑 PRIORIDAD DE RECHAZO (HARD REJECT)

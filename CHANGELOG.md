@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-28] docs: actualizar reglas frontend con estandar de HeaderPremiumComponent
+
 - [2026-05-26] docs(security): agregar reporte de hallazgos de auditoria
 
 - [2026-05-26] docs(ia): rediseñar diagramas de secuencia Mermaid y agregar Prompt Executor
