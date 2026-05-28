@@ -50,43 +50,50 @@ for skill in "$SOURCE_DIR/skills"/*; do
 done
 echo "----------------------------------------------------------------"
 
-sync_folder() {
-    local src="$1"
-    local dst="$2"
-    local type="$3"
+sync_folders() {
+    local dst="$1"
+    local type="$2"
+    shift 2
+    local sources=("$@")
 
     echo "📂 Sincronizando $type..."
     
-    if [ ! -d "$src" ]; then
-        echo "⚠️  Aviso: Directorio fuente no encontrado: $src"
-        return
-    fi
-
     # Limpieza total previa para asegurar sincronización exacta
     # (Elimina archivos obsoletos o renombrados, ignorando archivos ocultos)
     find "$dst" -mindepth 1 -maxdepth 1 ! -name '.*' -exec rm -rf {} +
 
-    # Re-vincular activos
-    for item in "$src"/*; do
-        [ -e "$item" ] || continue
-        local name=$(basename "$item")
-        
-        # Evitar auto-vincular archivos ocultos
-        if [[ "$name" == .* ]]; then continue; fi
-        
-        # Crear enlace simbólico
-        ln -s "$item" "$dst/$name"
-        echo "   ✅ $name"
+    for src in "${sources[@]}"; do
+        if [ ! -d "$src" ]; then
+            continue
+        fi
+
+        # Re-vincular activos
+        for item in "$src"/*; do
+            [ -e "$item" ] || continue
+            local name=$(basename "$item")
+            
+            # Evitar auto-vincular archivos ocultos
+            if [[ "$name" == .* ]]; then continue; fi
+            
+            # Crear enlace simbólico (sin sobreescribir si ya existe)
+            if [ ! -e "$dst/$name" ]; then
+                ln -s "$item" "$dst/$name"
+                echo "   ✅ $name"
+            fi
+        done
     done
 }
 
+# Directorio opcional de Superpowers
+SUPERPOWERS_SKILLS="$WORKSPACE_ROOT/superpowers/skills"
+
 # Ejecutar sincronización de .agents
-sync_folder "$SOURCE_DIR/rules" "$AGENTS_DIR/rules" "Reglas (.agents)"
-sync_folder "$SOURCE_DIR/skills" "$AGENTS_DIR/skills" "Habilidades (.agents)"
-sync_folder "$SOURCE_DIR/workflows" "$AGENTS_DIR/workflows" "Workflows (.agents)"
+sync_folders "$AGENTS_DIR/rules" "Reglas (.agents)" "$SOURCE_DIR/rules"
+sync_folders "$AGENTS_DIR/skills" "Habilidades (.agents)" "$SOURCE_DIR/skills" "$SUPERPOWERS_SKILLS"
+sync_folders "$AGENTS_DIR/workflows" "Workflows (.agents)" "$SOURCE_DIR/workflows"
 
 # Ejecutar sincronización de .claude
-sync_folder "$SOURCE_DIR/skills" "$CLAUDE_DIR/skills" "Habilidades (.claude)"
+sync_folders "$CLAUDE_DIR/skills" "Habilidades (.claude)" "$SOURCE_DIR/skills" "$SUPERPOWERS_SKILLS"
 
 # 🌐 SINCRONIZACIÓN CLAUDE CODE (CLAUDE.md)
 echo "🌐 Sincronizando CLAUDE.md universal..."

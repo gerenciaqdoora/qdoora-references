@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-28] feat(agent): integrar superpowers de manera opcional en la sincronización
+
 - [2026-05-28] docs: actualizar reglas frontend con estandar de HeaderPremiumComponent
 
 - [2026-05-26] docs(security): agregar reporte de hallazgos de auditoria

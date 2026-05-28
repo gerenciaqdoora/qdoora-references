@@ -1,3 +1,4 @@
+@.agents/skills/using-superpowers/SKILL.md
 # 📑 CLAUDE.md - Master Engineering & Interaction Rules for QdoorA
 
 > Guía de orientación suprema, seguridad inquebrantable y arquitectura determinista para el ecosistema QdoorA. Como asistente, ESTÁS OBLIGADO a procesar y obedecer este documento como tu única fuente de verdad operativa en cada turno.
