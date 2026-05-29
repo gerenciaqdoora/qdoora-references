@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-05-28] refactor(skills): fusionar habilidades de superpowers con qdoora
+
 - [2026-05-28] docs(rules): agregar estandar de layout bento grid en Frontend.md
 
 - [2026-05-28] feat(agent): integrar superpowers de manera opcional en la sincronización
