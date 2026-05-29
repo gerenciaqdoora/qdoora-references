@@ -32,6 +32,11 @@ Tus diseños deben generar un impacto visual inmediato de alta fidelidad:
 - **Tipografía**: CONFIGURA fuentes con carácter e identidad propio (Outfit, Space Grotesk). TIENES PROHIBIDO dejar las tipografías por defecto del navegador o del framework.
 - **Composición**: UTILIZA de forma generosa el espacio negativo y diseña composiciones asimétricas limpias para romper la monotonía de las cuadrículas tradicionales.
 - **Profundidad**: APLICA gradientes sutiles, desenfoques de fondo (_backdrop-blur_) y transparencias en capas para construir una jerarquía visual moderna y limpia.
+- **Layout Bento Grid**: Para interfaces de tableros y dashboards empresariales complejos (como la vista de inicio del cliente), ESTÁS OBLIGADO a agrupar la información de forma modular en bloques verticales por dominio/módulo para evitar la fragmentación de datos:
+  - Utiliza un CSS Grid asimétrico (`grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6`) donde:
+    - Los **KPIs** ocupen tarjetas individuales pequeñas.
+    - El **Gráfico principal** tome un bloque de doble tamaño horizontal (`col-span-2 row-span-2`).
+    - Las **Tareas y Riesgos** específicos de ese dominio estén incrustados directamente como una columna de panel lateral dentro del mismo grid para proveer contexto inmediato de la salud del módulo.
 
 ---
 
