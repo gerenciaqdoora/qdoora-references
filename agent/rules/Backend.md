@@ -17,6 +17,7 @@ trigger: always_on
 - **Controllers** (`app/Http/Controllers`): Diséñalos como orquestadores ultraligeros. Solo deben recibir la petición, delegar al servicio y responder. **TIENES TERMINANTEMENTE PROHIBIDO escribir lógica de negocio en un controlador.**
 - **Resources** (`app/Http/Resources`): Utilízalos obligatoriamente como transformadores de datos para las respuestas JSON. **NUNCA** retornes modelos Eloquent crudos hacia el cliente.
 - **Propiedad de Servicios (Service Ownership)**: TIENES PROHIBIDO manipular o alterar modelos de otro dominio de forma directa. Si necesitas datos o acciones de otro módulo, invoca estrictamente al servicio dueño de dicho dominio.
+- **Relaciones Inter-Módulos (Modelos Core)**: Las relaciones desde modelos base (`core`) hacia modelos de submódulos (ej. `Nómina`) deben mantenerse explícitas dentro del modelo base (ej. `ThirdCompany`) garantizando el correcto funcionamiento de scopes e inyección de dependencias, hasta que se estandarice un sistema por Traits.
 
 ### Stateless & Multitenant (Aislamiento Total)
 
