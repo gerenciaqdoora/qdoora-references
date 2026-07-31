@@ -1,0 +1,52 @@
+{
+  "skill_name": "qdoora-new-table-page",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Necesito crear el listado de Proveedores en el Portal Cliente. El backend ya soporta page/size y la tabla puede tener miles de registros.",
+      "expectations": [
+        "El agente usa app-header-premium como cabecera, nunca un <h1>/<div> artesanal",
+        "El agente elige generic-table (paginación server-side), no app-table-without-pagination, porque el dataset crece sin límite práctico",
+        "El agente no reescribe una tabla HTML nativa (<table>/mat-table cruda)",
+        "El agente verifica con grep los @Input/@Output reales de generic-table antes de asumirlos"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Quiero listar los tipos de moneda configurados en el sistema (son 5-6 fijos), es un catálogo que no pagina en el backend.",
+      "expectations": [
+        "El agente elige app-table-without-pagination en vez de generic-table, porque es un catálogo acotado sin paginación real de backend",
+        "El agente usa TableColumn[] con customTemplates si necesita celdas personalizadas",
+        "El agente no agrega lógica de page/size/sort innecesaria al Angular Service"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "El endpoint de Comprobantes contables solo acepta page y size hoy. Necesito que el listado tenga buscador y ordenamiento por columna, server-side.",
+      "expectations": [
+        "El agente extiende el FormRequest de Laravel con search, sort (whitelist in:) y order (in:asc,desc)",
+        "El agente usa el trait PaginatesResults en el Service y mantiene el filtro company_id antes del search",
+        "El agente actualiza el Api client de Angular y el Service (patrón BehaviorSubject) para enviar los nuevos parámetros",
+        "El agente identifica si la key de columna del front coincide con el campo real ordenable del backend, y si no, propone un SORT_KEY_MAP",
+        "El agente verifica con tsc --noEmit y php -l antes de dar la tarea por completada"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Agrega la columna Estado SII a un listado con colores personalizados nuevos para los estados RECEIVED y CANCELLED en generic-table.",
+      "expectations": [
+        "El agente NO modifica table.component.html/.ts para agregar colores nuevos a la paleta del badge",
+        "El agente traduce el estado real (enum en inglés) a una de las etiquetas ya soportadas por la paleta existente, o documenta que ese estado caerá al gris por defecto",
+        "El agente realiza la traducción en el componente/servicio consumidor, no en el componente compartido"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Crea el listado de Declaraciones de Ingreso (DIN) mostrando el nombre del cliente y su RUT como columna.",
+      "expectations": [
+        "El agente aplana el campo anidado (ej. client.rut) a un campo de nivel superior (client_rut) antes de pasarlo a generic-table, porque dataRow[column.key] no soporta objetos anidados",
+        "El agente usa pipe: 'rutFormat' o subkeyPipe: 'rutFormat' para formatear el RUT, nunca lo interpola crudo"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+<?php
+/**
+ * Plantilla: endpoint de listado paginado server-side (page/size/search/sort/order).
+ * Basado en el patrón real de DteListRequest + DteController + ElectronicDocumentService.
+ * Reemplaza {{Entity}}/{{entity}}/{{Model}}/{{tabla}}/{{campos_buscables}}/{{campos_ordenables}}.
+ * Copia cada bloque al archivo que corresponda — NO es un solo archivo.
+ */
+
+// =====================================================================
+// 1) app/Http/Requests/{{Domain}}/{{Entity}}ListRequest.php
+// =====================================================================
+
+class {{Entity}}ListRequest extends \Illuminate\Foundation\Http\FormRequest
+{
+    public function authorize(): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = \Illuminate\Support\Facades\Auth::guard('api')->user();
+        if (!$user) return false;
+
+        return match ($user->role) {
+            'SUBSCRIBER_ROLE' => \App\Models\Empresa\Company::where('id', $this->route('company_id'))
+                ->where('suscriptor_id', $user->getSuscriptorByRole()?->id)
+                ->exists(),
+            'USER_ROLE' => $user->userHasCompanyPermission((int) $this->route('company_id'))
+                && $user->usersPermissionSubmodules('{{MODULO}}.LIST', \App\Enums\UserOperationSubmodule::REVIEW->value),
+            default => false,
+        };
+    }
+
+    public function rules(): array
+    {
+        return [
+            'page' => ['sometimes', 'integer', 'min:0'],
+            'size' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'search' => ['sometimes', 'nullable', 'string', 'max:100'],
+            // La whitelist de sort DEBE coincidir con $allowedSorts del Service (paso 3).
+            'sort' => ['sometimes', 'nullable', 'string', 'in:{{campos_ordenables_separados_por_coma}}'],
+            'order' => ['sometimes', 'nullable', 'string', 'in:asc,desc'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'page.integer' => 'La página debe ser un número entero.',
+            'page.min' => 'La página no puede ser negativa.',
+            'size.integer' => 'El tamaño de página debe ser un número entero.',
+            'size.min' => 'El tamaño de página debe ser al menos 1.',
+            'size.max' => 'El tamaño de página no puede superar 100.',
+            'sort.in' => 'La columna de orden indicada no es válida.',
+            'order.in' => 'El sentido de orden debe ser asc o desc.',
+        ];
+    }
+}
+
+// =====================================================================
+// 2) app/Http/Controllers/{{Domain}}/{{Entity}}Controller.php (método index)
+// =====================================================================
+
+public function index({{Entity}}ListRequest $request, int $company_id)
+{
+    $user = \Illuminate\Support\Facades\Auth::guard('api')->user();
+    try {
+        $page = (int) $request->query('page', 0);
+        $size = (int) $request->query('size', 15);
+        $search = (string) $request->query('search', '');
+        $sort = (string) $request->query('sort', 'id');
+        $order = (string) $request->query('order', 'desc');
+
+        $data = $this->{{entity}}Service->list{{Entity}}($company_id, $page, $size, $search, $sort, $order);
+
+        return jsonResponse(['records' => $data['records'], 'pagination' => $data['pagination']], 200, 'Ok');
+    } catch (\Throwable $e) {
+        return $this->handleError->logAndResponse($e, $request, \App\Enums\Logger\LoggerOperation::LISTAR, \App\Enums\Logger\LoggerEvent::{{LOG_EVENT}}, $user);
+    }
+}
+
+// =====================================================================
+// 3) app/Services/{{Domain}}/{{Entity}}Service.php (método list{{Entity}})
+// =====================================================================
+
+use App\Traits\PaginatesResults;
+
+class {{Entity}}Service
+{
+    use PaginatesResults;
+
+    public function list{{Entity}}(
+        int $companyId, int $page, int $size,
+        string $search = '', string $sort = 'id', string $order = 'desc'
+    ): array {
+        $query = {{Model}}::where('company_id', $companyId); // filtro multi-tenant SIEMPRE primero
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                // Columna de texto propia:
+                $q->whereRaw('LOWER({{campo_texto}}) LIKE ?', ['%'.strtolower($search).'%']);
+                // Columna numérica propia (castear a texto, Postgres no permite LOWER() sobre integer):
+                // ->orWhereRaw('CAST({{campo_numerico}} AS TEXT) LIKE ?', ['%'.$search.'%']);
+                // Campo de una relación:
+                // ->orWhereHas('{{relacion}}', fn ($sub) => $sub->whereRaw('LOWER({{campo}}) LIKE ?', ['%'.strtolower($search).'%']));
+            });
+        }
+
+        $result = $this->paginateQuery($query, $page, $size, $sort, $order, ['id', '{{campos_ordenables_separados_por_coma}}']);
+        $result['records'] = {{Entity}}Resource::collection($result['records']);
+
+        return $result;
+    }
+}

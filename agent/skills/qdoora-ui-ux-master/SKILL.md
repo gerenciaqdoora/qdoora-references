@@ -57,3 +57,4 @@ Rechaza y refactoriza cualquier propuesta que:
 2. No implemente validación server-side para navegaciones de administración.
 3. Use directivas antiguas (`*ngIf`, `*ngFor`) en lugar del nuevo Control Flow de Angular.
 4. Intente persistir tokens administrativos de forma permanente en el navegador.
+5. Genere archivos de pruebas unitarias (`*.component.spec.ts`). **NUNCA** debes crear archivos `.spec` para componentes bajo ninguna circunstancia.

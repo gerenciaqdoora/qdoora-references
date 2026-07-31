@@ -1,0 +1,22 @@
+<!--
+  Plantilla: list.component.html para catálogos SIN paginación de backend
+  (app-table-without-pagination). Basado en el patrón real de company-taxes-list.
+-->
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent sm:absolute sm:inset-0 sm:overflow-hidden">
+    <!-- Header Premium (OBLIGATORIO en toda página de listado) -->
+    <app-header-premium [title]="'{{Título del listado}}'"
+        [subtitle]="'{{Subtítulo descriptivo}}'"
+        [icon]="'heroicons_outline:{{icono}}'" [isLoading]="isLoading" [isSearchable]="false"
+        [isAvailableButton]="false" [alertMessage]="alertName"></app-header-premium>
+
+    <!-- Main -->
+    <div class="flex-auto p-4 sm:p-6 overflow-hidden flex flex-col">
+        <div class="flex flex-auto flex-col overflow-hidden sm:mb-18 sm:overflow-y-auto">
+            @if ({{entities}}$ | async; as rows) {
+                <app-table-without-pagination class="flex-auto overflow-hidden" [dataSource]="rows"
+                    [columns]="columns" [isLoading]="isLoading" [notFound]="'{{mensaje cuando no hay datos}}'">
+                </app-table-without-pagination>
+            }
+        </div>
+    </div>
+</div>

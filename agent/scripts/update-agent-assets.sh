@@ -16,9 +16,9 @@ AGENTS_DIR="$WORKSPACE_ROOT/.agents"
 CLAUDE_DIR="$WORKSPACE_ROOT/.claude"
 
 echo "----------------------------------------------------------------"
-echo "🤖 AGUNSA AGENT SYNC"
+echo "QDOORA AGENT SYNC"
 echo "----------------------------------------------------------------"
-echo "📍 Workspace: $WORKSPACE_ROOT"
+echo "Workspace: $WORKSPACE_ROOT"
 
 # Asegurar directorios base
 mkdir -p "$AGENTS_DIR/rules"
@@ -27,8 +27,8 @@ mkdir -p "$AGENTS_DIR/workflows"
 
 mkdir -p "$CLAUDE_DIR/skills"
 
-# 🧪 VALIDACIÓN OBLIGATORIA DE SKILLS
-echo "🔍 Validando integridad de Habilidades..."
+# VALIDACIÓN OBLIGATORIA DE SKILLS
+echo "Validando integridad de Habilidades..."
 VALIDATION_SCRIPT="$SOURCE_DIR/skills/skill-master/scripts/validate-skill.js"
 
 for skill in "$SOURCE_DIR/skills"/*; do
@@ -56,7 +56,7 @@ sync_folders() {
     shift 2
     local sources=("$@")
 
-    echo "📂 Sincronizando $type..."
+    echo "Sincronizando $type..."
     
     # Limpieza total previa para asegurar sincronización exacta
     # (Elimina archivos obsoletos o renombrados, ignorando archivos ocultos)
@@ -84,30 +84,31 @@ sync_folders() {
     done
 }
 
-# Directorio opcional de Superpowers
-SUPERPOWERS_SKILLS="$WORKSPACE_ROOT/superpowers/skills"
-
 # Ejecutar sincronización de .agents
 sync_folders "$AGENTS_DIR/rules" "Reglas (.agents)" "$SOURCE_DIR/rules"
-sync_folders "$AGENTS_DIR/skills" "Habilidades (.agents)" "$SOURCE_DIR/skills" "$SUPERPOWERS_SKILLS"
+sync_folders "$AGENTS_DIR/skills" "Habilidades (.agents)" "$SOURCE_DIR/skills"
 sync_folders "$AGENTS_DIR/workflows" "Workflows (.agents)" "$SOURCE_DIR/workflows"
 
 # Ejecutar sincronización de .claude
-sync_folders "$CLAUDE_DIR/skills" "Habilidades (.claude)" "$SOURCE_DIR/skills" "$SUPERPOWERS_SKILLS"
+sync_folders "$CLAUDE_DIR/skills" "Habilidades (.claude)" "$SOURCE_DIR/skills"
 
-# 🌐 SINCRONIZACIÓN CLAUDE CODE (CLAUDE.md)
-echo "🌐 Sincronizando CLAUDE.md universal..."
-CLAUDE_SOURCE="$SOURCE_DIR/../claude/CLAUDE.md"
+# SINCRONIZACIÓN CLAUDE CODE (CLAUDE.md) / ANTIGRAVITY (GEMINI.md)
+echo "Sincronizando AGENT_BASE.md universal..."
+AGENT_BASE_SOURCE="$SOURCE_DIR/rules/AGENT_BASE.md"
 CLAUDE_DEST="$WORKSPACE_ROOT/CLAUDE.md"
+GEMINI_DEST="$WORKSPACE_ROOT/GEMINI.md"
 
-if [ -f "$CLAUDE_SOURCE" ]; then
+if [ -f "$AGENT_BASE_SOURCE" ]; then
     rm -f "$CLAUDE_DEST"
-    ln -s "$CLAUDE_SOURCE" "$CLAUDE_DEST"
+    rm -f "$GEMINI_DEST"
+    ln -s "$AGENT_BASE_SOURCE" "$CLAUDE_DEST"
     echo "   ✅ CLAUDE.md -> Raíz del Workspace"
+    ln -s "$AGENT_BASE_SOURCE" "$GEMINI_DEST"
+    echo "   ✅ GEMINI.md -> Raíz del Workspace"
 else
-    echo "⚠️  Aviso: qdoora-references/claude/CLAUDE.md no encontrado."
+    echo "⚠️  Aviso: qdoora-references/agent/rules/AGENT_BASE.md no encontrado."
 fi
 
 echo "----------------------------------------------------------------"
-echo "✨ Sincronización completada con éxito."
+echo "Sincronización completada con éxito."
 echo "----------------------------------------------------------------"

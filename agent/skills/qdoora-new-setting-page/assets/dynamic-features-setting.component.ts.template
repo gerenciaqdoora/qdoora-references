@@ -1,0 +1,127 @@
+/**
+ * Plantilla: página de Configuración con ÁREAS DINÁMICAS derivadas de un registro
+ * de features toggleables que llega del backend (Sabor 1 — ver backend-flavors.md).
+ * Basada en el patrón real de nomina/settings.component.ts.
+ * Reemplaza {{Entity}}, {{entity}}, {{FeatureSetting}} y las categorías reales del dominio.
+ */
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { Subject, takeUntil } from 'rxjs';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { fuseAnimations } from '@fuse/animations';
+import { HeaderPremiumComponent } from 'app/modules/shared/header-premium/header-premium.component';
+import { {{Entity}}SettingsService } from './settings.service';
+import { {{FeatureSetting}} } from 'app/core/models/data/{{entity}}Settings';
+import { NotificationService } from 'app/core/services/notification.service';
+
+@Component({
+    selector: 'app-{{entity}}-settings',
+    standalone: true,
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        MatSlideToggleModule,
+        MatButtonModule,
+        MatIconModule,
+        HeaderPremiumComponent,
+    ],
+    templateUrl: './settings.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: fuseAnimations,
+})
+export class {{Entity}}SettingsComponent implements OnInit, OnDestroy {
+    private _service = inject({{Entity}}SettingsService);
+    private _cdr = inject(ChangeDetectorRef);
+    private _notification = inject(NotificationService);
+
+    private _unsubscribeAll = new Subject<void>();
+
+    isLoading = false;
+    alertName = '{{entity}}Settings';
+
+    // Signals para UX reactiva sin OnPush manual en cada subscribe
+    allSettings = signal<{{FeatureSetting}}[]>([]);
+    activeCategory = signal<string>('CATEGORIA_A');
+
+    /** Categorías fijas del dominio — ajusta ids/labels/íconos reales. */
+    categories = [
+        { id: 'CATEGORIA_A', label: 'Categoría A', icon: 'heroicons_outline:clipboard-document-check' },
+        { id: 'CATEGORIA_B', label: 'Categoría B', icon: 'heroicons_outline:building-office-2' },
+    ];
+
+    /** Solo muestra categorías que tengan al menos un setting real (evita tabs vacíos). */
+    availableCategories = computed(() => {
+        const settings = this.allSettings();
+        return this.categories.filter(cat =>
+            settings.some(s => this.getCategoryForFeature(s.feature_key) === cat.id)
+        );
+    });
+
+    filteredSettings = computed(() => {
+        const active = this.activeCategory();
+        return this.allSettings().filter(s => this.getCategoryForFeature(s.feature_key) === active);
+    });
+
+    forms: Record<string, FormGroup> = {};
+    saving: Record<string, boolean> = {};
+    toggling: Record<string, boolean> = {};
+
+    ngOnInit(): void {
+        this._service.settings$.pipe(takeUntil(this._unsubscribeAll)).subscribe(settings => {
+            this.allSettings.set(settings);
+            settings.forEach(s => {
+                this.forms[s.feature_key] = this._service.buildFeatureForm(s);
+            });
+            this._cdr.markForCheck();
+        });
+    }
+
+    ngOnDestroy(): void {
+        this._unsubscribeAll.next();
+        this._unsubscribeAll.complete();
+    }
+
+    setCategory(categoryId: string): void {
+        this.activeCategory.set(categoryId);
+        this._cdr.markForCheck();
+    }
+
+    onToggle(setting: {{FeatureSetting}}, isActive: boolean): void {
+        // Gotcha: las features `is_mandatory` no pueden desactivarse — oculta el
+        // mat-slide-toggle en el template en vez de solo deshabilitarlo.
+        if (setting.is_mandatory) {
+            return;
+        }
+        this.isLoading = true;
+        this._cdr.markForCheck();
+        this._service.toggleFeature(setting.feature_key, isActive).subscribe({
+            next: () => { this._notification.success('Característica actualizada.'); this.isLoading = false; this._cdr.markForCheck(); },
+            error: () => { this._notification.error('Error al actualizar la característica.'); this.isLoading = false; this._cdr.markForCheck(); },
+        });
+    }
+
+    onSaveConfig(featureKey: string): void {
+        const form = this.forms[featureKey];
+        if (form.invalid) {
+            form.markAllAsTouched();
+            this._notification.warning('Debe completar todos los campos requeridos.');
+            return;
+        }
+        this.saving[featureKey] = true;
+        this._cdr.markForCheck();
+        this._service.updateConfig(featureKey, form.value).subscribe({
+            next: () => { this._notification.success('Configuración actualizada.'); this.saving[featureKey] = false; this._cdr.markForCheck(); },
+            error: () => { this._notification.error('Error al actualizar la configuración.'); this.saving[featureKey] = false; this._cdr.markForCheck(); },
+        });
+    }
+
+    private getCategoryForFeature(key: string): string {
+        const mapping: Record<string, string> = {
+            // Ajusta esta tabla al dominio real: feature_key -> categoría del sidebar
+        };
+        return mapping[key] || 'CATEGORIA_A';
+    }
+}

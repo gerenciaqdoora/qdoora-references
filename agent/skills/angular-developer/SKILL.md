@@ -1,6 +1,11 @@
 ---
 name: angular-developer
-description: Generates Angular code and provides architectural guidance. Trigger when creating projects, components, or services, or for best practices on reactivity (signals, linkedSignal, resource), forms, dependency injection, routing, SSR, accessibility (ARIA), animations, styling (component styles, Tailwind CSS), testing, or CLI tooling.
+description: >
+  Genera código Angular genérico y orientación arquitectónica. USAR SOLO COMO FALLBACK cuando
+  no aplique `angular-shared-components-expert` (componentes UI de fuse-starter) ni
+  `qdoora-ui-ux-master` (diseño premium QdoorA). Activar para: crear proyectos nuevos desde
+  cero, guías de reactivity (signals, linkedSignal, resource), DI, routing, SSR, ARIA,
+  animaciones, Tailwind CSS, testing o CLI tooling genérico que NO sea específico de QdoorA.
 license: MIT
 metadata:
   author: Copyright 2026 Google LLC

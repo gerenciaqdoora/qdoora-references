@@ -1,0 +1,32 @@
+{
+  "skill_name": "brainstorming",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Tengo una idea para un nuevo módulo de reportería en el portal cliente, ¿cómo deberíamos enfocarlo?",
+      "expectations": [
+        "El agente no invoca ninguna skill de código, archivos o comando de terminal",
+        "El agente inicia haciendo preguntas de clarificación, una a la vez",
+        "El agente propone al menos 2 alternativas de diseño con sus trade-offs",
+        "El agente elabora un documento de diseño y lo guarda en docs/designs/"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Quiero hacer un cambio en el sistema para que ahora las notificaciones de Aduanas se envíen por SMS además de por email.",
+      "expectations": [
+        "El agente invoca erp-customs-expert (o sugiere consultarlo) para validar reglas de negocio",
+        "El agente solicita clarificaciones (proveedor SMS, restricciones de multitenancy)",
+        "El agente pide aprobación tras presentar la propuesta de arquitectura"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "El documento guardado en docs/designs/2026-07-02-notificaciones-sms.md me parece bien. Podemos proceder.",
+      "expectations": [
+        "El agente detecta la aprobación explícita del usuario",
+        "El agente invoca prompt-architect-master para transicionar a la etapa de plan de implementación"
+      ]
+    }
+  ]
+}

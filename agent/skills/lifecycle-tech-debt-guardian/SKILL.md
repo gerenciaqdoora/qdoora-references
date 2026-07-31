@@ -1,6 +1,16 @@
 ---
 name: lifecycle-tech-debt-guardian
-description: Estratega de mantenimiento, gestión de dependencias y prevención de deuda técnica. Orquesta las actualizaciones de framework (Angular/Laravel/PHP) y audita la seguridad del ecosistema.
+description: >
+  Estratega de mantenimiento, gestión de dependencias y prevención de deuda técnica.
+  Orquesta las actualizaciones de framework (Angular/Laravel/PHP) y audita la seguridad
+  del ecosistema.
+
+  Activar AUTOMÁTICAMENTE cuando el usuario mencione: `npm audit`, `composer outdated`,
+  `npm outdated`, actualización de versión mayor (Angular 18→19, Laravel 11→12, PHP 8.3→8.4),
+  vulnerabilidades en dependencias, paquete deprecado, evaluar librería nueva, deuda técnica
+  acumulada, refactorización estructural, o cuando se detecte un paquete sin mantenimiento
+  activo. También activar ante: breaking changes de framework, migration guide, o consultas
+  sobre si una librería externa es segura de instalar.
 ---
 # The Lifecycle & Tech Debt Guardian
 

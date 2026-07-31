@@ -1,6 +1,15 @@
 ---
 name: erp-global-parameters-expert
-description: Especialista en "Reglas de Negocio" para el sistema de Parámetros Globales (Variables, Escalas, Listas). Dicta la lógica de periodicidad, clonación histórica, modelos inmutables e indicadores económicos (UF/UTM/Sueldo Mínimo) necesarios para todo cálculo en el ERP. NO contiene código técnico ni UI.
+description: >
+  Especialista en "Reglas de Negocio" para el sistema de Parámetros Globales (Variables,
+  Escalas, Listas). Dicta la lógica de periodicidad, clonación histórica, modelos inmutables
+  e indicadores económicos para todo cálculo en el ERP. NO contiene código técnico ni UI.
+
+  Activar AUTOMÁTICAMENTE cuando el usuario mencione: UF (Unidad de Fomento), UTM (Unidad
+  Tributaria Mensual), Sueldo Mínimo, Impuesto Único (IUT), tope imponible, tablas de
+  parámetros, variables globales del sistema, periodos paramétricos, clonar periodo,
+  "parámetros del mes/año", indicadores económicos, o cualquier consulta sobre qué valor
+  usar para un cálculo de nómina, contabilidad o aduana en una fecha específica.
 ---
 
 # 🏛️ The ERP Global Parameters Expert (Business Domain)

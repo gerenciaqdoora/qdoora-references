@@ -1,0 +1,174 @@
+<?php
+
+/**
+ * Plantilla: backend del Sabor 1 (registro de features toggleables).
+ * Basada en el patrón real de Nomina (NominaSettingsController/NominaSettingsService).
+ * Reemplaza {{Domain}}, {{Entity}}, {{MODULO}}, {{LOG_EVENT}} y los feature_key reales.
+ *
+ * Requiere 2 tablas:
+ *   - global_{{domain}}_features   (catálogo global: feature_key, name, is_mandatory, default_config)
+ *   - {{domain}}_company_settings  (por empresa: company_id, feature_key, is_active, config JSON)
+ */
+
+// ============================ FormRequests ============================
+
+namespace App\Http\Requests\{{Domain}};
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class Toggle{{Entity}}Feature extends FormRequest
+{
+    public function rules(): array
+    {
+        return [
+            'feature_key' => ['required', 'string'],
+            'is_active' => ['required', 'boolean'],
+        ];
+    }
+}
+
+class UpdateFeatureConfig extends FormRequest
+{
+    public function rules(): array
+    {
+        // Ajusta reglas específicas por feature_key si el JSON de config varía mucho;
+        // si son pocas, usa 'sometimes' + tipos laxos y valida el detalle en el Service.
+        return [
+            '*' => ['sometimes'],
+        ];
+    }
+}
+
+// ============================ Controller ============================
+
+namespace App\Http\Controllers\{{Domain}};
+
+use App\Enums\Logger\LoggerEvent;
+use App\Enums\Logger\LoggerOperation;
+use App\Helpers\HandlesControllerLogs;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\{{Domain}}\Toggle{{Entity}}Feature;
+use App\Http\Requests\{{Domain}}\UpdateFeatureConfig;
+use App\Services\{{Domain}}\{{Entity}}SettingsService;
+use Illuminate\Http\JsonResponse;
+
+class {{Entity}}SettingsController extends Controller
+{
+    public function __construct(
+        private readonly {{Entity}}SettingsService $service,
+        private readonly HandlesControllerLogs $handleError
+    ) {}
+
+    /** Listado de configuraciones por empresa (catálogo global + fila de empresa combinados). */
+    public function index(int $companyId): JsonResponse
+    {
+        try {
+            return jsonResponse($this->service->getSettings($companyId));
+        } catch (\Throwable $e) {
+            return $this->handleError->logAndResponse($e, request(), LoggerOperation::REVISAR, LoggerEvent::{{LOG_EVENT}});
+        }
+    }
+
+    /** Activar/Desactivar una feature. */
+    public function toggle(Toggle{{Entity}}Feature $request, int $companyId): JsonResponse
+    {
+        try {
+            $data = $this->service->toggleFeature($companyId, $request->feature_key, $request->is_active);
+            return jsonResponse($data);
+        } catch (\Throwable $e) {
+            return $this->handleError->logAndResponse($e, $request, LoggerOperation::EDITAR, LoggerEvent::{{LOG_EVENT}});
+        }
+    }
+
+    /** Actualizar configuración JSON de una feature. */
+    public function updateConfig(UpdateFeatureConfig $request, int $companyId, string $featureKey): JsonResponse
+    {
+        try {
+            $data = $this->service->updateConfig($companyId, $featureKey, $request->validated());
+            return jsonResponse($data);
+        } catch (\Throwable $e) {
+            return $this->handleError->logAndResponse($e, $request, LoggerOperation::EDITAR, LoggerEvent::{{LOG_EVENT}});
+        }
+    }
+}
+
+// ============================ Service ============================
+
+namespace App\Services\{{Domain}};
+
+use App\Models\{{Domain}}\Global{{Entity}}Feature;
+use App\Models\{{Domain}}\{{Entity}}CompanySettings;
+
+class {{Entity}}SettingsService
+{
+    /**
+     * Retorna todas las features con su estado por empresa. Provisiona filas
+     * faltantes con defaults (lazy init) — idempotente vía updateOrCreate.
+     */
+    public function getSettings(int $companyId): array
+    {
+        $features = Global{{Entity}}Feature::getActiveCached();
+
+        if ({{Entity}}CompanySettings::porEmpresa($companyId)->count() < $features->count()) {
+            $this->provisionDefaultSettings($companyId);
+        }
+
+        $rows = {{Entity}}CompanySettings::porEmpresa($companyId)->get()->keyBy('feature_key');
+
+        return $features->map(fn ($feature) => [
+            'feature_key'  => $feature->feature_key,
+            'label'        => $feature->name,
+            'is_active'    => $rows->get($feature->feature_key)?->is_active ?? false,
+            'is_mandatory' => $feature->is_mandatory,
+            'config'       => $rows->get($feature->feature_key)?->config,
+        ])->values()->all();
+    }
+
+    /** Activa o desactiva una feature. Rechaza desactivar una feature obligatoria. */
+    public function toggleFeature(int $companyId, string $featureKey, bool $isActive): {{Entity}}CompanySettings
+    {
+        $globalFeature = Global{{Entity}}Feature::getActiveCached()->get($featureKey);
+        if (!$globalFeature) {
+            throw new \InvalidArgumentException("La característica {$featureKey} no es configurable o no está activa.");
+        }
+        if ($globalFeature->is_mandatory && !$isActive) {
+            throw new \InvalidArgumentException("La característica {$featureKey} es obligatoria y no puede ser desactivada.");
+        }
+
+        $setting = {{Entity}}CompanySettings::porEmpresa($companyId)->porFeature($featureKey)->firstOrFail();
+        $setting->update(['is_active' => $isActive]);
+
+        return $setting->fresh();
+    }
+
+    /** Actualiza el JSON de configuración de una feature. Valida reglas de negocio específicas aquí. */
+    public function updateConfig(int $companyId, string $featureKey, array $config): {{Entity}}CompanySettings
+    {
+        $globalFeature = Global{{Entity}}Feature::getActiveCached()->get($featureKey);
+        if (!$globalFeature) {
+            throw new \InvalidArgumentException("La característica {$featureKey} no es configurable o no está activa.");
+        }
+
+        // Ejemplo: validaciones de negocio propias de una feature específica
+        // if ($featureKey === 'MI_FEATURE') { ... }
+
+        $setting = {{Entity}}CompanySettings::porEmpresa($companyId)->porFeature($featureKey)->firstOrFail();
+        $setting->update(['config' => $config]);
+
+        return $setting->fresh();
+    }
+
+    /** Crea una fila por feature para la empresa (is_active=false salvo obligatorias). */
+    public function provisionDefaultSettings(int $companyId): void
+    {
+        foreach (Global{{Entity}}Feature::getActiveCached() as $feature) {
+            {{Entity}}CompanySettings::updateOrCreate(
+                ['company_id' => $companyId, 'feature_key' => $feature->feature_key],
+                [
+                    'is_active' => $feature->is_mandatory,
+                    'config' => $feature->is_mandatory ? ($feature->default_config ?? []) : [],
+                ]
+            );
+        }
+    }
+}

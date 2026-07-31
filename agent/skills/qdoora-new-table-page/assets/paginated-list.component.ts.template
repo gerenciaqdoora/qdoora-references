@@ -1,0 +1,168 @@
+/**
+ * Plantilla: list.component.ts para tablas PAGINADAS server-side (generic-table).
+ * Basado en el patrón real de EmployeeListComponent / PreviredListComponent / BillingListComponent.
+ * Reemplaza {{Entity}} (PascalCase), {{entity}} (camelCase) y {{entities}} (plural) por tu dominio.
+ * Borra lo que no necesites (customActions, SORT_KEY_MAP, etc.) — no dejes código muerto.
+ */
+import { AsyncPipe, CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { fuseAnimations } from '@fuse/animations';
+import { HeaderPremiumComponent } from 'app/modules/shared/header-premium/header-premium.component';
+import { GenericTableComponent } from 'app/modules/shared/table/table.component';
+import { Pagination } from 'app/core/models/common/table';
+import { NotificationService } from 'app/core/services/notification.service';
+import { FuseConfirmationService } from '@fuse/services/confirmation';
+import { Observable, Subject, finalize, map, takeUntil } from 'rxjs';
+import { {{Entity}}Service } from '../{{entity}}.service';
+import { {{Entity}} } from 'app/core/models/data/{{entity}}';
+
+/** Fila del listado con campos aplanados/derivados para las columnas de generic-table. */
+type {{Entity}}Row = {{Entity}} & {
+    // ej: cliente_nombre: string; cliente_rut: string; estado_label: string;
+};
+
+@Component({
+    selector: '{{entity}}-list',
+    standalone: true,
+    templateUrl: './list.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: fuseAnimations,
+    imports: [
+        CommonModule,
+        AsyncPipe,
+        MatButtonModule,
+        MatIconModule,
+        MatTooltipModule,
+        HeaderPremiumComponent,
+        GenericTableComponent,
+    ],
+})
+export class {{Entity}}ListComponent implements OnInit, OnDestroy {
+    {{entities}}$: Observable<{{Entity}}Row[]>;
+    isLoading = false;
+    pagination: Pagination;
+    alertName = '{{entity}}List';
+    searchQuery = '';
+    currentSort = 'id';
+    currentOrder = 'desc';
+
+    // Traduce la key de columna del front al campo real ordenable en backend
+    // SOLO si difieren (ver Gotcha #1 de qdoora-new-table-page/SKILL.md).
+    private static readonly SORT_KEY_MAP: Record<string, string> = {
+        // folio: 'dte_folio',
+    };
+
+    columns: Array<{ key: string; label: string; class_header: string; class_row: string; type?: string; subkey?: string | null; pipe?: string; subkeyPipe?: string }> = [
+        // { key: 'id', label: 'ID', class_header: '', class_row: 'font-mono', subkey: null },
+        // { key: 'estado_label', label: 'Estado', class_header: '', class_row: '', type: 'badge' },
+    ];
+
+    private _unsubscribeAll = new Subject<void>();
+
+    constructor(
+        private _{{entity}}Service: {{Entity}}Service,
+        private _notification: NotificationService,
+        private _fuseConfirmationService: FuseConfirmationService,
+        private _changeDetectorRef: ChangeDetectorRef,
+        public router: Router,
+        private route: ActivatedRoute,
+    ) {}
+
+    ngOnInit(): void {
+        this._{{entity}}Service.pagination$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((pagination: Pagination) => {
+                this.pagination = pagination;
+                this._changeDetectorRef.markForCheck();
+            });
+
+        this.{{entities}}$ = this._{{entity}}Service.{{entities}}$.pipe(
+            map((rows) => (rows ?? []).map((row) => this.toRow(row)))
+        );
+
+        this.load();
+    }
+
+    ngOnDestroy(): void {
+        this._unsubscribeAll.next();
+        this._unsubscribeAll.complete();
+    }
+
+    load(page: number = 0, size: number = 15, search: string = '', sort: string = 'id', order: string = 'desc'): void {
+        this.isLoading = true;
+        this.currentSort = sort;
+        this.currentOrder = order;
+        this._{{entity}}Service
+            .list(page, size, search, sort, order)
+            .pipe(
+                takeUntil(this._unsubscribeAll),
+                finalize(() => {
+                    this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
+                })
+            )
+            .subscribe({
+                error: () => this._notification.error('No se pudo cargar el listado.'),
+            });
+    }
+
+    crearRegistro(): void {
+        this.router.navigate(['new'], { relativeTo: this.route });
+    }
+
+    onRefreshLista(event: any): void {
+        const sortKey = event.sort_active
+            ? ({{Entity}}ListComponent.SORT_KEY_MAP[event.sort_active] ?? event.sort_active)
+            : this.currentSort;
+        this.load(
+            event.pagination_pageIndex,
+            event.pagination_pageSize,
+            this.searchQuery,
+            sortKey,
+            event.sort_direction || this.currentOrder
+        );
+    }
+
+    buscarEnLista(query: string): void {
+        this.searchQuery = query;
+        this.load(0, this.pagination?.size ?? 15, query, this.currentSort, this.currentOrder);
+    }
+
+    onUpdateRow(row: {{Entity}}Row): void {
+        this.router.navigate([row.id], { relativeTo: this.route });
+    }
+
+    // Omitir onDeleteRow() por completo si el dominio es un registro histórico
+    // inmutable (Facturación/Contabilidad/Nómina cerrada/Aduana) — ver Gotcha del SKILL.md.
+    onDeleteRow(row: {{Entity}}Row): void {
+        const dialogRef = this._fuseConfirmationService.open({
+            title: 'Eliminar registro',
+            message: '¿Estás seguro de eliminar este registro?',
+            icon: { show: true, name: 'heroicons_outline:exclamation-triangle', color: 'warn' },
+            actions: {
+                confirm: { show: true, label: 'Eliminar', color: 'warn' },
+                cancel: { show: true, label: 'Cancelar' },
+            },
+        });
+
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result === 'confirmed') {
+                this._{{entity}}Service.delete(row.id).subscribe(() => {
+                    this.load(this.pagination.page, this.pagination.size, this.searchQuery, this.currentSort, this.currentOrder);
+                });
+            }
+        });
+    }
+
+    /** Aplana campos anidados y traduce estados a la paleta fija del badge estándar. */
+    private toRow(row: {{Entity}}): {{Entity}}Row {
+        return {
+            ...row,
+            // estado_label: this.statusLabel(row.estado),
+        };
+    }
+}

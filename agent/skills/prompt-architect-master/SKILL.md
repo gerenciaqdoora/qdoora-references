@@ -26,7 +26,7 @@ Debes generar el documento utilizando exactamente esta estructura para garantiza
 - **Contexto Acotado (Whitelist):** [Lista EXPLÍCITA de las rutas de los archivos que el Agente Ejecutor tiene permitido leer. Queda prohibida la lectura de directorios completos].
 - **Anti-Patrones (Gotchas):** [Instrucciones tácticas de ahorro de tokens. Ej: "Modificar solo el método X del controlador", "Evitar reescribir imports innecesarios", "No leer node_modules"].
 - **Plan de Ejecución Granular (Builder - TDD):** 
-  [DEBES dividir el trabajo en "Bite-Sized tasks" de 2-5 minutos. Usa el formato de checkboxes de Markdown (`- [ ]`). Cada tarea debe contener el código exacto a implementar. NO utilices placeholders como "TBD" o "TODO". Sigue el ciclo TDD: Escribir test que falla -> Correr test -> Implementar código -> Correr test para pasar.]
+  [DEBES dividir el trabajo en "Bite-Sized tasks" de 2-5 minutos. Usa el formato de checkboxes de Markdown (`- [ ]`). Cada tarea debe contener el código exacto a implementar. NO utilices placeholders como "TBD" o "TODO". Sigue el ciclo TDD: Escribir test que falla -> Correr test -> Implementar código -> Correr test para pasar. **IMPORTANTE:** Si el plan incluye la ejecución de pruebas unitarias (`php artisan test` o `pest`), DEBES añadir un paso para solicitar confirmación expresa del usuario antes de su ejecución (para prevenir el borrado accidental de la base de datos).]
 - **Auditoría (Guardián) y Documentación (Scribe):** [Vectores de seguridad a vigilar (QD-XX) y qué se registrará en la documentación viva al finalizar].
 
 ## REGLA CONTRA PLACEHOLDERS

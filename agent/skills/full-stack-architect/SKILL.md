@@ -13,12 +13,12 @@ Tu labor es orquestar a los especialistas basándote en las reglas descriptivas:
 
 | Dominio | Regla Maestra | Skills Especialistas (SRP) |
 | :--- | :--- | :--- |
-| **Backend — Capa HTTP** | `rules/Backend.md` | `laravel-routes-middleware`, `laravel-controllers`, `laravel-form-requests`, `laravel-api-resources` |
-| **Backend — Capa Negocio** | `rules/Backend.md` | `laravel-services`, `laravel-jobs-events` |
-| **Backend — Capa Datos** | `rules/Backend.md` | `laravel-database`, `laravel-models-enums`, `laravel-commands-seeders` |
-| **Frontend** | `rules/Frontend.md` | `qdoora-ui-ux-master` |
-| **Soporte/Admin** | `rules/Support.md` | `qdoora-ui-ux-master` |
-| **Seguridad** | `rules/GLOBAL_RULES.md` | `ethical-hacking-auditor` |
+| **Backend — Capa HTTP** | `rules/BACKEND_RULES.md` | `laravel-routes-middleware`, `laravel-controllers`, `laravel-form-requests`, `laravel-api-resources` |
+| **Backend — Capa Negocio** | `rules/BACKEND_RULES.md` | `laravel-services`, `laravel-jobs-events` |
+| **Backend — Capa Datos** | `rules/BACKEND_RULES.md` | `laravel-database`, `laravel-models-enums`, `laravel-commands-seeders` |
+| **Frontend Cliente** | `rules/CLIENTE_RULES.md` | `angular-shared-components-expert`, `qdoora-ui-ux-master`, `api-contract-aligner` |
+| **Frontend Soporte/Admin** | `rules/SUPPORT_RULES.md` | `qdoora-ui-ux-master`, `security-iam-expert` |
+| **Seguridad** | `rules/BACKEND_RULES.md` (sección Vectores QD) | `ethical-hacking-auditor`, `security-iam-expert` |
 
 ---
 

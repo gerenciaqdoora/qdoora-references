@@ -1,0 +1,24 @@
+{
+    "evals": [
+        {
+            "input": "Crea un diálogo para editar un perfil de usuario.",
+            "expected_output_includes": [
+                "¿Qué ancho deseas para este diálogo",
+                "standard-dialog-container",
+                "ViewEncapsulation.None",
+                "ChangeDetectionStrategy.OnPush",
+                "app-dialog-header",
+                "app-dialog-footer",
+                "src/app/dialog/"
+            ]
+        },
+        {
+            "input": "Necesito un modal de confirmación de borrado.",
+            "expected_output_includes": [
+                "ancho",
+                "app-dialog-button-cancel",
+                "app-dialog-button-confirm"
+            ]
+        }
+    ]
+}

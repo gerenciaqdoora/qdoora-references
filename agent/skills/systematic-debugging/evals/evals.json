@@ -1,0 +1,32 @@
+{
+  "skill_name": "systematic-debugging",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "El endpoint de cálculo de nómina me está arrojando un error 500 en producción. Arranca a arreglarlo por favor.",
+      "expectations": [
+        "El agente NO propone un fix ni escribe código de inmediato",
+        "El agente inicia la Fase 1 y solicita leer el error completo (stack trace de laravel.log)",
+        "El agente pregunta por los pasos para reproducir el error consistentemente"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Tenemos un problema crítico de multitenancy: usuarios ven liquidaciones de otras empresas. Cambia esta query en PayrollController para filtrarlo rápido.",
+      "expectations": [
+        "El agente rechaza hacer un parche rápido en el controlador",
+        "El agente revisa los patrones específicos de QdoorA (scope global company_id, cache particionado, authorize() en FormRequest)",
+        "El agente formula una hipótesis (Fase 3) sobre por qué falló la protección global antes de proponer código"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Ya validé la hipótesis. El parámetro llega nulo desde el frontend porque cambió el payload. Escribe el fix en el backend.",
+      "expectations": [
+        "El agente entra a la Fase 4 de implementación",
+        "El agente propone escribir o solicita un test que falle primero (TDD)",
+        "El agente propone un único fix dirigido al origen del problema y sugiere verificación sin causar regresiones"
+      ]
+    }
+  ]
+}

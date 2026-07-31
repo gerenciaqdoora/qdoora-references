@@ -1,0 +1,93 @@
+/**
+ * Plantilla: página de Configuración con ÁREAS FIJAS (conocidas de antemano, no dependen
+ * de datos del backend). Basada en el patrón real de billing/setting.component.ts.
+ * Reemplaza {{Entity}}, {{entity}}, {{AREA_A}}, {{AREA_B}}, etc.
+ */
+import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { HeaderPremiumComponent } from 'app/modules/shared/header-premium/header-premium.component';
+import { NotificationService } from 'app/core/services/notification.service';
+import { finalize, Subject, takeUntil } from 'rxjs';
+import { {{Entity}}Service } from '../{{entity}}.service';
+
+type {{Entity}}SettingSection = '{{AREA_A}}' | '{{AREA_B}}';
+
+@Component({
+    selector: '{{entity}}-setting',
+    standalone: true,
+    imports: [
+        CommonModule,
+        MatIconModule,
+        MatButtonModule,
+        MatSidenavModule,
+        HeaderPremiumComponent,
+        // ... módulos/componentes propios de cada área (file-upload, forms, etc.)
+    ],
+    templateUrl: './setting.component.html',
+})
+export class {{Entity}}SettingComponent implements OnInit, OnDestroy {
+    // Estado de carga por área — el header combina ambos en isLoading
+    loadingAreaA = false;
+    loadingAreaB = false;
+
+    alertName = '{{entity}}Setting';
+    activeSection: {{Entity}}SettingSection = '{{AREA_A}}';
+
+    /** Áreas navegables del sidebar (mat-drawer). Ajusta labels/íconos al dominio real. */
+    readonly sections: Array<{ id: {{Entity}}SettingSection; label: string; icon: string }> = [
+        { id: '{{AREA_A}}', label: 'Nombre Área A', icon: 'heroicons_outline:shield-check' },
+        { id: '{{AREA_B}}', label: 'Nombre Área B', icon: 'heroicons_outline:hashtag' },
+    ];
+
+    private _unsubscribeAll = new Subject<void>();
+
+    constructor(
+        private _service: {{Entity}}Service,
+        private _notification: NotificationService
+    ) {}
+
+    get isLoading(): boolean {
+        return this.loadingAreaA || this.loadingAreaB;
+    }
+
+    ngOnInit(): void {
+        this.loadAreaA();
+        this.loadAreaB();
+    }
+
+    ngOnDestroy(): void {
+        this._unsubscribeAll.next();
+        this._unsubscribeAll.complete();
+    }
+
+    setSection(id: {{Entity}}SettingSection): void {
+        this.activeSection = id;
+    }
+
+    // ----------------------------------------------------------------- Área A
+
+    loadAreaA(): void {
+        this.loadingAreaA = true;
+        this._service
+            .getAreaA()
+            .pipe(takeUntil(this._unsubscribeAll), finalize(() => (this.loadingAreaA = false)))
+            .subscribe({
+                error: () => this._notification.error('No se pudo cargar el área A.'),
+            });
+    }
+
+    // ----------------------------------------------------------------- Área B
+
+    loadAreaB(): void {
+        this.loadingAreaB = true;
+        this._service
+            .getAreaB()
+            .pipe(takeUntil(this._unsubscribeAll), finalize(() => (this.loadingAreaB = false)))
+            .subscribe({
+                error: () => this._notification.error('No se pudo cargar el área B.'),
+            });
+    }
+}

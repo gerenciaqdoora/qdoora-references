@@ -43,6 +43,8 @@ Todo select en QdoorA debe ser buscable (filtrable).
 ### 📊 4. Tablas y Layouts
 - **`generic-table`** (`<generic-table>`): El motor principal. Maneja paginación nativa y eventos por fila. (Inputs: `lista`, `pagination`, `columns`, `useEdit`, `useDelete`, `useView`. Outputs: `edit`, `delete`, `refresh`).
 - **`app-table-without-pagination`**: Tabla para vistas ligeras sin consumo de paginación del backend.
+- **¿Vas a armar una página de listado completa (cabecera + tabla + backend paginado)?** Esta skill solo enumera QUÉ existe — activa `qdoora-new-table-page` para el blueprint one-shot de CÓMO ensamblarla (incluye el patrón full-stack Laravel `PaginatesResults` + Angular `BehaviorSubject`, la paleta fija del badge, y el mapeo de sort front↔backend).
+- **¿Vas a armar una página de Configuración/Ajustes/Parámetros con varias áreas o naturalezas?** Activa `qdoora-new-setting-page` para el blueprint one-shot de `app-header-premium` + `mat-drawer-container` (sidebar de navegación siempre a la derecha, patrón de filtrado — no scroll-spy), incluyendo los dos sabores de backend (registro de features toggleables vs agregación de sub-recursos independientes).
 - **`app-section-card`**: Contenedor principal de secciones en la UI. Agrupa contenido bajo un header común. (Inputs: `title`, `description`, `icon`, `isPremium`).
 - **`app-config-card`**: Tarjeta específica para vistas de ajustes con toggle de herencia (`showInheritToggle`).
 - **`app-totales-box`**: Caja responsiva para mostrar sumatorias contables o de nómina. (Inputs: `totalNeto`, `totalIVA`, `totalRetencion`, `totalFinal`).

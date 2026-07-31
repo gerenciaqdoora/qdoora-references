@@ -1,0 +1,52 @@
+{
+  "skill_name": "qdoora-new-setting-page",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Necesito crear la vista de Configuración de Aduana en el Portal Cliente. Tiene 3 áreas bien separadas: Datos del Despachador, Bodegas Habilitadas y Notificaciones DIN.",
+      "expectations": [
+        "El agente usa app-header-premium como cabecera, nunca un <h1>/<div> artesanal",
+        "El agente usa mat-drawer-container porque hay 3 áreas claramente separables",
+        "El sidebar de navegación queda a la derecha ([position]=\"'end'\"), no a la izquierda",
+        "El agente verifica con grep las páginas de referencia (nomina/settings, billing/setting, roles/edit) antes de asumir la convención"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Quiero una página simple que solo permite configurar el porcentaje de IVA por defecto de la empresa, un solo formulario.",
+      "expectations": [
+        "El agente NO fuerza mat-drawer-container porque solo hay una naturaleza de configuración",
+        "El agente usa app-header-premium + un app-section-card o <section> simple",
+        "El agente evita sobre-ingeniería (no crea un sidebar con un solo botón de navegación)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Necesito una vista de Configuraciones de Contabilidad con toggles de features que se pueden activar o desactivar, algunas obligatorias, con un JSON de config distinto por feature. El catálogo de features puede crecer con el tiempo.",
+      "expectations": [
+        "El agente reconoce el Sabor 1 (registro de features toggleables) y no el Sabor 2 (sub-recursos independientes)",
+        "El agente modela una tabla global de catálogo y una tabla por empresa (feature_key, is_active, config JSON)",
+        "El agente oculta el mat-slide-toggle (no solo lo deshabilita) para features con is_mandatory=true",
+        "El agente usa un signal/computed para filtrar las categorías disponibles según los datos reales, no un array estático que podría mostrar categorías vacías"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Migra la vista actual de configuración de Aduana que tiene un <h1> y unas pestañas hechas con *ngIf, a los componentes estándar del portal.",
+      "expectations": [
+        "El agente reemplaza el <h1> por app-header-premium",
+        "El agente reemplaza las pestañas *ngIf por mat-drawer-container + sidebar a la derecha con @if/filtrado, no scroll-spy",
+        "El agente no confunde este patrón con app-vertical-nav/app-horizontal-nav (reservado para formularios largos de un solo registro)",
+        "El agente verifica con tsc --noEmit antes de dar la tarea por completada"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "La página de edición de un Rol tiene datos generales del rol y una tabla de permisos por módulo contratado. ¿El botón de guardar va en el header o dentro de cada sección?",
+      "expectations": [
+        "El agente identifica que es el arquetipo 'edición de una sola entidad con secciones por área' (como general/roles/edit), no el arquetipo 'ajustes con muchos toggles independientes'",
+        "El agente recomienda isAvailableButton=true en el header con un único botón 'Guardar' global, en vez de un botón por sección"
+      ]
+    }
+  ]
+}

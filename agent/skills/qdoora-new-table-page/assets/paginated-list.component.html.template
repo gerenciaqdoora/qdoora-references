@@ -1,0 +1,36 @@
+<!--
+  Plantilla: list.component.html para tablas PAGINADAS server-side (generic-table).
+  Reemplaza {{entities}}$ / textos de cabecera por tu dominio.
+  Borra el ng-template #customActions si useEdit/useDelete estándar te alcanzan.
+-->
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent sm:absolute sm:inset-0 sm:overflow-hidden">
+    <!-- Header Premium (OBLIGATORIO en toda página de listado) -->
+    <app-header-premium [title]="'{{Título del listado}}'"
+        [subtitle]="'{{Subtítulo descriptivo}}'"
+        [icon]="'heroicons_outline:{{icono}}'" [isLoading]="isLoading" [isSearchable]="true"
+        [searchLabel]="'Buscar {{Entidad}}'" [searchPlaceholder]="'{{placeholder de búsqueda}}'"
+        [isAvailableButton]="true" [buttonLabel]="'Nuevo {{Entidad}}'" [buttonIcon]="'heroicons_outline:plus'"
+        [buttonTooltip]="'{{tooltip del botón}}'" (search)="buscarEnLista($event)"
+        (action)="crearRegistro()" [alertMessage]="alertName"></app-header-premium>
+
+    <!-- Main -->
+    <div class="flex flex-auto overflow-hidden">
+        <div class="flex flex-auto flex-col overflow-hidden sm:mb-18 sm:overflow-y-auto">
+            <generic-table [lista]="({{entities}}$ | async) ?? []" [pagination]="pagination" [isLoading]="isLoading"
+                [notFound]="'{{mensaje cuando no hay datos}}'" [columns]="columns"
+                (refresh)="onRefreshLista($event)" (edit)="onUpdateRow($event)" (delete)="onDeleteRow($event)">
+
+                <!-- Solo si necesitas una acción puntual (ej. "Ver PDF", "Descargar") -->
+                <!--
+                <ng-template #customActions let-row>
+                    <button class="h-7 min-h-7 min-w-5 px-2 leading-6 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-200"
+                        mat-stroked-button (click)="onCustomAction(row)" matTooltip="{{Tooltip}}">
+                        <mat-icon class="icon-size-4 text-current" [svgIcon]="'heroicons_outline:{{icono}}'"></mat-icon>
+                    </button>
+                </ng-template>
+                -->
+
+            </generic-table>
+        </div>
+    </div>
+</div>
