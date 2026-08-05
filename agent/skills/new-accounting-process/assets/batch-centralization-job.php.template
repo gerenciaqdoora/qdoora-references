@@ -1,0 +1,112 @@
+<?php
+
+namespace App\Jobs\Contabilidad;
+
+use App\Enums\Logger\LoggerEvent;
+use App\Enums\Logger\LoggerOperation;
+use App\Events\{{X}}BulkCentralized;
+use App\Models\User;
+use App\Services\Contabilidad\{{X}}Service;
+use App\Services\Util\LoggerService;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+
+/**
+ * Centraliza en background todos los documentos PENDING de un lote filtrado.
+ *
+ * El Job NO contiene lógica de negocio: delega en el servicio dueño y se
+ * encarga solo de registrar el resultado y notificar por websocket.
+ */
+class Centralize{{X}}BatchJob implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    /**
+     * Documentos fallidos que viajan en el broadcast. El detalle completo queda
+     * siempre en el log; el evento solo lleva una muestra para que el modal
+     * explique el fallo sin inflar el payload de un lote masivo.
+     */
+    private const MAX_BROADCAST_ERRORS = 10;
+
+    /** Identificador del origen en el log, en lugar de la URL de un request. */
+    private const LOG_URI = 'job:Centralize{{X}}BatchJob';
+
+    protected int $companyId;
+    protected ?string $period;
+    protected ?int $userId;
+
+    public function __construct(int $companyId, ?string $period, ?int $userId = null)
+    {
+        $this->companyId = $companyId;
+        $this->period = $period;
+        $this->userId = $userId;
+        $this->onQueue('imports');
+    }
+
+    public function handle({{X}}Service $service, LoggerService $loggerService): void
+    {
+        $user = $this->userId ? User::find($this->userId) : null;
+
+        try {
+            $result = $service->centralizarLotePendiente($this->companyId, $this->period, $user);
+
+            // Los documentos que no se centralizaron quedan PENDING: sin el
+            // motivo por documento, el lote es indiagnosticable después.
+            if (!empty($result['errors'])) {
+                $loggerService->warning(
+                    $user,
+                    LoggerOperation::EDITAR,
+                    LoggerEvent::{{EVENTO}},
+                    self::LOG_URI,
+                    "Centralización masiva: {$result['failed']} de {$result['total']} documentos no se centralizaron.",
+                    [
+                        'company_id' => $this->companyId,
+                        'period' => $this->period,
+                        'errors' => $result['errors'],
+                    ]
+                );
+            }
+
+            $message = "Centralización completada: {$result['applied']} documentos centralizados"
+                . ($result['failed'] ? ", {$result['failed']} con error" : '')
+                . '.';
+
+            $this->broadcast(
+                'COMPLETED',
+                100,
+                $message,
+                $result['applied'],
+                $result['failed'],
+                array_slice($result['errors'], 0, self::MAX_BROADCAST_ERRORS)
+            );
+        } catch (\Throwable $e) {
+            $loggerService->error(
+                $user,
+                LoggerOperation::EDITAR,
+                LoggerEvent::{{EVENTO}},
+                self::LOG_URI,
+                'No se pudo completar la centralización masiva.',
+                ['company_id' => $this->companyId, 'period' => $this->period],
+                get_class($e),
+                $e->getMessage()
+            );
+
+            $this->broadcast('FAILED', 0, $e->getMessage() ?: 'No se pudo completar la centralización masiva.', 0, 0, []);
+        }
+    }
+
+    /**
+     * @param array<int, array{id: int, num_doc: ?string, reason: string}> $errors
+     */
+    private function broadcast(string $status, int $progress, string $message, int $applied, int $failed, array $errors): void
+    {
+        try {
+            event(new {{X}}BulkCentralized($this->companyId, $message, $status, $progress, $applied, $failed, $errors));
+        } catch (\Throwable $e) {
+            // El broadcast no debe romper el flujo principal.
+        }
+    }
+}

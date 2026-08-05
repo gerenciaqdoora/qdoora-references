@@ -1,0 +1,178 @@
+<?php
+
+/**
+ * Métodos de centralización del SERVICIO DUEÑO del documento ({{X}}Service).
+ *
+ * Este servicio es el único que muta {{Modelo}} (Service Ownership, regla
+ * HARD REJECT #4). Controla la transacción; el motor genérico no la abre.
+ *
+ * Pegar dentro de {{X}}Service, que debe inyectar:
+ *   - {{X}}CentralizationService $xCentralizationService
+ *   - VoucherPartitionService    $voucherPartitionService
+ */
+
+// =====================================================================
+// 1. ÚNICO PUNTO DE CONTABILIZACIÓN
+// =====================================================================
+
+/**
+ * Contabiliza el documento. Manual, masivo y scheduler convergen aquí.
+ *
+ * Si falta alguna cuenta lanza GenericException con el detalle: el documento
+ * queda PENDING para completarse y centralizarse manualmente.
+ *
+ * $user nullable: un scheduler contabiliza como "sistema".
+ */
+public function centralizarDocumento({{Modelo}} $doc, ?User $user = null): void
+{
+    // Guarda temprana (sin bloqueo): evita resolver cuentas de un documento
+    // ya contabilizado y preserva el orden de errores del flujo.
+    $this->assertCentralizable($doc);
+
+    $spec = $this->buildSpec($doc);
+    $resolution = $this->xCentralizationService->resolverCuentas($spec);
+
+    if (!empty($resolution['missing'])) {
+        $detalle = $this->xCentralizationService->describeMissing($resolution['missing']);
+        throw new GenericException("No se puede centralizar: faltan cuentas ({$detalle}).");
+    }
+
+    // La partición del año se asegura FUERA de la transacción de negocio:
+    // el DDL no debe quedar atado al rollback de la centralización.
+    $this->voucherPartitionService->ensureYearForDate($doc->date);
+
+    DB::transaction(function () use ($doc, $user, $spec, $resolution) {
+        // Relectura con bloqueo de fila: serializa las centralizaciones
+        // concurrentes del mismo documento (manual, masiva y scheduler).
+        $locked = {{Modelo}}::where('id', $doc->id)->lockForUpdate()->first();
+        if (!$locked) throw new GenericException('Documento no está disponible.');
+
+        $this->assertCentralizable($locked);
+
+        $voucher = $this->xCentralizationService->crearComprobante(
+            $spec,
+            $resolution['lines'],
+            $doc->date,            // accessor -> 'd/m/Y'
+            $doc->description,
+            $doc->doc_id,
+            (string) $doc->num_doc,
+            $user
+        );
+
+        // La fila ya está bloqueada por $locked: el update apunta a la misma
+        // fila y deja sincronizada la instancia del llamador.
+        $doc->update([
+            'voucher_id' => $voucher['id'],
+            'voucher_year' => $voucher['year'],
+            'accounting_status' => DocumentAccountingStatus::JOURNALIZED->value,
+            'updated_at' => Carbon::now('America/Santiago'),
+        ]);
+    });
+}
+
+/** Inmutabilidad: un documento ya contabilizado no se re-centraliza. */
+private function assertCentralizable({{Modelo}} $doc): void
+{
+    if ($doc->voucher_id || $doc->accounting_status === DocumentAccountingStatus::JOURNALIZED) {
+        throw new GenericException('El documento ya está centralizado.');
+    }
+}
+
+// =====================================================================
+// 2. ENTRADA UNITARIA (desde el controlador)
+// =====================================================================
+
+public function centralizarPorId(int $id, int $companyId, ?User $user): void
+{
+    // El filtro por company_id es lo que impide centralizar el documento de
+    // otra empresa (IDOR / brecha multi-tenant).
+    $doc = {{Modelo}}::where('id', $id)->where('company_id', $companyId)->first();
+    if (!$doc) throw new GenericException('Documento no está disponible.');
+
+    // Documento puntual: el memo del resolutor no debe traer nada previo.
+    // El lote no pasa por aquí, así que conserva el suyo entre documentos.
+    $this->xCentralizationService->flushResolutionCache();
+
+    $this->centralizarDocumento($doc, $user);
+}
+
+// =====================================================================
+// 3. DRY-RUN (lo consume el modal de centralización manual)
+// =====================================================================
+
+/**
+ * Desglose de cuentas (resueltas y faltantes) sin crear nada.
+ *
+ * Se busca por `id` y no por voucher: un documento PENDING —el caso de uso de
+ * este flujo— todavía no tiene voucher asociado.
+ *
+ * @return array{lines: array<int, array>, missing: array<int, array>}
+ */
+public function getCentralizationResolution(int $id, int $companyId): array
+{
+    $doc = {{Modelo}}::where('id', $id)->where('company_id', $companyId)->first();
+    if (!$doc) throw new GenericException('Documento no está disponible.');
+
+    $this->xCentralizationService->flushResolutionCache();
+
+    return $this->xCentralizationService->resolverCuentas($this->buildSpec($doc));
+}
+
+// =====================================================================
+// 4. LOTE (lo consume el Job de centralización masiva)
+// =====================================================================
+
+/**
+ * Centraliza todos los documentos PENDING que matchean los filtros del lote.
+ *
+ * Un documento con cuentas faltantes no aborta el resto, pero su motivo se
+ * devuelve para que el Job lo registre: "3 con error" sin decir cuáles ni por
+ * qué no es diagnosticable.
+ *
+ * El recorrido es por lotes de id (lazyById) y no un get() completo: cada
+ * documento deja de cumplir el filtro PENDING al centralizarse, lo que haría
+ * saltar registros a un chunk() por offset.
+ *
+ * @return array{total: int, applied: int, failed: int, errors: array<int, array{id: int, num_doc: ?string, reason: string}>}
+ */
+public function centralizarLotePendiente(int $companyId, ?string $period, ?User $user): array
+{
+    // El lote reusa la resolución de cuentas entre documentos: se parte de un
+    // memo limpio para no arrastrar nada de una operación anterior.
+    $this->xCentralizationService->flushResolutionCache();
+
+    $query = $this->pendingDocumentsQuery($companyId, $period);
+    $total = (clone $query)->count();   // clonar ANTES: lazyById muta la query
+
+    $applied = 0;
+    $errors = [];
+
+    $query->lazyById(200)->each(function ({{Modelo}} $doc) use ($user, &$applied, &$errors) {
+        try {
+            $this->centralizarDocumento($doc, $user);
+            $applied++;
+        } catch (\Throwable $e) {
+            // Faltan cuentas u otro error puntual: queda PENDING, sigue el lote.
+            $errors[] = [
+                'id' => (int) $doc->id,
+                'num_doc' => (string) $doc->num_doc,
+                'reason' => $e->getMessage(),
+            ];
+        }
+    });
+
+    return [
+        'total' => $total,
+        'applied' => $applied,
+        'failed' => count($errors),
+        'errors' => $errors,
+    ];
+}
+
+/** Query base de documentos PENDING del lote. Siempre filtrada por empresa. */
+private function pendingDocumentsQuery(int $companyId, ?string $period)
+{
+    return {{Modelo}}::where('company_id', $companyId)
+        ->where('accounting_status', DocumentAccountingStatus::PENDING->value)
+        ->where('period', $period);
+}

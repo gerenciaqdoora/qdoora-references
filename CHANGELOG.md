@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-08-05] feat(agent): agregar skill new-accounting-process y actualizar reglas contables y evals
+
 - [2026-07-31] docs(agent): actualizar reglas base, catastro de skills y manuales de referencia
 
 - [2026-06-22] docs(previred): agregar plan de previred y documentar regla de relaciones intermodulos en backend

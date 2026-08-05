@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: Catastro completo de Skills especializadas del ecosistema QdoorA — 37 skills
+description: Catastro completo de Skills especializadas del ecosistema QdoorA — 38 skills
 ---
 
 # SKILLS.md — Catastro de Habilidades QdoorA
@@ -19,6 +19,7 @@ description: Catastro completo de Skills especializadas del ecosistema QdoorA �
 |-----------------------------|-----------------|
 | Nómina, Liquidación, Previred, Vacaciones, Empleados, Haberes | `erp-nomina-expert` |
 | Contabilidad, PUC, Libros (Compra/Venta), Comprobantes, Tesorería, Conciliación | `erp-accounting-expert` |
+| Centralizar/contabilizar un documento, generar su comprobante, centralización masiva por lote, migrar un proceso que llama `VoucherService` directo | `new-accounting-process` |
 | Aduana, DIN, DUS, Despacho, Libro Circunstanciado | `erp-customs-expert` |
 | Facturación electrónica, DTE, Boletas, Notas de Crédito/Débito | `erp-electronic-invoicing-expert` |
 | Parámetros Globales, UF/UTM, Entidades Previsionales, `ParameterCloningService` | `erp-global-parameters-expert` |
@@ -116,7 +117,7 @@ Usuario: "Agrega un campo 'centro de costo' al formulario de liquidación de nó
 
 ---
 
-## ÍNDICE COMPLETO DE SKILLS (37 disponibles)
+## ÍNDICE COMPLETO DE SKILLS (38 disponibles)
 
 ```
 DOMINIO ERP
@@ -124,6 +125,7 @@ DOMINIO ERP
   erp-customs-expert               erp-electronic-invoicing-expert
   erp-global-parameters-expert     erp-data-modeler
   bi-reporting-exports-master      full-stack-architect
+  new-accounting-process
 
 BACKEND (Laravel)
   laravel-controllers              laravel-form-requests
