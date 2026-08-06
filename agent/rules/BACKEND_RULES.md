@@ -40,6 +40,40 @@ Antes de procesar cualquier endpoint, valida en este orden:
 2. **SUBSCRIBER_ROLE** — relación empresa (`company_id` ↔ `suscriptor_id`)
 3. **IDOR** — propiedad del recurso específico en `authorize()` del FormRequest
 
+### Los endpoints de LECTURA también requieren FormRequest (caso: `VoucherController::getDetalleComprobante`)
+La autorización multinivel de arriba **no es un patrón exclusivo de escritura**. Un `GET` con `Request` plano en vez de un `FormRequest` con `authorize()` es tan explotable como un `POST` sin validar: filtra el recurso completo (montos, glosas, razón social de terceros) a cualquier usuario autenticado que adivine o enumere el identificador.
+
+Caso descubierto: `GET /company/{company_id}/voucher/show` usaba `Request` plano, y el Service (`VoucherService::getComprobante`) buscaba el comprobante por `id`+`year` **sin filtrar por `company_id`**. La combinación permitía leer el asiento contable de cualquier empresa del SaaS. El fix fue doble — nunca alcanza con uno solo de los dos:
+```php
+// ❌ Solo el Service filtra -> si el filtro se rompe o se omite, no hay segunda barrera
+Voucher::where('id', $uuid)->where('year', $year)->first();
+
+// ✅ FormRequest con authorize() (frontera HTTP) + filtro forzoso en el Service (frontera de datos)
+public function getComprobante(string $uuid, string $year, int $company_id): VoucherResource
+{
+    $voucher = Voucher::where('id', $uuid)
+        ->where('year', $year)
+        ->where('company_id', $company_id) // filtro forzoso multi-tenant
+        ->first();
+    if (!$voucher) throw new GenericException('Comprobante no está disponible.');
+    // ...
+}
+```
+Regla: todo controlador que reciba `Request $request` en vez de un `FormRequest` tipado es sospechoso por defecto — revisar si el endpoint expone datos de negocio antes de asumir que "solo lee, no hace falta autorizar".
+
+#### Catálogos compartidos entre módulos: usa `CompanyAccessRequest`, no un FormRequest con permiso de submódulo
+Cuando un endpoint alimenta a **varios módulos** (selectores de cuentas, auxiliares, centros de costo, productos), exigir el permiso de un submódulo concreto rompe a los demás consumidores. Para esos casos existe ya `App\Http\Requests\CompanyAccessRequest`: valida **solo pertenencia de empresa** (`SUBSCRIBER_ROLE` → la empresa es de su suscriptor; `USER_ROLE` → `userHasCompanyPermission()`), sin tocar `usersPermissionSubmodules()`. Está en uso en 25+ endpoints de lectura.
+```php
+// ❌ FormRequest nuevo exigiendo COMPROBANTE:review en el selector de cuentas
+// -> rompe Tesoreria y Honorarios, que consumen el MISMO endpoint
+
+// ✅ Reutiliza el estandar existente: solo pertenencia de empresa
+public function getAccountsVoucher(CompanyAccessRequest $request, int $company_id)
+```
+Caso: `AccountPlanController::getAccountsVoucher` (`POST /company/{company_id}/accounts/voucher/filter`) usaba `Request` plano — cualquier usuario autenticado obtenía el plan de cuentas completo de otra empresa cambiando el `company_id` de la URL. **Antes de crear un FormRequest nuevo para un endpoint de solo-lectura por empresa, verifica si `CompanyAccessRequest` ya cubre el caso.**
+
+> Nota de comportamiento: `CompanyAccessRequest::authorize()` retorna `true` si la empresa no existe y delega el fallo a `withValidator()` → responde **422**, no 403 ni 400. Los tests de "empresa inexistente" sobre endpoints que lo usan deben esperar 422.
+
 ---
 
 ## 🛠️ PATRONES TRANSVERSALES OBLIGATORIOS
@@ -82,12 +116,69 @@ DB::transaction(function () {
 LoggerService::debug(LoggerOperation::CREATE, LoggerEvent::MODULE_ACTION, $data, $uri, $text, $json);
 ```
 
+### Reglas de negocio condicionales: si Angular las exige, el `withValidator()` también debe exigirlas
+Cuando un campo es obligatorio **solo si** el registro relacionado tiene cierto atributo (ej. "el auxiliar es obligatorio solo si la cuenta `trabaja_con_auxiliar_con_rut`"), esa condición **no puede vivir solo en el frontend**. Un POST/PUT directo a la API la evade por completo.
+
+Caso descubierto: `formulario-cuenta.component.ts::applyValidators()` exige auxiliar, centro de costo, N° operación y N° despacho según atributos de la cuenta seleccionada — `CreaCuentaVoucherRequest`/`ActualizarCuentaVoucherRequest` no validaban ninguna de esas condiciones antes de este fix.
+```php
+// ✅ withValidator() resuelve la cuenta acotada al plan de la empresa y replica
+// la misma condición que ya aplica Angular
+$cuenta = Cuenta::where('id', $accountId)->where('account_plan_id', $planId)->first();
+if (($cuenta->trabaja_con_auxiliar_con_rut || $cuenta->trabaja_con_auxiliar_sin_rut) && !$this->input('auxiliary_id')) {
+    $validator->errors()->add('auxiliary_id', 'La cuenta seleccionada exige indicar un auxiliar.');
+}
+```
+
+#### ⚠️ Gotcha: el selector de cuentas (`ListaCuenta`) expone alias, no los nombres de columna reales
+`Cuenta::toVoucherNodeArray()` / `SubCuenta` (equivalente) — el método que arma el nodo para `AccountPlanService::getAccountsVoucher()`, consumido por Angular como `ListaCuenta` — renombra columnas al armar el array:
+```php
+// Cuenta.php / SubCuenta.php — claves del array del selector, NO son atributos Eloquent
+$node['wk_operation_number'] = $this->trabaja_con_numero_operacion; // alias
+$node['wk_dispatch']         = $this->trabaja_con_numero_despacho;  // alias
+```
+El frontend lee `account_ctrl?.wk_operation_number` / `wk_dispatch` porque consume ese array. **Si resuelves el modelo Eloquent directamente (ej. en `withValidator()`), usa los nombres de columna reales `trabaja_con_numero_operacion` / `trabaja_con_numero_despacho` — `wk_operation_number`/`wk_dispatch` no existen como atributos del modelo.** Leerlos ahí devuelve `null` (falsy) siempre: la validación compila, pasa code review, y no hace absolutamente nada en producción.
+
+Además, `trabaja_con_centro_costo` **no es una columna** — es un atributo derivado por `App\Traits\DerivesCostCenterRequirement` (`getTrabajaConCentroCostoAttribute()`), calculado desde `AccountRequirementService::isResultAccountCode($cuenta->code)` (código que empieza en `4` o `5`) más `CompanyCostCenterPolicy::allowsFor($cuenta->account_plan_id)` (`Company::allow_cost_center`). Se lee igual que una columna gracias al magic getter de Eloquent (`$cuenta->trabaja_con_centro_costo` funciona sin cambios), pero **no se puede fijar con `Cuenta::create(['trabaja_con_centro_costo' => true])`** en fixtures o seeders — hay que fijar `code` en rango `4xx`/`5xx` y `Company.allow_cost_center = true`.
+
+Antes de escribir una validación que lea un atributo de `Cuenta`/`SubCuenta` copiando el nombre que usa el frontend: verificar en el modelo si ese nombre es la columna real, un alias de serialización, o un accessor derivado.
+
 ---
 
 ## 💾 PERSISTENCIA Y ALMACENAMIENTO
 
 ### Inmutabilidad Histórica
 Los módulos **Contabilidad, Nómina, Aduana y Facturación** son de **solo lectura**. Para corregir un registro: genera un **registro de reversa**. NUNCA modifiques el original.
+
+**Dónde va la guardia cuando el Service es compartido con flujos automáticos:** si el método que mutaría el registro histórico (crear/editar/eliminar) es invocado también internamente por otro dominio para centralización automática, la guardia de inmutabilidad **va en el FormRequest (frontera HTTP), nunca dentro del Service**. Ponerla en el Service bloquea también a los llamadores internos legítimos.
+
+Caso descubierto: `VoucherService::crearCuentaComprobante()` es el método que crea líneas de un comprobante manual (`CC`) vía API — pero también es invocado internamente por `TreasuryService`, `HonorariumSlipService` y `VoucherIntegrityService` para centralizar movimientos sobre comprobantes de origen `TS`/`BH`. La regla de "solo `CC` es editable manualmente" solo aplica a la entrada HTTP:
+```php
+// ❌ Guardia dentro del Service -> rompe Tesorería, Honorarios e Integridad,
+// que llaman a este mismo método sobre comprobantes TS/BH legítimos
+public function crearCuentaComprobante(array $data, int $company_id): VoucherAccountResource
+{
+    if ($voucher->voucher_type !== Voucher::ORIGEN_MANUAL) { throw ...; } // NO
+    // ...
+}
+
+// ✅ Guardia en el withValidator() del FormRequest — solo protege la entrada HTTP
+public function withValidator($validator)
+{
+    $validator->after(function ($validator) {
+        $voucher = Voucher::where('id', $this->input('voucher_id'))
+            ->where('year', $this->input('voucher_year'))
+            ->where('company_id', $company_id)
+            ->first();
+
+        if (!$voucher) {
+            $validator->errors()->add('voucher_id', 'Comprobante no existe.');
+        } elseif ($voucher->voucher_type !== Voucher::ORIGEN_MANUAL) {
+            $validator->errors()->add('voucher_id', 'Los asientos de un comprobante generado automáticamente no se pueden modificar manualmente. Corrija el documento de origen y vuelva a centralizar.');
+        }
+    });
+}
+```
+Antes de escribir una guardia de inmutabilidad por origen: `grep` el método del Service en busca de llamadores internos. Si hay más de uno y no todos comparten el mismo origen permitido, la guardia no puede vivir en el Service.
 
 ### AWS S3 (Único Storage Permitido)
 ```php

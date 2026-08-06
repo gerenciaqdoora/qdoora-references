@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-08-06] docs(agent): actualizar reglas y habilidades de referencia
+
 - [2026-08-06] feat(agent): agregar skill erp-technical-auditor y actualizar catastro de reglas
 
 - [2026-08-05] feat(agent): agregar skill new-accounting-process y actualizar reglas contables y evals

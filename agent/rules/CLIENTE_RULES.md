@@ -75,6 +75,33 @@ ngOnDestroy(): void {
 }
 ```
 
+### Peticiones HTTP dependientes de una selección de usuario (cancelación con `switchMap`)
+Cuando una selección de usuario (un `<select>`, un cambio de cuenta, un autocomplete) dispara una petición HTTP para traer el detalle relacionado, canaliza la selección por un `Subject` + `switchMap`. **Nunca** `subscribe()` directo dentro del handler del evento, y nunca `setTimeout()` como sustituto de cancelación — ninguno de los dos cancela la petición anterior. Si el usuario selecciona A y luego B antes de que responda A, `setTimeout`/`subscribe()` deja que gane **la última respuesta en llegar**, no la última seleccionada — los validadores/datos mostrados terminan correspondiendo a la opción incorrecta.
+```typescript
+// ❌ No cancela la peticion anterior — race condition si el usuario cambia rapido
+onAccountChange(cuenta: ListaCuenta) {
+    setTimeout(() => {
+        this._service.getDetalle(cuenta.id).subscribe(res => this.detalle = res);
+    });
+}
+
+// ✅ switchMap cancela automaticamente la peticion en vuelo al llegar una nueva seleccion
+private _selection$ = new Subject<ListaCuenta>();
+
+constructor() {
+    this._selection$.pipe(
+        switchMap(cuenta => this._service.getDetalle(cuenta.id)),
+        takeUntilDestroyed(this._destroyRef)
+    ).subscribe(res => this.detalle = res);
+}
+
+onAccountChange(cuenta: ListaCuenta) {
+    if (!cuenta) return;
+    this._selection$.next(cuenta);
+}
+```
+Caso: `formulario-cuenta.component.ts::handleAccountSelection()` reemplazó a los antiguos `getDetalleCuenta()`/`getDetalleSubCuenta()` (con `setTimeout` + `subscribe()` directo), que dejaban aplicados los validadores de una cuenta distinta a la seleccionada si las respuestas llegaban fuera de orden.
+
 ### Loading States (determinista)
 ```typescript
 this._service.save(payload)
@@ -83,6 +110,32 @@ this._service.save(payload)
     )
     .subscribe({ next: () => {...}, error: () => {...} });
 ```
+
+### Valores agregados derivados de un `@Input`: precalcular en `ngOnChanges`, nunca invocar métodos desde el template
+Cada binding de template que **llama a un método** (`{{ voucher.showSumaDebito() }}`, `[ngStyle]="{...: getGridCols() }"`) se reevalúa en **cada ciclo de detección de cambios**, sin importar si el dato cambió. Con `OnPush` sigue ocurriendo en cada evento que marque el componente. Si el método recorre una colección (`reduce`, `filter`), el costo se multiplica por la cantidad de filas renderizadas.
+```typescript
+// ❌ 6 metodos que recorren voucher_accounts, invocados desde el template
+// -> ~10 recorridos completos de la coleccion por ciclo de deteccion
+// {{ voucher.showSumaDebito() }} / {{ voucher.isSquare() }} / [ngStyle]="{...: getGridTemplateCols()}"
+
+// ✅ propiedades planas actualizadas solo cuando cambia el @Input
+gridTemplateCols = '';
+sumaDebito = 0;
+esCuadrado = false;
+
+ngOnChanges(changes: SimpleChanges): void {
+    if (changes['columnsVisibility']) {
+        this.gridTemplateCols = this.buildGridTemplateCols();
+    }
+    if (changes['voucher'] && this.voucher) {
+        this.sumaDebito = this.voucher.showSumaDebito();
+        this.esCuadrado = this.voucher.isSquare();
+    }
+}
+```
+Caso: `voucher/table.component.ts` — 6 métodos que recorrían `voucher_accounts` con `reduce()` se invocaban desde el template en cada render, y `getGridTemplateCols()` se reconstruía por cada fila. Con un comprobante centralizado de 1.000+ líneas la vista se congelaba en cada interacción.
+
+Complemento obligatorio: el `@for` **exige** `track` — usa la clave real del registro (`track cuenta.id + '-' + cuenta.year` para claves compuestas). Sin `track` correcto, cualquier cambio de referencia del `@Input` destruye y reconstruye todas las filas del DOM.
 
 ### Errores HTTP
 ```typescript

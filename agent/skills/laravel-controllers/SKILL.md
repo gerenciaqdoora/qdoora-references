@@ -21,14 +21,14 @@ try {
     2. Service → delegar la lógica completa
     3. return response()->json() con estructura estándar
 } catch (\Exception $e) {
-    4. $this->handleError->logAndResponse(...)
+    4. $this->handleError->logAndResponse($e, $request, LoggerOperation::..., LoggerEvent::..., "Mensaje")
 }
 ```
 
 ## 🏗️ Reglas Inquebrantables
 
-1. **Inyección por Constructor**: Todos los `Service` y `LoggerService` se inyectan en el `__construct()`.
-2. **Trait `HandlesControllerLogs`**: Obligatorio en cada controlador. Es el que provee `$this->handleError`.
+1. **Inyección por Constructor**: Todos los `Service`, `LoggerService` y `HandlesControllerLogs` se inyectan en el `__construct()` y sus propiedades deben estar **fuertemente tipadas** (ej. `protected LoggerService $loggerService;`).
+2. **Clase `HandlesControllerLogs`**: Obligatorio inyectarla en cada controlador. Es la que provee `$this->handleError->logAndResponse($e, $request, ...)`.
 3. **Tipado de Retorno**: Todo método público retorna `JsonResponse`.
 4. **FormRequest**: Todo endpoint recibe un `FormRequest` tipado, nunca `Request $request` genérico.
 5. **Cero Queries**: Si necesitas un `where()`, `find()` o `create()`, pertenece al Service.
