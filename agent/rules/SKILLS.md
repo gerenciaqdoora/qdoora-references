@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: Catastro completo de Skills especializadas del ecosistema QdoorA — 38 skills
+description: Catastro completo de Skills especializadas del ecosistema QdoorA — 39 skills
 ---
 
 # SKILLS.md — Catastro de Habilidades QdoorA
@@ -72,6 +72,7 @@ description: Catastro completo de Skills especializadas del ecosistema QdoorA �
 
 | Tarea | Skill a activar |
 |-------|-----------------|
+| Auditar código/diseño existente: "¿esto escala?", "¿es seguro/estable?", race conditions, N+1, índices faltantes, tabla que congela el navegador | `erp-technical-auditor` |
 | Tests unitarios Pest/Laravel, Jest/Angular 18, Vitest/Angular 21 | `qa-data-auditor` |
 | Bug, error inesperado, test fallando, diagnóstico de causa raíz | `systematic-debugging` |
 | Deuda técnica, `npm audit`, `composer outdated`, actualización de framework | `lifecycle-tech-debt-guardian` |
@@ -117,7 +118,7 @@ Usuario: "Agrega un campo 'centro de costo' al formulario de liquidación de nó
 
 ---
 
-## ÍNDICE COMPLETO DE SKILLS (38 disponibles)
+## ÍNDICE COMPLETO DE SKILLS (39 disponibles)
 
 ```
 DOMINIO ERP
@@ -150,7 +151,7 @@ INFRAESTRUCTURA
 
 QA, DEBUGGING Y CALIDAD
   qa-data-auditor                  systematic-debugging  
-  lifecycle-tech-debt-guardian
+  lifecycle-tech-debt-guardian     erp-technical-auditor
 
 META-SKILLS
   brainstorming                    prompt-architect-master

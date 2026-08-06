@@ -1,0 +1,69 @@
+{
+  "skill_name": "erp-technical-auditor",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Audita este método de mi Service:\n\npublic function emitirFactura(array $data): Dte\n{\n    $folio = Dte::where('company_id', $data['company_id'])->max('folio') + 1;\n    $dte = Dte::create([...$data, 'folio' => $folio]);\n    foreach ($data['lines'] as $line) {\n        DteLine::create([...$line, 'dte_id' => $dte->id]);\n    }\n    Storage::disk('local')->put(\"dtes/{$folio}.xml\", $this->buildXml($dte));\n    Mail::to($data['email'])->send(new DteEmitido($dte));\n    return $dte;\n}",
+      "expectations": [
+        "Emite el informe con el encabezado exacto '## Resumen de la Auditoría Técnica' seguido de Total de Hallazgos, Criticidad Máxima y Estado General",
+        "Detecta la race condition del folio calculado con max()+1 y la clasifica como CRÍTICA",
+        "Detecta la ausencia de DB::transaction() en la escritura multi-tabla (cabecera Dte + líneas) y la clasifica como CRÍTICA",
+        "Detecta el uso de Storage::disk('local') en vez de S3",
+        "Detecta el envío de correo como side effect no transaccional (debe ir después del commit o vía Job con afterCommit)",
+        "La recomendación del folio incluye código con lockForUpdate() o índice único compuesto, no un consejo genérico",
+        "Estado General reportado como 'Crítico'",
+        "Los hallazgos aparecen ordenados de mayor a menor criticidad",
+        "NO genera Plan de Mitigación (el usuario no usó palabras clave de Fase 4)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Esta pantalla de libro de compras se congela al abrirla con un cliente grande. El endpoint hace: return PurchaseBook::with('lines.product', 'supplier')->where('company_id', $companyId)->get(); y el componente Angular renderiza @for (row of rows; track $index) sobre todo el arreglo. Dame un plan de mitigación con los pasos para solucionarlo.",
+      "expectations": [
+        "Detecta el listado sin paginación server-side y lo clasifica al menos como ALTA",
+        "Detecta la tabla larga renderizada al DOM completo sin virtualización ni paginación (ALTA)",
+        "Detecta el track por $index como problema de rendimiento y recomienda track por id",
+        "Detecta over-fetching / DTO pesado por el eager loading de relaciones anidadas no usadas en la tabla",
+        "Recomienda paginación server-side con el trait PaginatesResults y generic-table como estándar QdoorA",
+        "SÍ genera el bloque '## Plan de Mitigación de Hallazgos' porque el usuario pidió 'plan' y 'pasos para solucionarlo'",
+        "Invoca la skill brainstorming antes de emitir el plan de mitigación",
+        "El plan está agrupado en Fase 1 (Crítica), Fase 2 (Alta) y Fase 3 (Media/Baja)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Revisa esta migración antes de que la despliegue:\n\nSchema::create('cont_voucher_lines', function (Blueprint $table) {\n    $table->id();\n    $table->unsignedBigInteger('company_id');\n    $table->unsignedBigInteger('voucher_id');\n    $table->string('period');\n    $table->decimal('amount', 15, 2);\n    $table->timestamps();\n});\n\nLa tabla va a tener millones de filas y siempre se consulta filtrando por empresa y periodo.",
+      "expectations": [
+        "Detecta la ausencia de índice compuesto (company_id, period) y lo clasifica como ALTA o CRÍTICA dado el volumen declarado",
+        "Detecta la ausencia de foreign keys / integridad referencial sobre company_id y voucher_id",
+        "Entrega la migración corregida con el índice compuesto concreto, no un consejo vago",
+        "Menciona la verificación con EXPLAIN ANALYZE o evita afirmar hallazgos sin evidencia",
+        "Área de los hallazgos correctamente etiquetada como 'Rendimiento Backend' o 'Integridad de Datos'",
+        "NO modifica el archivo de migración: solo audita e informa"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Tengo este endpoint de detalle: public function show(Request $request, int $id) { return Employee::find($id); } ¿Ves algún problema?",
+      "expectations": [
+        "Detecta el IDOR / ausencia de filtro por company_id y lo clasifica como CRÍTICA",
+        "Detecta el retorno de un modelo Eloquent crudo como fuga potencial de columnas sensibles",
+        "La remediación propuesta usa find() con filtro de empresa y excepción controlada en español, NUNCA findOrFail()",
+        "La remediación propone un JsonResource en vez de retornar el modelo",
+        "No recomienda dejar lógica de negocio en el controlador",
+        "Estado General reportado como 'Crítico'"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Audita este componente: es una pantalla de configuración con 3 selects que carga un catálogo de 12 monedas con ChangeDetectionStrategy.Default y un @for sin track.",
+      "expectations": [
+        "NO infla el informe: reconoce que el volumen (12 registros) hace que los hallazgos sean de baja criticidad",
+        "Clasifica los hallazgos como MEDIA o BAJA, no como ALTA ni CRÍTICA",
+        "Estado General reportado como 'Estable' o 'Requiere Atención', nunca 'Crítico'",
+        "Declara explícitamente el supuesto de volumen que sustenta la baja criticidad",
+        "Mantiene el formato estricto del informe aun con pocos hallazgos"
+      ]
+    }
+  ]
+}
