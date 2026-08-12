@@ -1,0 +1,82 @@
+// =============================================================================
+// PLANTILLA — Disparo automático del tour en el componente de la vista
+// Referencia canónica:
+//   fuse-starter/src/app/modules/admin/general/users/create/create.component.ts
+// =============================================================================
+
+// --- 1. Import (junto al resto de imports de @angular/core) -------------------
+import { AfterViewInit, inject } from '@angular/core';
+import { TourManagerService } from 'app/core/tour/tour-manager.service';
+
+
+// --- 2. Declaración de clase --------------------------------------------------
+// Encadena AfterViewInit con los lifecycle hooks que ya implemente el componente.
+export class <Nombre>Component implements OnInit, AfterViewInit, OnDestroy {
+
+    // --- 3. Inyección (junto al resto de servicios inyectados) ----------------
+    private _tourManagerService = inject(TourManagerService);
+
+
+    // --- 4. Hook -------------------------------------------------------------
+    ngAfterViewInit(): void {
+        // Ejecutamos el tour con un pequeño retraso para asegurar que la vista esté completamente renderizada
+        setTimeout(() => {
+            this._tourManagerService.tryStartTour('<tour-key>');
+        }, 500);
+    }
+}
+
+// =============================================================================
+// VARIANTE — Vista SIN resolver (data async en ngOnInit)
+// -----------------------------------------------------------------------------
+// Si la vista carga con forkJoin/subscribe y el contenido está tras un @if,
+// ngAfterViewInit corre ANTES de que existan las anclas. Dispara en el subscribe:
+//
+//   private _tourStarted: boolean = false;
+//
+//   // ...dentro del subscribe, después de isLoading = false y markForCheck():
+//   this.tryStartTour();
+//
+//   private tryStartTour(): void {
+//       // El método de carga se re-ejecuta tras cada acción del usuario: dispara una sola vez
+//       if (this._tourStarted || !this.<coleccion>.length) return;
+//       this._tourStarted = true;
+//       setTimeout(() => {
+//           this._tourManagerService.tryStartTour('<tour-key>');
+//       }, 500);
+//   }
+//
+// =============================================================================
+// VARIANTE — Un componente que sirve DOS rutas
+// -----------------------------------------------------------------------------
+// Elige la key con el mismo getter que el template usa para diferenciarlas:
+//
+//   const tourKey = this.is_available_crud ? 'account-plan-tour' : 'account-plan-clone-tour';
+//   setTimeout(() => { this._tourManagerService.tryStartTour(tourKey); }, 500);
+//
+// =============================================================================
+// NOTAS
+// -----------------------------------------------------------------------------
+// · 500 ms es el valor usado por todos los tours en producción. No lo bajes:
+//   driver.js necesita el DOM y las animaciones iniciales ya asentadas.
+// · tryStartTour() es un no-op silencioso si el tour ya fue completado por el
+//   usuario, si la key no está en TOURS_REGISTRY, o si no pasa hasPermission().
+// · Para re-probar el disparo automático: borra la fila de user_tours de ese
+//   usuario, o relánzalo desde /general/help-center/guides (forceTour ignora
+//   el estado de completado).
+// · No cambies ChangeDetectionStrategy ni ViewEncapsulation del componente:
+//   driver.js manipula el DOM por fuera de Angular y no requiere ajustes de CD.
+// =============================================================================
+
+
+// -----------------------------------------------------------------------------
+// ANCLAS EN EL HTML (<vista>.component.html)
+// -----------------------------------------------------------------------------
+// Agrega el id al CONTENEDOR del bloque, sin tocar clases ni estructura.
+//
+//   <app-section-card id="tour-info-basica" [title]="'INFORMACIÓN BÁSICA'" ...>
+//   <div id="tour-user-personal" class="w-full">
+//
+// ❌ Nunca sobre un <app-input-form>, un <button> suelto o una celda de tabla:
+//    el popover queda descuadrado y se pierde el contexto del bloque.
+// -----------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: Catastro completo de Skills especializadas del ecosistema QdoorA — 39 skills
+description: Catastro completo de Skills especializadas del ecosistema QdoorA — 40 skills
 ---
 
 # SKILLS.md — Catastro de Habilidades QdoorA
@@ -50,6 +50,7 @@ description: Catastro completo de Skills especializadas del ecosistema QdoorA �
 | Nueva página de listado (tabla), estandarizar `list.component` a `app-header-premium` + `generic-table`/`app-table-without-pagination`, agregar search/sort server-side | `qdoora-new-table-page` |
 | Nueva página de Configuración/Ajustes/Parámetros, estandarizar a `app-header-premium` + `mat-drawer-container` cuando hay 2+ áreas/naturalezas | `qdoora-new-setting-page` |
 | Nuevo diálogo (modal), estandarizar a layout QdoorA con inyección Tailwind y `ChangeDetectionStrategy.OnPush` | `qdoora-dialog-creator` |
+| Tour guiado / walkthrough / onboarding de una pantalla, tours del Centro de Ayuda (`/general/help-center/guides`), "el tour no arranca / no aparece" | `qdoora-new-guided-tour` |
 | UI/UX premium, diseño por portal (Cliente vs Soporte) | `qdoora-ui-ux-master` |
 | Sincronización tipos Laravel ↔ TypeScript, auditoría de contrato | `api-contract-aligner` |
 
@@ -118,7 +119,7 @@ Usuario: "Agrega un campo 'centro de costo' al formulario de liquidación de nó
 
 ---
 
-## ÍNDICE COMPLETO DE SKILLS (39 disponibles)
+## ÍNDICE COMPLETO DE SKILLS (40 disponibles)
 
 ```
 DOMINIO ERP
@@ -138,8 +139,8 @@ BACKEND (Laravel)
 FRONTEND (Angular)
   angular-developer*               angular-shared-components-expert
   qdoora-new-table-page            qdoora-new-setting-page  
-  qdoora-dialog-creator            api-contract-aligner
-  qdoora-ui-ux-master
+  qdoora-dialog-creator            qdoora-new-guided-tour
+  api-contract-aligner             qdoora-ui-ux-master
   (* fallback genérico — preferir angular-shared-components-expert o qdoora-ui-ux-master)
 
 SEGURIDAD

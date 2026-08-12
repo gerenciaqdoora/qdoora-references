@@ -1,0 +1,91 @@
+<?php
+// =============================================================================
+// PLANTILLA — Registro de un tour en qdoora-api/database/seeders/TourSeeder.php
+// =============================================================================
+// Reemplaza <PLACEHOLDERS>. El seeder es idempotente: updateOrCreate por 'key'.
+// NUNCA cambies la 'key' de un tour ya publicado (rompe los user_tours históricos).
+// =============================================================================
+
+
+// -----------------------------------------------------------------------------
+// CASO A — Agregar un tour a una sección que YA tiene su array $tours + foreach
+//          (hoy: 'tours-getting-started' y 'tours-accounting')
+// -----------------------------------------------------------------------------
+// Agrega SOLO este elemento dentro del array $tours de ESE bloque,
+// con el 'order' siguiente al último existente. No dupliques el foreach.
+
+            [
+                'key' => '<tour-key>',                  // inglés kebab-case, idéntica a tours-registry.ts
+                'title' => '<Título en español>',       // texto de usuario final
+                'description' => '<Descripción en español que explique el valor del tour.>',
+                'order' => <N>,                          // siguiente correlativo dentro de la sección
+                'is_active' => true,
+            ],
+
+
+// -----------------------------------------------------------------------------
+// CASO B — Primer tour de una sección que solo declara el TourSection
+//          (hoy: 'tours-remuneration', 'tours-billing', 'tours-customs')
+// -----------------------------------------------------------------------------
+// La sección ya existe más arriba en el seeder; agrega el array Y su foreach
+// INMEDIATAMENTE DESPUÉS de la declaración de esa sección.
+// ⚠️ Verifica que $interactive<Modulo>Section sea la variable de ESA sección:
+//    usar la variable equivocada inserta el tour en la sección incorrecta,
+//    sin error visible.
+
+        $tours = [
+            [
+                'key' => '<tour-key>',
+                'title' => '<Título en español>',
+                'description' => '<Descripción en español.>',
+                'order' => 1,
+                'is_active' => true,
+            ],
+        ];
+
+        foreach ($tours as $tourData) {
+            Tour::updateOrCreate(
+                ['key' => $tourData['key']],
+                array_merge($tourData, ['tour_section_id' => $interactive<Modulo>Section->id])
+            );
+        }
+
+
+// -----------------------------------------------------------------------------
+// CASO C — Sección nueva completa (módulo del ERP aún sin sección de tours)
+// -----------------------------------------------------------------------------
+// 'order' en múltiplos de 10 (10, 20, 30, 40, 50...) para dejar espacio de inserción.
+// 'icon': ícono Heroicons registrado ('heroicons_outline:*' / 'heroicons_solid:*')
+//          o ligadura Material ('money', 'receipt_long', 'fact_check').
+
+        $interactive<Modulo>Section = TourSection::updateOrCreate(
+            ['key' => 'tours-<modulo>'],
+            [
+                'name' => '<Nombre de la sección en español>',
+                'description' => '<Qué aprenderá el usuario en esta sección.>',
+                'icon' => 'heroicons_outline:<icono>',
+                'order' => <10|20|30|40|50|60>,
+            ]
+        );
+
+        $tours = [
+            [
+                'key' => '<tour-key>',
+                'title' => '<Título en español>',
+                'description' => '<Descripción en español.>',
+                'order' => 1,
+                'is_active' => true,
+            ],
+        ];
+
+        foreach ($tours as $tourData) {
+            Tour::updateOrCreate(
+                ['key' => $tourData['key']],
+                array_merge($tourData, ['tour_section_id' => $interactive<Modulo>Section->id])
+            );
+        }
+
+// =============================================================================
+// Al cerrar: entregar el comando bajo "Comandos a ejecutar" (CLAUDE.md §2):
+//   cd qdoora-api && php artisan db:seed --class=TourSeeder
+// =============================================================================

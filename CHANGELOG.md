@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-08-12] docs(agent): actualizar reglas backend memoria y agregar skill qdoora-new-guided-tour
+
 - [2026-08-06] docs(agent): actualizar reglas y habilidades de referencia
 
 - [2026-08-06] feat(agent): agregar skill erp-technical-auditor y actualizar catastro de reglas

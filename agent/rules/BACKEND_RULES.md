@@ -31,6 +31,11 @@ description: Estándares de ingeniería Backend (Laravel 11), DevOps y Seguridad
 - **Multi-tenant**: FILTRA toda query por `company_id` (scope Eloquent global obligatorio en todo modelo).
 - **Rutas admin**: Todos los endpoints de alta jerarquía bajo prefijo `v1/support` en `routes/api.php`.
 
+### Derivación de tenant en servidor — nunca confiar en el payload al crear
+El `company_id`/`suscriptor_id` de un recurso que se está **creando** NUNCA se acepta como valor del payload del cliente — se deriva en el Service desde `$user->getSuscriptorByRole()` (o equivalente). El `FormRequest` no debe siquiera declarar una regla `exists:` para ese campo cuando lo llena un cliente. El staff (`$user->isStaff()`) es la única excepción autorizada a indicar un tenant explícito (ej. crear un ticket a nombre de un suscriptor).
+
+Caso descubierto: `SupportService::createTicket()` — el `CreateTicketRequest` original aceptaba `suscriptor_id` directo del body (`required|exists:suscriptor,id`, además apuntando a una tabla inexistente: la real es `subscriber`). Cualquier cliente autenticado podía crear tickets atribuidos a otro suscriptor (IDOR de creación). Fix: el campo se eliminó del `FormRequest` y `SupportService::createTicket()` resuelve el suscriptor desde el `reporter` autenticado, salvo que sea staff. Ver tabla de vectores QD más abajo (QD-04).
+
 ---
 
 ## 🛡️ AUTORIZACIÓN MULTINIVEL (3 Niveles Obligatorios)
@@ -74,6 +79,78 @@ Caso: `AccountPlanController::getAccountsVoucher` (`POST /company/{company_id}/a
 
 > Nota de comportamiento: `CompanyAccessRequest::authorize()` retorna `true` si la empresa no existe y delega el fallo a `withValidator()` → responde **422**, no 403 ni 400. Los tests de "empresa inexistente" sobre endpoints que lo usan deben esperar 422.
 
+#### Acciones especiales de submódulo (no son CRUD genérico): `userCanPerformSubmoduleAction()`
+Cuando una acción no encaja en `review/create/update/delete` (emitir Nota de Crédito, cambiar consignatario de una DIN, cierre contable anual, crear ticket de soporte), **no agregues una columna booleana nueva** a `users_permission_submodule`. Usa el catálogo de "abilities" nombradas: tabla `submodule_action` (columna `submodule` string → `submodule.code`, igual convención que `users_permission_submodule`/`role_submodule_permissions` — **nunca** `submodule_id`), con `requires_operation` (`review|create|update|delete|special`) y `subscriber_only` (bool). Grants en `users_permission_submodule_action` (usuario) y `role_submodule_action_permissions` (plantilla del rol), ambos con índice único declarado **desde la migración original** — la migración de integridad de agosto 2026 tuvo que parchear retroactivamente 3 tablas de permisos por no tenerlo desde el día uno.
+
+Autorización vía `User::userCanPerformSubmoduleAction(int $companyId, string $submoduleCode, string $actionCode): bool`, único punto de entrada para el FormRequest:
+```php
+public function authorize(): bool
+{
+    /** @var \App\Models\User $user */
+    $user = Auth::guard('api')->user();
+    $companyId = (int) $this->route('company_id');
+
+    return $user->userCanPerformSubmoduleAction($companyId, 'COMPROBANTE', 'NOTA_CREDITO');
+}
+```
+Internamente encadena: bypass `SUBSCRIBER_ROLE` (solo valida pertenencia de empresa) → **candado `subscriber_only`** (bloquea siempre a `USER_ROLE`, sin mirar el pivote — es la defensa para operaciones irreversibles tipo cierre contable, ver HARD REJECT #6) → `userHasCompanyPermission(..., TRANSACTION)` → CRUD base vía `usersPermissionSubmodules()` (se salta si `requires_operation === 'special'`, para acciones sin prerrequisito como crear un ticket de soporte) → grant específico (con el mismo fallback a la plantilla del rol que se describe abajo).
+
+> **Este proyecto no usa `Gate::define()`/`Gate::check()`.** Ningún FormRequest real lo hace — la autorización siempre es un método directo en `User`, llamado desde un switch/if sobre `$user->role` en `authorize()`. No introduzcas Gates de Laravel como patrón nuevo aunque la documentación de referencia de una skill los mencione.
+
+#### `usersPermissionSubmodules()` hereda de la plantilla del rol si no hay override directo — no es solo copia al asignar
+A diferencia de lo que sugiere el nombre "plantilla", `role_submodule_permissions` **sí se lee en runtime**: `User::usersPermissionSubmodules()` primero busca un grant directo en `users_permission_submodule`, y si no lo encuentra, cae a `RoleSubmodulePermission::where('role_id', $this->role_id)...`. `User::userHasSubmoduleAction()` replica exactamente esta misma doble ruta para las abilities nuevas. Cualquier refactor de estos métodos debe preservar el fallback — eliminarlo sería una regresión silenciosa para todo usuario sin overrides individuales (la mayoría).
+
+#### CAPA 1 (contratación): `Suscriptor::modules()`/`Subscriber::modules()` retorna una `Collection`, no un Builder
+```php
+// ❌ Falla en runtime: Collection no tiene whereHas()
+$suscriptor->modules()->whereHas('submodulos', fn ($q) => $q->where('code', $codigo))->exists();
+
+// ✅ Collection: flatMap + contains
+$suscriptor->modules()->flatMap(fn ($m) => $m->submodulos)->contains('code', $codigo);
+```
+Antes de este fix, ni `usersPermissionSubmodules()` ni ningún otro método validaban que el módulo siguiera contratado — un usuario conservaba acceso operativo a un módulo que su suscriptor ya había descontratado, mientras el pivote de permisos no se purgara.
+
+#### FormRequests nuevos: usa `AuthorizesClientRequests`/`AuthorizesSupportRequests`, no repitas el switch/case
+
+El switch/case `SUBSCRIBER_ROLE`/`USER_ROLE` de `authorize()` (bypass de suscriptor + `userHasCompanyPermission()` + `usersPermissionSubmodules()`) y el `$user->role === 'ADMIN_ROLE'` inline de Soporte están duplicados en ~150 y ~43 FormRequests respectivamente. **Ningún FormRequest existente fue migrado** — es deuda consciente, no omisión. Pero **todo FormRequest nuevo** debe centralizar esa lógica con los traits en `app/Traits/` (convención real del proyecto, no `app/Http/Concerns/`):
+
+```php
+// Portal Cliente
+use App\Traits\AuthorizesClientRequests;
+
+class CreaAlgoRequest extends FormRequest
+{
+    use AuthorizesClientRequests;
+
+    public function authorize(): bool
+    {
+        return $this->authorizeSubmodule((int) $this->route('company_id'), 'COMPROBANTE', UserOperationSubmodule::CREATE);
+        // Habilidad especial: $this->authorizeSubmodule($companyId, 'COMPROBANTE', UserOperationSubmodule::CREATE, 'NOTA_CREDITO_DEBITO');
+        // Solo empresa (sin submódulo): $this->authorizeCompany($companyId);
+    }
+}
+
+// Portal Soporte/Admin
+use App\Traits\AuthorizesSupportRequests;
+
+class ReviewAlgoRequest extends FormRequest
+{
+    use AuthorizesSupportRequests;
+
+    public function authorize(): bool
+    {
+        return $this->authorizeAdmin(); // patrón dominante real: 42 de 43 FormRequests de Soporte exigen solo ADMIN_ROLE
+        // return $this->authorizeSupportStaff(); // excepción — solo si el endpoint es explícitamente de bajo riesgo
+    }
+}
+```
+
+`authorizeSubmodule()` delega en `User::canOperateOnSubmodule()` (nuevo, `match(...) { default => false }` fail-closed desde el día uno), que a su vez delega en `userCanPerformSubmoduleAction()` cuando se pasa `$ability_code`. `User::ownsCompany()` es ahora público — es el mismo chequeo de pertenencia de empresa que antes vivía inline en `userCanPerformSubmoduleAction()`, reutilizado por ambos. No cubre los FormRequests de ficha de empresa que validan `SHOW`/`UPDATE` sin submódulo (`ShowEmpresaRequest`, `ActualizarEmpresaRequest`) — esos quedan fuera a propósito, usa `authorizeCompany()` para ese caso.
+
+Criterio de tipado en esta API: `$operation` va tipado con `UserOperationSubmodule` (conjunto cerrado que refleja las 4 columnas de `users_permission_submodule`; antes era string validado en runtime con un `throw` 406). `$submodule_code` y `$ability_code` siguen siendo `string` porque son catálogos abiertos en BD que ya resuelven fail-closed. **No confundir `UserOperationSubmodule` con `SubmoduleActionTrigger`**: este último tiene el caso extra `SPECIAL` y aplica solo a `submodule_action.requires_operation`. El método legado `usersPermissionSubmodules($code, string $column)` conserva su firma con string — lo llaman ~150 FormRequests con `->value`, el tipado fuerte empieza en la API nueva y no se propaga hacia atrás.
+
+> Gotcha de PHP: un enum backed (`CompanyPermissionAbility::TRANSACTION->value`) **no puede ser el valor por defecto de un parámetro** — "Constant expression contains invalid operations", incluso en PHP 8.2/8.3, porque `->value` no es una expresión constante. Si necesitas un enum como default, tipa el parámetro con el enum mismo (`CompanyPermissionAbility $ability = CompanyPermissionAbility::TRANSACTION`) y extrae `->value` dentro del método.
+
 ---
 
 ## 🛠️ PATRONES TRANSVERSALES OBLIGATORIOS
@@ -108,6 +185,18 @@ DB::transaction(function () {
     // operaciones atómicas
 });
 ```
+
+### Correlativos únicos: secuencia Postgres, nunca `count() + 1`
+`Model::whereYear(...)->count() + 1` sobre una columna `unique()` es una race condition: dos requests concurrentes leen el mismo `count()` antes de que cualquiera inserte, y el segundo `INSERT` revienta con violación de unicidad. Usar una secuencia nativa de Postgres — atómica, sin locks explícitos:
+```php
+// Migración
+DB::statement('CREATE SEQUENCE IF NOT EXISTS support_ticket_code_seq START 1');
+
+// Generación del código
+$seq = DB::selectOne("SELECT nextval('support_ticket_code_seq') AS seq")->seq;
+return sprintf('TKT-%d-%05d', Carbon::now()->year, $seq);
+```
+Caso descubierto: `SupportService::generateTicketCode()` (módulo Soporte/Tickets, Fase 0 de saneamiento, ago-2026). Trade-off aceptado: el correlativo ya no reinicia por año (la secuencia es continua). Si el negocio exige reinicio anual, evaluar una secuencia particionada por año en vez de esta.
 
 ### Logging y Auditoría
 ```php
@@ -383,6 +472,7 @@ services:
 | Vector | Riesgo | Mitigación obligatoria |
 |--------|--------|------------------------|
 | **QD-01** | Bypass de autorización en el cliente | Guards server-side + validación en `authorize()` de FormRequest |
+| **QD-04** | IDOR de tenant — el `company_id`/`suscriptor_id` llega del payload de creación y permite suplantar el tenant de otro cliente, o el scope de listado/Policy no coincide entre sí (lo que uno expone, el otro debería negar) | El FK de tenant se deriva SIEMPRE server-side; scope Eloquent y Policy deben aplicar exactamente el mismo criterio de aislamiento |
 | **QD-05** | IDs secuenciales predecibles | UUIDs en todos los recursos expuestos públicamente |
 | **QD-07** | XSS via `[innerHTML]` en frontend | Solo interpolación `{{ }}` — aplicar desde backend con datos saneados |
 | **QD-08** | Sin rate limiting | Middleware throttle en TODOS los endpoints |

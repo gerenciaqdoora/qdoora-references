@@ -1,0 +1,68 @@
+{
+  "skill_name": "qdoora-new-guided-tour",
+  "description": "Casos de prueba para validar el blueprint de tours guiados (driver.js) del Portal Cliente, listados en /general/help-center/guides.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Necesito un tour guiado para la pantalla de creación de comprobantes contables en /accounting/voucher/create.",
+      "expectations": [
+        "El agente PRIMERO analiza la ruta real en app.routes.ts + el *.route.ts del módulo y lee el component.html/ts antes de proponer pasos",
+        "El agente detecta que 'voucher-tour' YA existe en TourSeeder.php pero NO está en tours-registry.ts, y lo trata como refinamiento/completación en vez de crear una key nueva",
+        "El agente presenta una tabla de secciones propuestas (sección, ancla id, side, qué explica) y SE DETIENE esperando aprobación antes de editar archivos",
+        "El agente no escribe código en el mismo turno de la propuesta"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Ya aprobé las 4 secciones que propusiste. Impleméntalas.",
+      "expectations": [
+        "El agente cierra los 5 lugares: registro en TourSeeder.php, entrada en tours-registry.ts, anclas id=\"tour-*\" en el HTML, tryStartTour en ngAfterViewInit con setTimeout de 500ms, y entrega del comando de seed",
+        "La key del seeder y la del registry son idénticas",
+        "El route del registry se copió de la ruta real de Angular, no se dedujo del nombre de la carpeta",
+        "El componente declara implements AfterViewInit e inyecta TourManagerService",
+        "Las anclas se ponen en contenedores (app-section-card / div agrupador), nunca sobre un app-input-form individual",
+        "El agente NO ejecuta php artisan db:seed con auto-run: lo entrega bajo 'Comandos a ejecutar' (CLAUDE.md §2)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "El tour de crear usuario aparece en el Centro de Ayuda pero cuando le doy Empezar no pasa nada. ¿Por qué?",
+      "expectations": [
+        "El agente identifica que forceTour() hace navigateByUrl(tour.route) y que una ruta inexistente falla en silencio",
+        "El agente verifica la ruta real ('/general/user/create', singular) contra la declarada en el registry ('/general/users/create')",
+        "El agente también contempla el caso de tour presente en el seeder pero ausente del registry (forceTour hace return mudo)",
+        "El agente no propone modificar tour-manager.service.ts ni el CSS de driver.js para resolverlo"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Agrega un paso al tour de crear rol que explique la tabla de permisos, pero esa tabla solo se renderiza si hay un módulo seleccionado.",
+      "expectations": [
+        "El agente reconoce que driver.js resuelve el selector en el instante del paso y que un bloque tras @if no será encontrado",
+        "El agente usa actionBeforeNext con un clic programático sobre un contenedor siempre visible + delayBeforeNext de ~250ms",
+        "El agente implementa también actionBeforePrev/delayBeforePrev para que el retroceso no rompa el tour",
+        "El agente usa guardas (if el) en las consultas al DOM",
+        "El agente parte del array de steps existente en vez de reescribir el tour completo"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Quiero el primer tour del módulo de Remuneraciones, para la pantalla de liquidaciones.",
+      "expectations": [
+        "El agente detecta que la sección tours-remuneration ya existe en TourSeeder.php pero solo declara el TourSection, sin array $tours ni foreach",
+        "El agente agrega TANTO el array $tours COMO el foreach, usando la variable $interactiveRemunerationSection correcta",
+        "El agente no crea una sección duplicada con una key nueva",
+        "El agente mantiene key en inglés kebab-case y title/description en español"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Cambiemos la key del tour de empresa de company-tour a general-company-tour para que sea más descriptiva.",
+      "expectations": [
+        "El agente advierte que cambiar la key de un tour publicado deja huérfanas las filas de user_tours y hace que el tour reaparezca para todos los usuarios que ya lo completaron",
+        "El agente explica que la key debe cambiarse en los 3 lugares simultáneamente (seeder, registry, tryStartTour del componente) si aun así se decide hacerlo",
+        "El agente propone la alternativa de cambiar solo title/description, que sí es seguro vía updateOrCreate"
+      ]
+    }
+  ]
+}

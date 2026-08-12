@@ -309,7 +309,7 @@ He creado el sistema completo de **API de consulta (REVIEW)** para parámetros g
   5. `GET /api/v1/global-parameters/asignacion-familiar?period=2026-03-01`
   6. `GET /api/v1/global-parameters/leyes-sociales?period=2026-03-01`
   7. `GET /api/v1/global-parameters/sueldos-gratificaciones?period=2026-03-01`
-  8. `GET /api/v1/global-parameters/dictionary` (sin period - devuelve estructura completa)
+
 
 #### **4. Rutas API**
 - ✅ Integradas en `routes/api.php`

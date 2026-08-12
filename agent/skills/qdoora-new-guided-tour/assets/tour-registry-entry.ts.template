@@ -1,0 +1,80 @@
+// =============================================================================
+// PLANTILLA — Entrada de TOURS_REGISTRY
+// Archivo: fuse-starter/src/app/core/tour/tours-registry.ts
+// =============================================================================
+// Agrega este objeto al final del array TOURS_REGISTRY (antes del comentario
+// "// Agrega más tours aquí..."). Reemplaza <PLACEHOLDERS>.
+//
+// ⚠️ 'key'   → IDÉNTICA a la registrada en TourSeeder.php.
+// ⚠️ 'route' → ruta REAL y NAVEGABLE, copiada del *.route.ts del módulo.
+//              Sin placeholders ':id' (forceTour hace navigateByUrl literal y falla).
+//              Verifica el segmento: app.routes.ts usa 'user' (singular), no 'users'.
+// ⚠️ Cada 'element' debe existir como id="..." en el component.html de esa ruta.
+// =============================================================================
+
+    {
+        key: '<tour-key>',
+        title: '<Título en español>',
+        description: '<Descripción en español (puede ser la misma del seeder).>',
+        route: '/<modulo>/<recurso>/<accion>',
+        steps: [
+            {
+                element: '#tour-<dominio>-<bloque>',
+                popover: {
+                    title: '<Título del paso>',
+                    description: '<Explica el POR QUÉ y las consecuencias, no lo evidente.>',
+                    side: 'right' // izquierda/principal → 'right' · sidebar → 'left' · full-width → 'top'/'bottom'
+                }
+            },
+            {
+                element: '#tour-<dominio>-<bloque-2>',
+                popover: {
+                    title: '<Título del paso>',
+                    description: '<...>',
+                    side: 'left'
+                }
+            },
+
+            // -----------------------------------------------------------------
+            // Paso que depende de un bloque condicional (@if): revélalo con un
+            // clic programático antes de avanzar, y restaura el estado al retroceder.
+            // Patrón real: 'user-update-tour'.
+            // -----------------------------------------------------------------
+            {
+                element: '#tour-<dominio>-<bloque-condicional>',
+                popover: {
+                    title: '<Título del paso>',
+                    description: '<...>',
+                    side: 'top'
+                },
+                actionBeforeNext: () => {
+                    const container = document.querySelector('#tour-<contenedor-siempre-visible>');
+                    if (container) {
+                        const firstBtn = container.querySelector('button') as HTMLElement;
+                        if (firstBtn) firstBtn.click();
+                    }
+                },
+                delayBeforeNext: 250 // Dar tiempo suficiente a Angular para renderizar
+            },
+            {
+                element: '#tour-<dominio>-<bloque-revelado>',
+                popover: {
+                    title: '<Título del paso>',
+                    description: '<...>',
+                    side: 'top'
+                },
+                actionBeforePrev: () => {
+                    // Restaura el estado para que el paso anterior vuelva a existir en el DOM
+                    const cards = document.querySelectorAll('#tour-<contenedor-siempre-visible> button');
+                    if (cards.length > 0) { (cards[0] as HTMLElement).click(); }
+                },
+                delayBeforePrev: 250
+            }
+        ]
+    },
+
+// =============================================================================
+// NO declares 'requiredPermission' salvo que extiendas hasPermission() en
+// tour-manager.service.ts: hoy solo resuelve 'account-plan.create' y devuelve
+// true para cualquier otro valor (falso sentido de seguridad).
+// =============================================================================

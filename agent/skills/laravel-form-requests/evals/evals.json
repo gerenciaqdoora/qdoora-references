@@ -1,14 +1,43 @@
 {
   "evals": [
     {
-      "name": "Autorización Anti-IDOR",
-      "description": "Verifica que authorize() no devuelva true por defecto y valide pertenencia o roles.",
-      "input": "Crea el FormRequest para eliminar un documento, asegurando que solo lo pueda hacer el dueño de la empresa.",
+      "name": "Autorización centralizada Anti-IDOR (Cliente)",
+      "description": "Un FormRequest nuevo de Portal Cliente debe autorizar vía el trait AuthorizesClientRequests, no duplicando el switch/case de roles ni inventando métodos inexistentes de User.",
+      "input": "Crea el FormRequest para eliminar un documento del submódulo COMPROBANTE, asegurando que solo lo pueda hacer quien tenga permiso sobre la empresa.",
       "expected_output_patterns": [
-        "Company::where"
+        "use App\\\\Traits\\\\AuthorizesClientRequests",
+        "authorizeSubmodule\\("
       ],
       "forbidden_output_patterns": [
-        "return true;"
+        "return true;",
+        "hasPermission\\(",
+        "Gate::"
+      ]
+    },
+    {
+      "name": "Habilidad especial de submódulo",
+      "description": "Las acciones que no son CRUD genérico (NC/ND, cierre contable, cambio de consignatario) se autorizan pasando el ability_code, no creando un permiso booleano nuevo.",
+      "input": "Crea el FormRequest para emitir una Nota de Crédito en el submódulo COMPROBANTE.",
+      "expected_output_patterns": [
+        "authorizeSubmodule\\(.*,.*,.*,.*'"
+      ],
+      "forbidden_output_patterns": [
+        "return true;",
+        "Gate::"
+      ]
+    },
+    {
+      "name": "Autorización de Soporte por defecto solo ADMIN_ROLE",
+      "description": "Un FormRequest nuevo de Portal Soporte debe usar authorizeAdmin() (patrón dominante 42/43), no el combo con SUPPORT_ROLE ni el método inexistente isExclusiveAdminEndpoint().",
+      "input": "Crea el FormRequest para que un administrador cree una cuenta en el plan de cuentas global del portal de soporte.",
+      "expected_output_patterns": [
+        "use App\\\\Traits\\\\AuthorizesSupportRequests",
+        "authorizeAdmin\\(\\)"
+      ],
+      "forbidden_output_patterns": [
+        "isExclusiveAdminEndpoint",
+        "return true;",
+        "SUPPORT_ROLE"
       ]
     },
     {
@@ -18,6 +47,17 @@
       "expected_output_patterns": [
         "Rule::unique",
         "->where\\('company_id'"
+      ]
+    },
+    {
+      "name": "Nombres de tabla reales en exists:",
+      "description": "La tabla de empresas es core_companies; usar 'companies' produce una regla que nunca valida correctamente.",
+      "input": "Agrega la validación de la foreign key company_id en el request.",
+      "expected_output_patterns": [
+        "exists:core_companies,id"
+      ],
+      "forbidden_output_patterns": [
+        "exists:companies,id"
       ]
     },
     {

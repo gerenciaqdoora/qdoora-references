@@ -109,6 +109,7 @@ Al concluir cualquier tarea significativa que establezca un nuevo patrón:
 | Diseño / UI premium / componentes Angular | `qdoora-ui-ux-master` |
 | Nueva página de listado / tabla / generic-table / paginación server-side | `qdoora-new-table-page` |
 | Nueva página de Configuración / Ajustes / Parámetros / mat-drawer-container | `qdoora-new-setting-page` |
+| Tour guiado / walkthrough / onboarding de pantalla / Centro de Ayuda (`/general/help-center/guides`) | `qdoora-new-guided-tour` |
 | Tipos TypeScript / contrato API | `api-contract-aligner` |
 | Auditar código o diseño existente / "¿esto escala?" / "¿es seguro?" / race condition / N+1 / falta índice | `erp-technical-auditor` |
 | Bug / error / test fallando / "no funciona" | `systematic-debugging` |
