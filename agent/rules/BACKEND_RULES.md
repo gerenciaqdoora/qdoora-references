@@ -429,6 +429,68 @@ if (!$company->sii_dte_enabled) {
 
 ---
 
+## 📧 IDENTIDAD DE USUARIO — Email como identidad canónica (ago-2026)
+
+`users.email` es simultáneamente el identificador de login (`JWTAuth::attempt(['email' => ...])`), la
+clave única de negocio y el único canal de recuperación de contraseña. PostgreSQL lo compara
+case-sensitive, así que se trata como identidad canónica normalizada, no como string libre.
+
+### Doble capa de normalización — ninguna de las dos es opcional
+
+1. **Mutator en el modelo** (`app/Models/User.php`, método `email(): Attribute`, `set:` normaliza a
+   `mb_strtolower(trim($value))`). Cubre TODA escritura vía Eloquent (`create`, `update`, seeders).
+2. **Trait en el FormRequest** (`App\Traits\NormalizesEmailInput`, `prepareForValidation()`). El mutator
+   NO cubre las lecturas: `User::where('email', $request->email)` y la regla `unique:users,email` comparan
+   el valor crudo que envía el cliente. Sin el trait, `Juan@x.cl` y `juan@x.cl` se tratan como cuentas
+   distintas y el login/forgot-password puede dejar de encontrar al usuario.
+
+TODO FormRequest nuevo que reciba `email` (login, forgot-password, alta de usuario, perfil) DEBE usar
+`use NormalizesEmailInput;`. Implementar solo una de las dos capas deja el bug vivo.
+
+### Baja/reactivación de cuentas con correo único: patrón `previous_email`
+
+Al dar de baja lógica una cuenta cuyo correo debe liberarse para permitir re-registro (ej.
+`SubscriberService::deleteSubscriber()`): NUNCA anexar sufijos al email original
+(`"{$email}.deleted." . uuid()` desborda `varchar(255)` y no es reversible de forma segura).
+
+Patrón correcto:
+- Guardar el correo real en la columna `previous_email` (nullable, mismo largo que `email`).
+- Reemplazar `email` por un valor de **largo fijo** en un TLD no enrutable (RFC 2606):
+  `'baja.' . Str::uuid() . '@qdoora.invalid'`.
+- La reactivación (`reactivateSubscriber(int $id)`) NUNCA recibe el correo a restaurar como parámetro
+  externo — permite secuestro de cuenta (quien llama decide a qué correo queda asociada la cuenta). Debe
+  leerlo desde `previous_email` y validar que nadie más lo haya tomado mientras la cuenta estaba de baja
+  (`GenericException` código 409 si hay colisión).
+- Se conserva el índice `unique` global en `email` (no índice parcial `WHERE deleted_at IS NULL`): la
+  identidad de login debe ser única incluso entre cuentas borradas.
+
+### Correo con credenciales: siempre fuera de la transacción de creación
+
+`EmailService` envía por MailerSend de forma **síncrona** (`Mail::to()->send()`, sin cola). Si se invoca
+dentro de un `DB::transaction()` y la transacción revienta después, el correo con la contraseña ya salió
+pero la cuenta no existe. Patrón correcto: capturar los datos necesarios dentro del closure, dejar que la
+transacción cierre, y enviar el correo después, fuera del `DB::transaction()`
+(ver `SubscriberService::crearUsuarioTrabajo()` y `provisionClientDemo()`).
+
+### Cambio de email de perfil invalida el refresh token
+
+Dueño de la lógica: `UserService::updateProfile()` (nunca el controlador — regla HARD REJECT #1). Si el
+email cambia respecto al valor previo:
+- `$user->jwt_token = null; $user->save();` — invalida el refresh token, fuerza un nuevo login (mismo
+  patrón que `AuthController::forgotPassword`, comentario `QD-09`).
+- Se notifica a la dirección **anterior** vía `EmailService::notificarCambioDeCorreo()`. No es
+  verificación double-opt-in; solo evita que un cambio de correo pase inadvertido para el dueño real.
+
+### Corrección administrativa de identidad
+
+Cuando un dato de identidad (ej. email) queda mal cargado en un alta y no hay forma de corregirlo sin
+acceso directo a la BD: el patrón es un endpoint dedicado bajo middleware `admin.only`, con su propio
+FormRequest (ver `CorrectUserEmailRequest`) y logging explícito del actor + valor anterior/nuevo vía
+`LoggerService`. Nunca reutilizar el flujo de autoservicio (`UpdateProfileRequest`) para esto — ese exige
+`current_password` del propio usuario, no aplica cuando quien corrige es soporte/admin.
+
+---
+
 ## 🐳 DEVOPS — Docker Compose
 
 ### Reglas Obligatorias

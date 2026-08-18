@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-08-18] docs(rules): documentar gotchas de testing, proteccion de bd y reglas de backend
+
 - [2026-08-12] docs(agent): actualizar reglas backend memoria y agregar skill qdoora-new-guided-tour
 
 - [2026-08-06] docs(agent): actualizar reglas y habilidades de referencia
