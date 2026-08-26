@@ -334,6 +334,44 @@ Para reconstruir una cadena de documentos que se corrigen entre sí (ej. Factura
 ### Bloque `<Referencia>` del DTE es obligatorio para NC/ND — defensa en profundidad
 La Nota de Crédito es el único documento legal para anular/disminuir una factura ya emitida (Nota de Débito para aumentarla) — nunca confíes solo en la validación del `FormRequest` para esta regla de cumplimiento tributario. El builder del XML (`DteBuilderService`) debe lanzar su propia excepción si un tributary_code 56/61 llega sin `reference_venta_id`, incluso si en teoría la capa de entrada ya lo bloqueó.
 
+### Aislamiento de documentos de certificación: discriminador de ambiente + scope global (ago-2026)
+
+Los documentos del Set de Pruebas del SII son **tributariamente falsos** pero viven en `doc_sales` /
+`doc_purchases` igual que los reales. Se aíslan con `sii_environment` enum(`certificacion`,`produccion`)
++ un scope global `production` en `Venta` y `Compra`. Mismo patrón que ya resolvió `sii_cafs.environment`.
+
+Se descartaron tablas réplica (`cert_doc_sales`) por una razón que manda sobre la limpieza: **el SII
+certifica el software**. Si los documentos de prueba viajaran por otras tablas y otro código, se estaría
+certificando un camino que no es el que corre en producción.
+
+**El estampado es OPT-IN, jamás derivado de `company.sii_environment`.** Derivarlo parece más elegante y
+es un bug grave: una empresa que todavía está certificando y registra ventas reales en Contabilidad las
+vería estampadas como prueba y **desaparecerían de sus propias vistas**. Un falso positivo (datos reales
+invisibles) cuesta mucho más que un falso negativo. Solo `SiiCertificationService::emitCase()` declara
+`sii_environment => 'certificacion'`; todo lo demás nace `produccion` por default de columna.
+
+**Tres trampas del scope global, todas encontradas en implementación:**
+
+1. **Calificar la columna con el nombre de tabla** (`doc_sales.sii_environment`). Sin calificar,
+   `listEmittedSales()` —que hace joins— revienta con `ambiguous column`.
+2. **El scope ciega las relaciones.** `SiiCertificationCase::sale()` / `purchase()` requieren
+   `->withoutGlobalScope('production')` o el asistente muestra todos los casos "sin documento vinculado".
+   Y `Venta::client()` / `Compra::provider()` requieren `->withoutGlobalScope('not_certification')`, o el
+   receptor de certificación se resuelve NULL y **el DTE sale con `<Receptor>` vacío** — rechazo seguro
+   del SII, que ningún test detecta si no construye el XML.
+3. **El scope ciega las búsquedas de unicidad.** `ThirdCompanyService::validaUnicidadPorEmpresa()` necesita
+   opt-out: sin él no encuentra el receptor existente y cada emisión de prueba crea uno nuevo, rompiendo
+   la idempotencia por RUT.
+
+**Las queries crudas no heredan el scope.** La subconsulta de `related_count` en `ElectronicDocumentService`
+usa `DB::table('doc_sales as related_docs')` y lleva el filtro de ambiente escrito a mano.
+
+El receptor auto-provisionado (SII, 60803000-K) se marca con `core_third_companies.is_certification` y se
+excluye de la cartera con un scope `not_certification` análogo.
+
+Auditoría: `grep -rn "withoutGlobalScope" app/` debe devolver **exactamente 7** resultados (2 relaciones del
+caso, 2 contrapartes, 1 unicidad de terceros, 2 assertLinkable). Cualquier otro es una fuga a justificar.
+
 ### Habilitación de emisión (`sii_dte_enabled`): auto-derivado, nunca manual — el gate real de negocio es el salto de ambiente
 `core_companies.sii_dte_enabled` **no se setea a mano** — `SiiEnablementService::syncDteEnabledFlag()` lo recalcula (certificado activo vigente Y ≥1 CAF activo con folios disponibles) cada vez que cambia el certificado o el CAF de la empresa (enganchado al final de `CertificateService::store()`/`deactivate()` y `CafService::store()`). Este flag gatea la emisión (`EmitDteRequest`/`EmitBoletaDteRequest`) **en cualquier ambiente**, sin fricción para las pruebas en certificación.
 
