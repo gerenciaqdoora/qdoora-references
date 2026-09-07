@@ -339,3 +339,33 @@ que facturan por varios giros antes de que aparezca en producción.
 `CompanyService::actualizaEmpresa()` **sobrescribe todos los campos** con `$data[...] ?? null`: un payload
 parcial borra silenciosamente giro, dirección, comuna y el resto. Siempre enviar el registro completo.
 `logo` es la excepción: si la clave viene en `null`, **borra el archivo en S3** — omitirla para no tocarlo.
+
+## 9. Consulta de estado DTE y notificación Toastr en respuesta de Probar Conexión SII
+
+**Estado**: pendiente
+**Capa**: full-stack (`qdoora-api` + `fuse-starter` / `support-portal`) · **Esfuerzo**: S · **Criticidad**: MEDIA
+
+### Problema
+
+1. **Consulta estado DTE**: Se requiere incorporar/gestionar el endpoint de consulta de estado DTE en el ambiente de certificación SII (`https://maullin.sii.cl/cgi_dte/UPL/DTEauth?3`).
+2. **Notificación Toastr al probar conexión**: Al presionar el botón "Probar Conexión", la API responde con la siguiente estructura JSON:
+
+```json
+{
+    "data": {
+        "connected": true,
+        "environment": "certificacion"
+    },
+    "status": 200,
+    "message": "Conexión con el SII establecida correctamente.",
+    "errors": []
+}
+```
+
+Actualmente se necesita implementar/asegurar que dicha respuesta entregue una alerta interactiva tipo Toastr (o notificación visual amigable en el Frontend) confirmando el estado de conexión (`connected`) y ambiente configurado (`environment`).
+
+### Cambio propuesto
+
+1. **Integración de consulta DTE**: Configurar la URL de consulta de estado DTE (`https://maullin.sii.cl/cgi_dte/UPL/DTEauth?3`) dentro de las constantes/servicios SII.
+2. **Alertas Toastr en Frontend**: Capturar el payload de respuesta de `probar conexión` y gatillar un mensaje tipo Toastr o snackbar que informe al usuario `message` ("Conexión con el SII establecida correctamente.") y el ambiente activo (`certificacion`/`produccion`).
+

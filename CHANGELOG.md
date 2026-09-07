@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-09-07] docs(rules): documentar reglas de libros de certificacion sii, guia 52, folios caf y pendientes
+
 - [2026-08-26] docs(agent): actualizar reglas de backend y pendientes
 
 - [2026-08-18] docs(rules): documentar gotchas de testing, proteccion de bd y reglas de backend

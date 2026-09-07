@@ -397,6 +397,53 @@ if (!$company->sii_dte_enabled) {
 - **Estado por sobre vs. por documento**: `DteStatusService::checkStatus()` (QueryEstUp) devuelve el estado del **sobre**; `checkDocumentStatus()` (QueryEstDte) el del **documento individual** y persiste en `DteEnvioItem.individual_status`. Ojo: esa columna es un ENUM de solo 3 valores en BD (`PENDING/ACCEPTED/REJECTED`), así que `mapEstadoDocumento()` no puede persistir `PROCESSING`/`SENT`/etc.
 - **RCV — dos servicios distintos, no confundir**: `RcvService` = extracción/reconciliación masiva por período (endpoint interno de portal `www4.sii.cl/consdcvinternetui`, NO API formal — frágil). `RcvActionService` = acciones puntuales por documento contra el web service SOAP **oficial** `registroreclamodteservice` (hosts propios `ws1.sii.cl`/`ws2.sii.cl`, distintos de maullin/palena, vía `SiiEnvironment::rcvActionWsdlUrl()`): `ingresarAceptacionReclamoDoc` (ERM/ACD/RCD/RFP/RFT), `listarEventosHistDoc`, `consultarDocDteCedible`, `consultarFechaRecepcionSii`. Los nombres de función/args están copiados 1:1 de libredte (fuente de verdad funcional). Cada acción de aceptación/reclamo se traza en `sii_rcv_actions` (SENT/FAILED, nunca propaga excepción hacia arriba). No existe WSDL local para este servicio → en tests, mockear el método protegido `callRegistroReclamoDte()`.
 
+### Libro de Ventas / Libro de Compras de certificación (`LibroVentasCertificationService` / `LibroComprasCertificationService`) — ago-2026
+
+Ambos construyen y firman el XML `LibroCompraVenta` (`TipoOperacion` VENTA/COMPRA) que exige el Set de Pruebas del SII (SET LIBRO DE VENTAS y SET LIBRO DE COMPRAS). **Son exclusivos de certificación — NUNCA se emiten en producción.** No son el Libro de Compra-Venta mensual que exige la ley: ese es un módulo productivo distinto, fuera de alcance, a diseñar aparte si se decide construirlo.
+
+- **Fuente de datos, distinta entre los dos**: `LibroVentasCertificationService` deriva de `sii_certification_cases` (documentos que la propia empresa ya emitió) — sin persistencia propia. `LibroComprasCertificationService` deriva de una tabla nueva, `sii_certification_purchase_lines`, cargada a mano desde el asistente: sus documentos son de **proveedores ficticios** que el SII entrega en papel (no existen ni pueden existir como compras reales en `doc_purchases`).
+- **Transporte y firma compartidos**: ambos reutilizan `LibroVentasSenderService::send()` para el envío (mismo endpoint `SiiEnvironment::uploadUrl()` — el `cgi_dte/UPL/DTEUpload` ya verificado con `EPR` real del SII para DTE — bajo la hipótesis, confirmada empíricamente, de que el SII despacha por la etiqueta raíz del XML) y el trait `App\Traits\SignsXmlForSii` para la firma XML-DSig. No dupliques esta lógica en un tercer "Libro" si aparece un caso nuevo del Set de Pruebas: extiende el patrón, no lo reinventes.
+- **REGLA DURA con doble cierre, verificada con tests de regresión**: cada `SupportSendLibro{Ventas,Compras}Request` valida `sii_environment === CERTIFICACION` en `withValidator()`, y cada servicio (`buildSignedXml()`) repite la misma guarda antes de construir nada — por si se invoca fuera del endpoint. El primer intento del Libro de Ventas NO tenía esta guarda (solo la tenía `emitCase`/`resendCase`) y su `resolutionDate()` tenía una rama de producción funcional: una empresa ya en producción podía haber despachado a `palena` un libro armado con documentos de certificación. Si agregas un tercer "Libro", replica el doble cierre desde el principio.
+
+```php
+// ✅ Patrón obligatorio en todo servicio de Libro de certificación
+if ($env !== SiiEnvironment::CERTIFICACION) {
+    throw new GenericException('... es exclusivo del Set de Pruebas de certificación y no puede emitirse en producción.', 422);
+}
+```
+
+- **`LibroCV_v10.xsd` es `xs:sequence` estricto — ya rechazó un envío real** (`cvc-complex-type.2.4.a`, mismo código de error que las firmas mal armadas de DTE):
+  - `TotMntExe`/`TotMntNeto`/`TotMntIVA`/`TotMntTotal` son **obligatorios en `<TotalesPeriodo>` aunque valgan 0** (sin `minOccurs="0"` en el esquema) — omitirlos cuando la suma es cero rompe el esquema. Fue exactamente lo que rechazó el primer envío real del Libro de Ventas.
+  - En `<Detalle>`, `<MntTotal>` va **al final** de la secuencia (después de `IVANoRec`/`IVAUsoComun`/`OtrosImp`/`IVARetTotal`), no junto a `MntIVA`.
+  - `<FctProp>` y `<TotCredIVAUsoComun>` viven en `<TotalesPeriodo>`, no en `<Detalle>`.
+  - La raíz del XML es `<LibroCompraVenta>`, con `<EnvioLibro ID="...">` anidado adentro — mismo patrón que `<EnvioDTE>`/`<SetDTE>`, no al revés.
+  - Los XSD para `schemaValidate()` en tests están empaquetados en `qdoora-api/tests/fixtures/schemas/sii/` (`LibroCV_v10.xsd` + 4 dependencias de `import`/`include`) porque `libredte-lib-core` **no está montado dentro del contenedor de la app** — un test que apunte a esa ruta pasa en el host y falla con "Invalid Schema" en `docker exec`.
+- **Semántica del IVA por naturaleza de línea de compra** (`App\Enums\Sii\PurchaseLineNature`), verificada contra `libredte-lib-core/tests/fixtures/books/libro_compras.php` (no hay manual IECV del SII disponible localmente — esa librería es la fuente de verdad de facto):
+
+  | Naturaleza | Dónde va el IVA |
+  |---|---|
+  | `normal` | `MntIVA` |
+  | `iva_uso_comun` | `MntIVA`=0 · `IVAUsoComun` (+ `FctProp`/`TotCredIVAUsoComun` en totales) |
+  | `entrega_gratuita` | `MntIVA`=0 · `IVANoRec` código 4 |
+  | `retencion_total` | `MntIVA` **(NO cero)** · además `OtrosImp` código 15 · `IVARetTotal` |
+
+  La retención total es el caso contraintuitivo: a diferencia de las otras dos naturalezas "especiales", el IVA sí queda declarado en `MntIVA` — no lo pongas en 0 por analogía con `iva_uso_comun`/`entrega_gratuita`.
+- **Fixtures de test de certificado/CAF**: `Crypt::encryptString($password)`, nunca el helper global `encrypt()` — este último serializa el valor, y `CertificateService::loadInMemory()` desencripta con `Crypt::decryptString()` (sin unserializar), así que el `.p12` termina abriéndose con `s:6:"secret";` como contraseña en vez de `secret`.
+
+### Guía de Despacho (DTE 52) desde Portal de Soporte — ago-2026
+
+**Distinción clave: la Guía 52 es un DTE PRODUCTIVO**, a diferencia del Libro de Ventas/Compras que son exclusivos de certificación. No lleva guarda de "solo certificación" propia — la única guarda es la de `SupportEmitCertificationCaseRequest` (Soporte jamás emite en producción), que **no se modifica** de su bloque de ambiente.
+
+- **Traslado interno (`IndTraslado=5`, receptor = la propia empresa)**. La bifurcación ocurre en `SiiCertificationService::emitSaleCase()`: cuando el caso es tipo `'52'` AND `dispatch.ind_traslado === 5`, se resuelve la contraparte vía `resolveSelfCounterparty(companyId)` (un `ThirdCompany` espejo) en vez de la contraparte ficticia de config. Reutiliza el MISMO `thirdCompanyService->crearORecuperarPorRut()` que ya maneja unicidad y multitenancy, pasando `$companyId` explícito. El builder no cambia: lee `$venta->client` sin enterarse de que apunta a la empresa misma.
+- **Gotcha del `validated()` silencioso**: `SupportEmitCertificationCaseRequest` carecía de reglas `dispatch.*`. Como el controlador pasa `$request->validated()`, Laravel **descartaba todo el bloque `dispatch`** sin error. Hoy la Guía 52 emitida desde Soporte llegaba al XML sin `<IndTraslado>`, `<TipoDespacho>` ni `<Transporte>`. El Set de Pruebas exige explícitamente "Se debe señalar el tipo de traslado en TODOS los documentos de Guía de Despacho Electrónica" — rechazo silencioso garantizado. **Regla general**: al habilitar un tipo de DTE en un canal nuevo (ej. Soporte), verificar que **TODO su contrato** esté declarado en el FormRequest — no hay punto de inyección en el Service que rescate un campo validado pero no capturado.
+- **Gotcha de Pest en tests**: `invocarMetodoPrivado()` está definida en `DteBuilderServiceFactura33Test.php`; redefinir en otro `*Test.php` causa `Fatal Error` (collision de nombres de función global). La solución: definir con un nombre único por caso (`guiaInvocarPrivado`). Solo `SiiFixtures.php` es seguro de compartir vía `require_once`.
+- **Semántica verificada contra `DTE_v10.xsd`** (`<IndTraslado>` códigos 1-7, confirmados todos):
+  - `5` = Traslado Interno (el caso): **NO lleva `<TipoDespacho>`**, receptor = emisor, documentos sin precio → `MntTotal: 0`.
+  - `1` = Operación Constituye Venta, `2` = Venta por Efectuar, etc. — todos llevan `<TipoDespacho>` (1-3) cuando `ind_traslado != 5`.
+- **`TipoDespacho` omisión automática**: `emitCase()` detecta `ind_traslado === 5` y setea `tipo_despacho = null` en el payload antes de pasarlo al builder — el builder ya omite cualquier tag cuando su valor es `null`, así que sale limpio sin cambio en `DteBuilderService`.
+- **Total cero tolerado**: `createElectronicSale()` acepta ventas de total 0. Probado empíricamente en test: ítem sin precio → `vr_unitary: 0` → total 0 → persistido sin errores de validación.
+- **Reuso de transporte productivo**: `DteBuilderService::buildDispatchIdDoc()` + rama `<Transporte>` (para `IndTraslado`/`TipoDespacho`, patente, transportista, chofer, dirección destino) ya estaban implementados para el camino productivo (Portal Cliente). El `DTE_v10.xsd` los exige igual en certificación — **cero cambios de builder**, solo habilitar el contrato en Soporte.
+
 ### Cobertura completa de Factura Afecta (33) — patrones descubiertos (jul-2026)
 
 - **`ElectronicDocumentService::computeLines()`/`buildHeader()` es el punto real de persistencia, no el `FormRequest`**: agregar una columna + una regla de validación NUNCA basta. Si el campo nuevo no se agrega también al array que arma `computeLines()` (para ítems) o `buildHeader()` (para cabecera), el dato llega validado hasta el Service y se descarta silenciosamente antes de tocar `Venta::create()`/`VentaItem::create()`. Mismo patrón aplica a `ThirdCompanyService::crearEntidad()`/`actualizaEntidad()`/`crearORecuperarPorRut()`: el Controller (`ThirdController`) usa `$request->all()`, no `validated()`, así que el cuello de botella real está en los arrays armados a mano dentro del Service, no en el `FormRequest`.
