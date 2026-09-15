@@ -1,6 +1,6 @@
 ---
 name: erp-accounting-expert
-description: Especialista en "Reglas de Negocio" para el dominio Contable. Dicta las leyes de Partida Doble, inmutabilidad financiera y normativas tributarias (SII) para Plan de Cuentas, Comprobantes, Libros, Tesorería y Reportes. Define la estructura del árbol de cuentas (Tipo → SubTipo → Cuenta → SubCuenta), qué es la CUENTA MAYOR (el último nodo: la SubCuenta manda si existe) y su presentación con relleno de ceros, el significado de cada atributo de cuenta (auxiliar con/sin RUT, centro de costo derivado, número de operación/despacho, operativa RCV), las CUENTAS MAESTRAS (`cont_account_categories`) con su restricción `allowed_type_codes`, y la IMPUTACIÓN CONTABLE CENTRALIZADA (`cont_accounting_imputations`): qué se configura por tercero/producto/impuesto/concepto de nómina, sus `purpose` vigentes, qué campos resuelve cada automatización en tiempo de ejecución (`provides()`) y el ciclo de vida `needs_review`. Usar cuando se necesite mapear la lógica funcional de un módulo financiero, entender el plan de cuentas, decidir qué cuenta corresponde a un monto, o auditar/extender una configuración de imputación. NO contiene código técnico ni UI.
+description: Especialista en "Reglas de Negocio" para el dominio Contable. Dicta las leyes de Partida Doble, inmutabilidad financiera y normativas tributarias (SII) para Plan de Cuentas, Comprobantes, Libros, Tesorería y Reportes. Define la estructura del árbol de cuentas (Tipo → SubTipo → Cuenta → SubCuenta), la CLASE CONTABLE de cada Tipo (`cont_type_classes`, declarada por plan — no por convención de dígito), qué es la CUENTA MAYOR (el último nodo: la SubCuenta manda si existe) y su presentación con relleno de ceros, el significado de cada atributo de cuenta (auxiliar con/sin RUT, centro de costo derivado, número de operación/despacho, operativa RCV), las CUENTAS MAESTRAS (`cont_account_categories`) con su restricción `allowed_class_codes`, y la IMPUTACIÓN CONTABLE CENTRALIZADA (`cont_accounting_imputations`): qué se configura por tercero/producto/impuesto/concepto de nómina, sus `purpose` vigentes, qué campos resuelve cada automatización en tiempo de ejecución (`provides()`) y el ciclo de vida `needs_review`. Usar cuando se necesite mapear la lógica funcional de un módulo financiero, entender el plan de cuentas, decidir qué cuenta corresponde a un monto, o auditar/extender una configuración de imputación. NO contiene código técnico ni UI.
 ---
 
 # 🏛️ The ERP Accounting Expert (Business Domain)
@@ -39,17 +39,21 @@ Tipo        1        ACTIVOS                    ← 1 dígito
 
 Los largos **no son constantes del sistema**: cada plan define los suyos (`TIPO_large`, `SUB_TIPO_large`, `CUENTA_large`, `SUB_CUENTA_large`). El PUC chileno estándar usa 1 / 2 / 4 / 6. Nunca asumas 6 dígitos: léelo del plan de la empresa.
 
-**Tipología base** — los 5 códigos de Tipo son la convención fija del PUC:
+**Tipología base** — cada Tipo declara su **clase contable** (`cont_account_plan_types.type_class_code` → catálogo `cont_type_classes`). El PUC y los planes clonados o importados siguen la convención canónica:
 
-| Código | Tipo | Naturaleza | Estado financiero |
-|---|---|---|---|
-| `1` | ACTIVOS | Deudora | Balance |
-| `2` | PASIVOS | Acreedora | Balance |
-| `3` | PATRIMONIO | Acreedora | Balance |
-| `4` | GANANCIAS | Acreedora | Resultado |
-| `5` | PÉRDIDAS | Deudora | Resultado |
+| Código | Tipo | Clase (`type_class_code`) | Naturaleza | Estado financiero |
+|---|---|---|---|---|
+| `1` | ACTIVOS | `ACTIVO` | Deudora | Balance |
+| `2` | PASIVOS | `PASIVO` | Acreedora | Balance |
+| `3` | PATRIMONIO | `PATRIMONIO` (**opcional**) | Acreedora | Balance |
+| `4` | GANANCIAS | `GANANCIA` | Acreedora | Resultado |
+| `5` | PÉRDIDAS | `PERDIDA` | Deudora | Resultado |
 
-> **Regla derivada crítica**: una cuenta es *de resultado* si su código empieza en `4` o `5`. De ahí sale la exigencia de **centro de costo**, que NO es un flag configurable: se exige cuando la empresa trabaja con centros de costo **y** la cuenta es de resultado. Encender centros de costo en una empresa cambia retroactivamente el requisito de todas sus cuentas 4 y 5.
+**La clase es dato, no dígito.** Al crear un plan **desde cero** (Portal Cliente → "DESDE CERO") el usuario declara qué clase es cada Tipo; Patrimonio es la única clase que puede omitirse (`cont_type_classes.required = false`), las otras cuatro deben aparecer exactamente una vez. La clonación copia la clase del plan origen y la importación la asigna por convención hasta que el archivo traiga la columna. El mapa canónico vive en `App\Constants\TypeClasses::CANONICAL_BY_TYPE_CODE`.
+
+> **La clase es la fuente de verdad, no el dígito.** El Balance General, la exigencia de centro de costo y la restricción de cuentas maestras resuelven `AccountPlanTypeClassMap::classFor($accountPlanId, $codigo)` — el mapa `[código de Tipo ⇒ clase]` que declaró CADA plan — nunca una convención fija. Dos planes pueden asignar clases distintas al mismo dígito (ej. Tipo `1` como Pasivo en un plan importado) y el sistema los trata correctamente. `TypeClasses::CANONICAL_BY_TYPE_CODE` existe solo para escribir un valor por defecto al crear un Tipo (backfill, PUC, importador); nunca se usa para leer la clase de un Tipo ya existente.
+
+> **Regla derivada crítica**: una cuenta es *de resultado* si su código empieza en `4` o `5` (hoy por dígito; en Fase 3, por clase `GANANCIA`/`PERDIDA`). De ahí sale la exigencia de **centro de costo**, que NO es un flag configurable: se exige cuando la empresa trabaja con centros de costo **y** la cuenta es de resultado. Encender centros de costo en una empresa cambia retroactivamente el requisito de todas sus cuentas 4 y 5.
 
 #### 1.2 Cuenta Mayor: el último nodo manda
 
@@ -90,7 +94,7 @@ Campos comunes a Cuenta y SubCuenta. Los `trabaja_con_*` son **exigencias de cap
 | `rcv_operation` | Naturaleza de compra/venta de la cuenta: `purchase` o `sale`, **nunca ambas**. `null` = no participa del flujo RCV. Restringe qué cuentas ofrece el configurador de imputaciones |
 | `trabaja_con_auxiliar_con_rut` | Exige identificar un tercero **con RUT/Pasaporte** (cliente, proveedor, empleado) |
 | `trabaja_con_auxiliar_sin_rut` | Exige un **auxiliar de concepto** (sin RUT): centros de acopio, conceptos internos |
-| `trabaja_con_centro_costo` | **DERIVADO, no configurable**: `empresa usa centros de costo` **Y** `cuenta de resultado (4 o 5)` |
+| `trabaja_con_centro_costo` | **DERIVADO, no configurable**: `empresa usa centros de costo` **Y** `cuenta de resultado (clase Ganancias o Pérdidas, según el plan)` |
 | `trabaja_con_numero_operacion` | Exige número de operación en cada movimiento (créditos, operaciones bancarias) |
 | `trabaja_con_numero_despacho` | Exige número de despacho (flujos de Aduana) |
 | `trabaja_con_otros_impuestos` | Habilita la cuenta para ser asignada a impuestos de la empresa |
@@ -110,31 +114,35 @@ Una **cuenta maestra** es un rol contable con nombre estable que la empresa asig
 - Un proceso que necesita su cuenta maestra y no la encuentra **no puede contabilizar**: es un prerrequisito, no un valor por defecto.
 - Reasignar una categoría a otra cuenta libera automáticamente la anterior.
 
-**`allowed_type_codes`: la restricción de tipo**
+**`allowed_class_codes`: la restricción de clase**
 
-Cada categoría declara a qué **Tipos** puede asignarse. Es una lista de códigos de Tipo (`1`..`5`); vacía significa "sin restricción".
+Cada categoría declara a qué **clases contables** puede asignarse (`cont_type_classes.code`: `ACTIVO`, `PASIVO`, `PATRIMONIO`, `GANANCIA`, `PERDIDA`). Vacía significa "sin restricción". Se evalúa contra la clase que el **plan de la empresa** declaró para el Tipo de la cuenta (`AccountPlanTypeClassMap::classFor()`) — nunca contra el dígito del código.
 
-Su razón de ser es impedir asientos con la naturaleza invertida: `CLIENTE_NACIONAL` representa una deuda **a favor** de la empresa, así que solo puede vivir en una cuenta de **Activo** (`1`). Si el usuario la asignara a un Pasivo, toda venta centralizada quedaría con el signo contrario y el balance mentiría.
+Su razón de ser es impedir asientos con la naturaleza invertida: `CLIENTE_NACIONAL` representa una deuda **a favor** de la empresa, así que solo puede vivir en una cuenta de clase **Activo**. Si el usuario la asignara a un Pasivo, toda venta centralizada quedaría con el signo contrario y el balance mentiría.
 
-| Categoría | Tipos | Rol |
+| Categoría | Clases | Rol |
 |---|---|---|
-| `CLIENTE_NACIONAL` | `1` Activo | Cuenta por cobrar de los documentos de **venta** |
-| `IVA_CREDITO_FISCAL` | `1` Activo | IVA recuperable de las **compras** |
-| `DESEMBOLSO` | `1` Activo | Desembolsos por rendir |
-| `PROVEEDOR_NACIONAL` | `2` Pasivo | Cuenta por pagar de los documentos de **compra** |
-| `IVA_DEBITO_FISCAL` | `2` Pasivo | IVA a enterar al Fisco por las **ventas** |
-| `RETE_2DA_CATEGORIA` | `2` Pasivo | Retención de honorarios por enterar |
-| `HONORARIO_POR_PAGAR` | `2` Pasivo | Líquido a pagar al prestador de servicios |
-| `REMUNERACIONES_POR_PAGAR` | `2` Pasivo | Líquido a pagar de la nómina |
-| `IMPUESTO_UNICO` | `2` Pasivo | Impuesto único de 2ª categoría retenido |
-| `LEYES_SOCIALES_PAGA_EMPLEADOR` | `2` Pasivo | Aportes de cargo del empleador |
-| `CREDITO_SOLIDARIO_3` | `2` Pasivo | Retención de crédito solidario |
-| `DESEMBOLSO_POR_PAGAR` | `2` Pasivo | Desembolsos pendientes de pago |
-| `RESULTADO_EJERCICIO` | `3` Patrimonio | Destino del resultado en el cierre |
-| `ASIGNACION_FAMILIAR` | `4` o `5` | Asignación familiar — recuperable del Estado, por eso admite ambos |
-| `SUELDO_BASE` · `HORA_EXTRA` · `GRATIFICACION` · `COLACION` · `MOVILIZACION` · `HORA_ATRASO` | `5` Pérdida | Haberes de nómina, gasto del empleador |
+| `CLIENTE_NACIONAL` | Activo | Cuenta por cobrar de los documentos de **venta** |
+| `IVA_CREDITO_FISCAL` | Activo | IVA recuperable de las **compras** |
+| `DESEMBOLSO` | Activo | Desembolsos por rendir |
+| `PROVEEDOR_NACIONAL` | Pasivo | Cuenta por pagar de los documentos de **compra** |
+| `IVA_DEBITO_FISCAL` | Pasivo | IVA a enterar al Fisco por las **ventas** |
+| `RETE_2DA_CATEGORIA` | Pasivo | Retención de honorarios por enterar |
+| `HONORARIO_POR_PAGAR` | Pasivo | Líquido a pagar al prestador de servicios |
+| `REMUNERACIONES_POR_PAGAR` | Pasivo | Líquido a pagar de la nómina |
+| `IMPUESTO_UNICO` | Pasivo | Impuesto único de 2ª categoría retenido |
+| `LEYES_SOCIALES_PAGA_EMPLEADOR` | Pasivo | Aportes de cargo del empleador |
+| `CREDITO_SOLIDARIO_3` | Pasivo | Retención de crédito solidario |
+| `DESEMBOLSO_POR_PAGAR` | Pasivo | Desembolsos pendientes de pago |
+| `RESULTADO_EJERCICIO` | Patrimonio o Pasivo | Destino del resultado en el cierre |
+| `ASIGNACION_FAMILIAR` | Ganancia o Pérdida | Asignación familiar — recuperable del Estado, por eso admite ambas |
+| `SUELDO_BASE` · `HORA_EXTRA` · `GRATIFICACION` · `COLACION` · `MOVILIZACION` · `HORA_ATRASO` | Pérdida | Haberes de nómina, gasto del empleador |
+| `HONO` · `HONE` | Patrimonio o Ganancia | Honorarios de importación/exportación (giro de agencias de aduana) |
+| `GADE` · `GADX` | Patrimonio o Ganancia | Gastos de despacho de importación/exportación |
 
-> **La restricción se modela como dato, no como constante de código**, para que el selector del Portal Cliente filtre las cuentas válidas sin mantener una copia del mapa. Si se agrega una categoría nueva, debe nacer con sus `allowed_type_codes` declarados — sin ellos queda sin restricción y admitiría cualquier tipo.
+> `HONO`/`HONE`/`GADE`/`GADX` admiten Patrimonio **además de** Ganancia, y `RESULTADO_EJERCICIO` admite Pasivo **además de** Patrimonio, porque hay planes reales (ej. agencias de aduana) que no declaran ningún Tipo como Patrimonio y ubican esas cuentas bajo el Tipo que sí declararon — Pasivo o Ganancia según el caso. Desde Fase 2 (`catastro_tipos_plan_cuentas.md`) el importador ya permite declarar la clase real de cada Tipo; estrechar estas restricciones a una sola clase queda diferido a propósito (decisión D5 de `implementation_plan_fase2.md`) para no invalidar retroactivamente planes ya importados con la clase amplia.
+
+> **La restricción se modela como dato, no como constante de código**, para que el selector del Portal Cliente filtre las cuentas válidas sin mantener una copia del mapa. Si se agrega una categoría nueva, debe nacer con sus `allowed_class_codes` declarados — sin ellos queda sin restricción y admitiría cualquier clase.
 
 **Diferencia con la imputación configurable**: la cuenta maestra la asigna la empresa **una vez** sobre su plan de cuentas y sirve a todos los procesos. La imputación contable se configura **por tercero, producto o concepto** y responde "¿a qué cuenta de ingreso va lo que le vendo a ESTE cliente?". Un proceso de centralización usa ambas: maestra para lo estructural (cliente, IVA), imputación para lo que depende del tercero. Ver 1.6.
 
@@ -165,7 +173,7 @@ Su razón de ser es impedir asientos con la naturaleza invertida: `CLIENTE_NACIO
 
 **Auxiliar y centro de costo: exigencias derivadas de la cuenta, nunca captura libre**
 - Si la cuenta mayor (1.2) exige auxiliar (`trabaja_con_auxiliar_con_rut` o `_sin_rut`, 1.4), la imputación no se guarda sin uno. Ese auxiliar además debe ser del **tipo** que la cuenta admite — con RUT y de concepto son conjuntos disjuntos (1.4) — así que cambiar una cuenta de un modo al otro invalida en silencio los auxiliares ya guardados si no se revalida (ver ciclo `needs_review` más abajo).
-- Centro de costo: no es un flag de la cuenta, es **100% derivado** (regla derivada de 1.1 / D5): `empresa.allow_cost_center = true` **y** cuenta de resultado (tipo `4` o `5`). Si la empresa no trabaja con centros de costo, ninguna imputación los exige, sin importar la cuenta.
+- Centro de costo: no es un flag de la cuenta, es **100% derivado** (regla derivada de 1.1 / D5): `empresa.allow_cost_center = true` **y** cuenta de resultado (clase Ganancias o Pérdidas, según el plan). Si la empresa no trabaja con centros de costo, ninguna imputación los exige, sin importar la cuenta.
 
 **`provides()` — campos que la automatización resuelve en tiempo de ejecución, no al configurar**: un `purpose` puede declarar que un campo no se pide porque el proceso que consume la imputación ya lo conoce al momento de generar el asiento, y pedirlo de antemano sería redundante o imposible de fijar con certeza.
 - `payroll_concept` no pide centro de costo: en la liquidación, el centro de costo sale del **contrato de trabajo** del empleado, no del concepto de haber/descuento en sí. Sin esta declaración, todo concepto sobre una cuenta de resultado quedaría eternamente `needs_review` en empresas con centros de costo, porque nunca habría dónde configurarlo.
@@ -219,8 +227,9 @@ Si un agente constructor te hace una consulta que rompa las reglas comerciales, 
 3. Rechaza responder con bloques de código (PHP, SQL o TypeScript). Dile al constructor: *"La regla contable es X. Debes implementarla tú en la capa de Services o FormRequests"* para preservar la separación de habilidades.
 4. **Rechaza registrar un movimiento contra una Cuenta que tiene SubCuentas.** Esa Cuenta dejó de ser cuenta mayor; el movimiento va a la SubCuenta. Un saldo propio en un nodo agrupador duplica los importes en el Balance.
 5. **Rechaza identificar una cuenta mayor solo por id.** Cuenta y SubCuenta son tablas distintas: sin el tipo de nodo, el id es ambiguo y termina apuntando a la cuenta equivocada.
-6. **Rechaza asignar una cuenta maestra a un Tipo no permitido** por sus `allowed_type_codes`. Ej.: `CLIENTE_NACIONAL` en una cuenta de Pasivo invierte la naturaleza de todo asiento de venta.
-7. **Rechaza convertir `trabaja_con_centro_costo` en un flag configurable por cuenta.** Es derivado: empresa con centros de costo + cuenta de resultado (4 o 5).
+6. **Rechaza asignar una cuenta maestra a una clase no permitida** por sus `allowed_class_codes`. Ej.: `CLIENTE_NACIONAL` en una cuenta de clase Pasivo invierte la naturaleza de todo asiento de venta — sin importar qué dígito use el Tipo en ese plan.
+7. **Rechaza convertir `trabaja_con_centro_costo` en un flag configurable por cuenta.** Es derivado: empresa con centros de costo + cuenta de resultado (clase Ganancias o Pérdidas).
+8. **Rechaza cualquier regla que decida por el dígito del código** (`substr(code, 0, 1) === '4'`, `in_array($tipo, ['1','2','3'])`, etc.). La clase contable se resuelve por plan vía `AccountPlanTypeClassMap`; el dígito es solo la llave hacia el Tipo, nunca el significado.
 8. **Rechaza mostrar el código de una Cuenta sin el relleno de ceros** en comprobantes, informes o selectores. El usuario debe ver siempre el largo de cuenta mayor.
 9. **Rechaza activar los dos flags de auxiliar** (con RUT y sin RUT) en la misma cuenta: son excluyentes.
 10. **Rechaza asumir 6 dígitos de largo de SubCuenta.** Cada plan define sus largos; el PUC estándar usa 1/2/4/6, pero una empresa puede tener otros.

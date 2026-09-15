@@ -45,6 +45,28 @@ Antes de procesar cualquier endpoint, valida en este orden:
 2. **SUBSCRIBER_ROLE** — relación empresa (`company_id` ↔ `suscriptor_id`)
 3. **IDOR** — propiedad del recurso específico en `authorize()` del FormRequest
 
+### Exponer permisos al frontend: proyectar la decisión real, nunca reimplementarla (sep-2026)
+
+`GET /v1/company/{company_id}/permissions/mine` devuelve al usuario autenticado su matriz `submódulo → {review, create, update, delete}`, para que el Portal Cliente oculte accesos que el backend igual rechazaría (skill `qdoora-guard`).
+
+Reglas que hacen que este endpoint no sea una brecha:
+
+- **Proyecta, no decide.** `SubscriberService::getOwnSubmodulePermissions()` llama a `User::canOperateOnSubmodule()` celda por celda — la MISMA función que evalúan los FormRequests. Prohibido consultar `users_permission_submodule` directamente para decidir: se desincroniza del `authorize()` real y reintroduce QD-04.
+- **Ability `TRANSACTION`**, el default del trait. `SHOW`/`UPDATE` siguen reservados a la ficha de empresa. Un `USER_ROLE` sin `TRANSACTION` recibiría una matriz vacía de todos modos, así que el 403 es la respuesta semánticamente correcta.
+- **Payload minimizado**: solo viajan los submódulos con al menos una operación concedida. No se le enumera al cliente lo que NO puede hacer.
+- **Nunca dentro de un JWT.** Firmar no cifra: el payload es base64url y lo lee cualquiera, y el frontend debe poder leerlo para renderizar. Además `security-iam-expert` veta inyectar arrays de permisos en el token (QD-09).
+- **Throttle propio.** El grupo `v1/company` no trae throttle; este GET es repetible y con valor de reconocimiento, así que lleva `throttle.api:general,60,1` (QD-08).
+
+#### El bypass del suscriptor es invariante — preguntarlo una vez
+
+Para `SUBSCRIBER_ROLE`, `canOperateOnSubmodule()` devuelve `ownsCompany($company_id)`: no depende del submódulo ni de la operación. Evaluarlo por celda son cientos de queries para una matriz uniformemente `true`. La regla se nombra UNA vez en `User::bypassesSubmoduleChecks()`, que consultan tanto `canOperateOnSubmodule()` como el servicio de matriz. Prohibido copiar la condición `role === 'SUBSCRIBER_ROLE' && ownsCompany()` fuera de ese método.
+
+#### `usersPermissionSubmodules()` memoiza por instancia
+
+Ese método corre en el `authorize()` de cada request. Antes re-resolvía el suscriptor y **todos** sus módulos (`Subscriber::modules()` dispara ~3 queries) en CADA llamada. Ahora memoiza por instancia los módulos contratados, el catálogo de submódulos y la plantilla de permisos del rol; el permiso directo del usuario NO se memoiza (los endpoints de administración de permisos sí lo mutan).
+
+Gotcha asociado: `->permisosSubmodulo()` **con paréntesis** abre un query builder nuevo e ignora el eager-load. Un `load('permisosSubmodulo')` por sí solo no arregla nada; el fast-path exige comprobar `relationLoaded()`.
+
 ### Los endpoints de LECTURA también requieren FormRequest (caso: `VoucherController::getDetalleComprobante`)
 La autorización multinivel de arriba **no es un patrón exclusivo de escritura**. Un `GET` con `Request` plano en vez de un `FormRequest` con `authorize()` es tan explotable como un `POST` sin validar: filtra el recurso completo (montos, glosas, razón social de terceros) a cualquier usuario autenticado que adivine o enumere el identificador.
 

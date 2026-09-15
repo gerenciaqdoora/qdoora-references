@@ -1,0 +1,73 @@
+{
+  "evals": [
+    {
+      "name": "Guard de submódulo usa la variante asíncrona",
+      "description": "Un guard de ruta debe consultar can$() y esperar la carga de la matriz. Usar can() de forma síncrona deniega el acceso en un deep-link antes de que llegue la respuesta HTTP.",
+      "input": "Crea el guard de ruta para la página de configuración de facturación, que exige permiso de lectura sobre el submódulo BILLING.SETTING.",
+      "expected_output_patterns": [
+        "can\\$\\(",
+        "CanActivateFn",
+        "parseUrl\\("
+      ],
+      "forbidden_output_patterns": [
+        "localStorage",
+        "decodeToken",
+        "return false;"
+      ]
+    },
+    {
+      "name": "Guard de módulo en el padre, no en cada hijo",
+      "description": "hasModuleGuard se aplica una sola vez en app.routes.ts sobre el nodo con loadChildren; las rutas hijas del módulo solo llevan guards de contexto y de submódulo.",
+      "input": "Agrega la ruta de una página nueva de listado dentro del módulo BILLING, protegida por permiso de lectura.",
+      "expected_output_patterns": [
+        "hasSubmodulePermissionGuard\\(",
+        "canActivate"
+      ],
+      "forbidden_output_patterns": [
+        "hasModuleGuard",
+        "canMatch"
+      ]
+    },
+    {
+      "name": "Ocultar botón con @if, sin directiva nueva",
+      "description": "El control de acceso a nivel de UI usa el patrón establecido de método booleano + @if. No se crean directivas estructurales nuevas ni se usa la sintaxis obsoleta *ngIf.",
+      "input": "Oculta el botón de carga de CAF para los usuarios que no tienen permiso de creación sobre BILLING.SETTING.",
+      "expected_output_patterns": [
+        "@if \\(",
+        "permissions.can\\("
+      ],
+      "forbidden_output_patterns": [
+        "\\*ngIf",
+        "@Directive",
+        "structural"
+      ]
+    },
+    {
+      "name": "Prohibido persistir o firmar la matriz de permisos",
+      "description": "La matriz vive solo en memoria. Guardarla en localStorage, fusionarla al objeto User o entregarla dentro de un JWT son vectores QD-09/QD-01 explícitamente vetados.",
+      "input": "Haz que los permisos del usuario estén disponibles en el frontend sin tener que volver a pedirlos en cada carga de página.",
+      "expected_output_patterns": [
+        "BehaviorSubject|ReplaySubject"
+      ],
+      "forbidden_output_patterns": [
+        "localStorage.setItem",
+        "sessionStorage.setItem",
+        "jwt",
+        "decodeToken"
+      ]
+    },
+    {
+      "name": "El guard no reemplaza al FormRequest",
+      "description": "El guard es UX. Antes de escribirlo debe verificarse que el endpoint correspondiente valida el mismo submódulo y operación en su authorize(). Un guard sin contraparte backend es decoración, no seguridad.",
+      "input": "Protege la ruta de emisión de DTE para que solo entren quienes puedan emitir.",
+      "expected_output_patterns": [
+        "hasSubmodulePermissionGuard\\(",
+        "review|create"
+      ],
+      "forbidden_output_patterns": [
+        "Gate::",
+        "hasPermission\\("
+      ]
+    }
+  ]
+}

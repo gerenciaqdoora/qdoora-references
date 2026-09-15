@@ -30,7 +30,7 @@
       "expectations": [
         "El agente explica que la centralización NO valida requisitos: las restricciones se aplican al configurar la imputación (AccountingImputationService::save -> AccountRequirementService) y en la revalidación diferida",
         "El agente advierte que una cuenta resuelta por maestra NO pasa por save(), así que el proceso es responsable de entregar el auxiliar correcto en la línea",
-        "El agente recuerda que el centro de costo es derivado (company.allow_cost_center && cuenta de resultado con código 4 o 5), no un flag configurable por cuenta",
+        "El agente recuerda que el centro de costo es derivado (company.allow_cost_center && cuenta de resultado de clase Ganancias o Pérdidas, según el plan), no un flag configurable por cuenta",
         "El agente no propone agregar validaciones de requisitos dentro de postEntry"
       ]
     },

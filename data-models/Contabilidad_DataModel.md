@@ -13,13 +13,22 @@ Este dominio concentra el corazón financiero del ERP: el Plan de Cuentas, la ce
   - `id`
   - `company_id` (foreign)
 
-- **`cont_account_categories`**
+- **`cont_account_categories`** (cuentas maestras, catálogo global)
   - `id`
-  - `account_plan_id` (foreign)
+  - `code` (unique)
+  - `allowed_type_codes` (json: códigos de Tipo permitidos)
+
+- **`cont_type_classes`** (clases contables, catálogo global)
+  - `id`
+  - `code` (unique: `ACTIVO`, `PASIVO`, `PATRIMONIO`, `GANANCIA`, `PERDIDA`)
+  - `name`
+  - `required` (boolean; solo `PATRIMONIO` = false)
 
 - **`cont_account_plan_types`**
   - `id`
-  - `account_category_id` (foreign)
+  - `account_plan_id` (foreign)
+  - `code` (varchar(1))
+  - `type_class_code` (foreign → `cont_type_classes.code`, nullable)
 
 - **`cont_account_plan_sub_types`**
   - `id`
@@ -134,8 +143,9 @@ Este dominio concentra el corazón financiero del ERP: el Plan de Cuentas, la ce
 ```mermaid
 erDiagram
     core_companies ||--o{ cont_account_plans : "define"
-    cont_account_plans ||--o{ cont_account_categories : "tiene categorías"
-    cont_account_categories ||--o{ cont_account_plan_types : "tiene tipos"
+    cont_account_plans ||--o{ cont_account_plan_types : "tiene tipos"
+    cont_type_classes ||--o{ cont_account_plan_types : "clasifica"
+    cont_account_categories ||--o{ cont_accounts : "cuenta maestra (opcional)"
     cont_account_plan_types ||--o{ cont_account_plan_sub_types : "tiene subtipos"
     cont_account_plan_sub_types ||--o{ cont_accounts : "agrupa"
     cont_accounts ||--o{ cont_sub_accounts : "tiene subcuentas"

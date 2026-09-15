@@ -51,7 +51,7 @@
       "id": 6,
       "prompt": "Quiero asignar la cuenta maestra CLIENTE_NACIONAL a la cuenta 2105 'Documentos por pagar' porque me acomoda para un reporte.",
       "expectations": [
-        "El agente rechaza la asignación: CLIENTE_NACIONAL solo admite Tipo 1 (Activo) según allowed_type_codes, y 2105 es Pasivo",
+        "El agente rechaza la asignación: CLIENTE_NACIONAL solo admite la clase Activo según allowed_class_codes, y 2105 es de clase Pasivo en el plan de la empresa",
         "El agente explica que asignarla invertiría la naturaleza de todo asiento de venta centralizado y falsearía el balance",
         "El agente explica que la cuenta maestra existe para centralizar en un punto único por empresa una decisión estructural que los procesos automáticos resuelven sin preguntar",
         "El agente NO ofrece un workaround para saltarse la restricción de tipo"
@@ -61,8 +61,8 @@
       "id": 7,
       "prompt": "Necesito que la cuenta de Caja (1101) exija centro de costo. ¿Agrego el flag trabaja_con_centro_costo en true?",
       "expectations": [
-        "El agente explica que trabaja_con_centro_costo es DERIVADO y no configurable: requiere empresa con centros de costo Y cuenta de resultado (código 4 o 5)",
-        "El agente indica que 1101 es Activo (código 1), por lo que nunca exigirá centro de costo",
+        "El agente explica que trabaja_con_centro_costo es DERIVADO y no configurable: requiere empresa con centros de costo Y cuenta de resultado (clase Ganancias o Pérdidas, segun el plan)",
+        "El agente indica que 1101 es de clase Activo en el plan de la empresa, por lo que nunca exigirá centro de costo",
         "El agente no propone agregar una columna ni un flag manual para forzarlo"
       ]
     }

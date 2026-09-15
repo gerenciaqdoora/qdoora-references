@@ -10,7 +10,7 @@ Decidir qué cuenta recibe cada monto es la única parte realmente específica d
 | Es **estructural del plan de cuentas** (Clientes, Proveedores, IVA débito/crédito, Honorarios por pagar, Remuneraciones por pagar) | **Cuenta maestra** | `AccountingEntryService::resolveMasterNode($companyId, $categoryCode)` | **No** — los pone el proceso |
 | Es un **impuesto de la empresa** | **Impuesto** | `AccountingEntryService::resolveTaxNode()` o `resolveTaxNodeOrMaster()` | Según su propia imputación |
 
-Las constantes de categoría están en `app/Constants/AccountCategories.php`. **Qué significa cada cuenta maestra, a qué Tipo puede asignarse (`allowed_type_codes`) y cuál corresponde a tu dominio está documentado en `erp-accounting-expert` (sección 1.5)** — consúltalo antes de elegir.
+Las constantes de categoría están en `app/Constants/AccountCategories.php`. **Qué significa cada cuenta maestra, a qué clase contable puede asignarse (`allowed_class_codes`) y cuál corresponde a tu dominio está documentado en `erp-accounting-expert` (sección 1.5)** — consúltalo antes de elegir.
 
 > **Cuenta mayor**: el nodo que recibe el movimiento es el *último* del árbol. Si la Cuenta tiene SubCuentas, manda la SubCuenta. Por eso todo nodo resuelto viaja como `{node_id, type}` — un id suelto es ambiguo entre `cont_accounts` y `cont_sub_accounts`. Ver `erp-accounting-expert` sección 1.2.
 
@@ -56,7 +56,7 @@ Dos ejemplos reales:
 Las reglas viven en `AccountRequirementService`:
 
 - **Auxiliar**: exigido si `trabaja_con_auxiliar_con_rut || trabaja_con_auxiliar_sin_rut`. Además valida el **tipo** con `mismatchedAuxiliaryType()` — los dos conjuntos son disjuntos y una cuenta puede cambiar de uno a otro.
-- **Centro de costo**: **derivado, no configurable** — `company.allow_cost_center && cuenta de resultado`. Cuenta de resultado = el código empieza en `4` o `5` (`RESULT_TYPE_CODES`).
+- **Centro de costo**: **derivado, no configurable** — `company.allow_cost_center && cuenta de resultado`. Cuenta de resultado = clase Ganancias o Pérdidas (`TypeClasses::RESULT_CLASSES`), resuelta por plan vía `AccountPlanTypeClassMap` — no por el dígito del código.
 
 ### Momento 2 — revalidación diferida
 

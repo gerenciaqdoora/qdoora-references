@@ -114,6 +114,13 @@ Cada endpoint valida obligatoriamente 3 niveles antes de procesar:
 2. `SUBSCRIBER_ROLE` — relación empresa (`company_id` ↔ `suscriptor_id`)
 3. `IDOR` — propiedad del recurso específico en `authorize()` del FormRequest
 
+### Autorización Client-Side (Portal Cliente) — sep-2026
+El frontend espeja las dos capas del backend: `hasModuleGuard` (módulo contratado, desde `active_modules`) y `hasSubmodulePermissionGuard` (submódulo + operación, desde `GET /v1/company/{id}/permissions/mine`). Skill: `qdoora-guard`.
+
+**Decisión: la matriz de permisos NO se firma ni se envuelve en un JWT.** Se evaluó y se descartó. Un JWT está *firmado, no cifrado*: su payload es base64url y el propio frontend debe poder leerlo para renderizar, así que no oculta nada; solo aporta integridad, que aquí es irrelevante porque ocultar botones nunca fue el control de seguridad (el FormRequest revalida cada acción). Además `security-iam-expert` lo veta en dos reglas de refutación inmediata: "prohibido inyectar arrays de permisos" en el token (QD-09) y "decodificar el JWT en Angular para resolver permisos" (QD-01). Lo que sí se aplicó del principio de menor privilegio fue **minimizar el payload**: solo viajan los submódulos con al menos una operación concedida.
+
+**RBAC ya existía**: `role_submodule_permissions` (plantilla por rol) + `users_permission_submodule` (override por usuario) = RBAC con ACL por usuario encima. No hacía falta introducirlo.
+
 ### Gestión de Archivos
 - **Solo S3**: `S3FileService` para todo. En BD solo la ruta relativa (`companies/1/logo.png`).
 - Respuesta al frontend: URLs firmadas temporales via `S3FileService::getSignedUrl()`.

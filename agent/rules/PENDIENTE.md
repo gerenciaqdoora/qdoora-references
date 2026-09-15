@@ -87,33 +87,44 @@ Los endpoints para consultar el detalle de un documento en el SII (cesibilidad, 
 - `GET /rcv/documents/{tipo_doc}/{folio}` (Requiere `rcv_type` por query string. Valida `COMPRA-REVIEW` o `VENTA-REVIEW`).
 - `POST /rcv/documents/{tipo_doc}/{folio}/action` (Requiere `rcv_type` en el body. Valida `COMPRA-UPDATE` o `VENTA-UPDATE`).
 
+**Precisión (verificado 2026-09-15)**: ambas rutas están **comentadas** en `qdoora-api/routes/api.php` (bloque
+«DOCUMENTADOS COMO PENDIENTE»). El controlador (`Sii\RcvController::documentDetail` / `submitAction`, con sus
+FormRequests) y `RcvActionService` sí existen; el WSDL está en `SiiEnvironment::rcvActionWsdlUrl()`.
+
 Sin embargo, el **Frontend (`fuse-starter`) aún no los consume**. No existen los métodos en `api.ts` y no hay UI en los listados de compras/ventas para gatillar estas acciones contra el SII.
 
 ### Cambio propuesto
 
+0. Descomentar las dos rutas en `routes/api.php`.
 1. Agregar los métodos `rcvDocumentDetail` y `submitRcvAction` en `fuse-starter/src/app/api/sii/api.ts` asegurando de enviar `rcv_type` en los parámetros correspondientes.
 2. Construir la UI en los listados de Contabilidad (Compras/Ventas) que permita hacer clic en un documento y ver su estado de cesión o emitir una aceptación comercial/reclamo.
 
 ## 3. Integrar endpoints de Imputación Contable en el Frontend
 
-**Estado**: pendiente
-**Capa**: frontend (`fuse-starter`) · **Esfuerzo**: M · **Criticidad**: BAJA
+**Estado**: pendiente (parcial) · **Verificado**: 2026-09-15
+**Capa**: full-stack (`qdoora-api` rutas + `fuse-starter`) · **Esfuerzo**: M · **Criticidad**: BAJA
 
 ### Problema
 
-Los endpoints para la configuración contable centralizada (`AccountingImputationController`) están construidos y securizados en el backend, pero el **Frontend (`fuse-starter`) aún no los consume**:
+`AccountingImputationController` tiene construidos `index`, `pending`, `byAccount` y `destroy`, pero **solo `store`
+tiene ruta activa**; las otras cuatro están **comentadas** en `routes/api.php` (grupo
+`{company_id}/accounting-imputation`) y el **Frontend (`fuse-starter`) no las consume**:
 
 - `GET {company_id}/accounting-imputation/pending`
 - `GET {company_id}/accounting-imputation/by-account/{account_id}`
 - `GET {company_id}/accounting-imputation`
-- `POST {company_id}/accounting-imputation`
 - `DELETE {company_id}/accounting-imputation/{purpose}/{imputable_id}`
 
-No existen los métodos en `api.ts` y no hay componentes UI para configurar la imputación contable de un registro (asignación de cuenta, auxiliar y centro de costo).
+Ya cubierto: `POST {company_id}/accounting-imputation` → `AccountPlanApi.save_accounting_imputation()` /
+`AccountPlanService.saveAccountingImputation()`, consumido por el diálogo `honorarium-centralization`.
+
+No hay componente UI para listar/gestionar las imputaciones contables de un registro (asignación de cuenta,
+auxiliar y centro de costo) más allá de ese diálogo.
 
 ### Cambio propuesto
 
-1. Agregar los métodos correspondientes en los servicios del frontend (posiblemente bajo un nuevo dominio en `src/app/api/accounting/`).
+0. Descomentar las cuatro rutas en `routes/api.php`.
+1. Agregar los métodos correspondientes en `AccountPlanApi`/`AccountPlanService` (junto a `save_accounting_imputation`).
 2. Construir la UI que permita configurar y gestionar las imputaciones contables para cada propósito y registro.
 
 ## 4. Informar el aporte CCAF en el archivo Previred
@@ -340,32 +351,126 @@ que facturan por varios giros antes de que aparezca en producción.
 parcial borra silenciosamente giro, dirección, comuna y el resto. Siempre enviar el registro completo.
 `logo` es la excepción: si la clave viene en `null`, **borra el archivo en S3** — omitirla para no tocarlo.
 
-## 9. Consulta de estado DTE y notificación Toastr en respuesta de Probar Conexión SII
+## 9. Mostrar el ambiente SII en la notificación de "Probar conexión"
 
-**Estado**: pendiente
-**Capa**: full-stack (`qdoora-api` + `fuse-starter` / `support-portal`) · **Esfuerzo**: S · **Criticidad**: MEDIA
+**Estado**: pendiente · **Verificado**: 2026-09-15
+**Capa**: frontend (`fuse-starter/src/app/modules/admin/billing/setting/setting.component.ts`) · **Esfuerzo**: S · **Criticidad**: BAJA
+
+> La consulta de estado DTE ya está cubierta: `DteStatusService` (SOAP `QueryEstUp` / `QueryEstDte`), rutas
+> `GET /dte/status/{track_id}` y `/dte-envios/{envio_id}/items/{item_id}/document-status`, y `SiiApi.dteStatus()`
+> en el frontend. La URL `DTEauth?3` es el formulario web manual del SII, no una API — no se integra.
 
 ### Problema
 
-1. **Consulta estado DTE**: Se requiere incorporar/gestionar el endpoint de consulta de estado DTE en el ambiente de certificación SII (`https://maullin.sii.cl/cgi_dte/UPL/DTEauth?3`).
-2. **Notificación Toastr al probar conexión**: Al presionar el botón "Probar Conexión", la API responde con la siguiente estructura JSON:
+Al presionar "Probar conexión SII", `CertificateController` responde:
 
 ```json
 {
-    "data": {
-        "connected": true,
-        "environment": "certificacion"
-    },
+    "data": { "connected": true, "environment": "certificacion" },
     "status": 200,
     "message": "Conexión con el SII establecida correctamente.",
     "errors": []
 }
 ```
 
-Actualmente se necesita implementar/asegurar que dicha respuesta entregue una alerta interactiva tipo Toastr (o notificación visual amigable en el Frontend) confirmando el estado de conexión (`connected`) y ambiente configurado (`environment`).
+`testConnection()` ya notifica con `NotificationService`, pero **descarta la respuesta**: usa un texto fijo y no
+informa el ambiente activo (`next: () => this._notification.success('Conexión con el SII establecida correctamente.')`).
 
 ### Cambio propuesto
 
-1. **Integración de consulta DTE**: Configurar la URL de consulta de estado DTE (`https://maullin.sii.cl/cgi_dte/UPL/DTEauth?3`) dentro de las constantes/servicios SII.
-2. **Alertas Toastr en Frontend**: Capturar el payload de respuesta de `probar conexión` y gatillar un mensaje tipo Toastr o snackbar que informe al usuario `message` ("Conexión con el SII establecida correctamente.") y el ambiente activo (`certificacion`/`produccion`).
+Usar `response.message` y agregar `response.data.environment` (`certificacion`/`produccion`) al texto de la
+notificación, para que el usuario sepa contra qué ambiente se validó la conexión.
 
+## 10. Referencia: Tutorial Proceso de Certificación SII ("Certificador")
+
+**Estado**: pendiente
+**Capa**: documentación · **Esfuerzo**: S · **Criticidad**: BAJA
+
+### Link: https://www.youtube.com/watch?v=JXktFGtLrJ8
+
+Tutorial que utiliza el programa "Certificador" y que muestra el proceso de certificación de facturas electrónicas para el SII. 
+Para mas información visita nuestro sitio https://www.simpleapi.cl
+
+Manual de Certificación 🚀
+
+En SII 🏣
+
+Realizar la postulación
+Inscríbase aquí / Postulación: https://maullin.sii.cl/cvc_cgi/dte/pe_ingrut
+
+Descargar set de pruebas:
+Para boletas: https://www4.sii.cl/certBolElectDteInternet/?SET=1
+Para facturas y otros documentos: https://maullin.sii.cl/cvc_cgi/dte/pe_generar
+
+Verificar que el usuario tenga permisos:
+Menú Postulantes / Ambiente de cert / Actualización de datos empresa / Mantención de usuarios: https://maullin.sii.cl/cvc_cgi/dte/eu_enrola_usuarios
+
+Descargar folios y guardar: (Certificador\bin\Debug\out\caf)
+Ambiente de certificación y prueba / Timbraje / Solicitar timbraje: https://maullin.sii.cl/cvc_cgi/dte/of_solicita_folios
+
+Configurar los datos de la empresa:
+Menú postulante / Ambiente certificación / Ayuda / Instructivo técnico / Datos del contribuyente para la construcción del DTE: https://maullin.sii.cl/cvc_cgi/dte/pe_construccion_dte
+
+Verificar fecha de resolución :
+Menú postulante / Ambiente certificación / Actualizar datos empresa: https://maullin.sii.cl/cvc_cgi/dte/ad_empresa1
+
+Consulta Estado de envío ⚠️ (Utilitario)
+Ambiente de certificación y envío de DTE y libros / consulta de estado de un envío: https://maullin.sii.cl/cgi_dte/UPL/DTEauth?3
+
+En Certificador 💻
+Sistema facturación de mercado / Menú postulante / ambiente certificación y prueba
+
+Paso 1️⃣ 🚩 Generar documentos según set de pruebas:
+
+Set básico afecto (rellenar con set de prueba)
+Libro compras (llenar con datos de set de prueba)
+Libro ventas (se envía SetBasico. Si desea usar un Folio de Notificación diferente al predefinido, debe hacerlo antes de cargar el archivo EnvioDTE (XML))
+
+Declarar avance: https://maullin.sii.cl/cvc_cgi/dte/pe_avance1
+
+Paso 2️⃣ 🚩 Simulación de documentos
+
+Factura electrónica
+Nota de Crédito
+Nota de Débito
+
+Verificar que los nuevos documentos generados en esta etapa, no tengan los mismos folios previamente asignados en el paso 1.
+Declarar avance: https://maullin.sii.cl/cvc_cgi/dte/pe_avance1
+
+Paso 3️⃣ 🚩 Etapa de intercambio
+
+Bajar archivo xml (EnvioDTE.xml): https://www4.sii.cl/pfeInternet/#menu
+
+Generar documentos de intercambiador y seleccionar el archivo
+Subir los 3 archivos xml generados
+
+Paso 4️⃣ 🚩 Upload muestras impresas
+
+Opción postulante / Upload de Muestras Impresas: https://www4.sii.cl/pdfdteInternet/
+
+-----
+Declaración de cumplimiento de requisitos: https://maullin.sii.cl/cvc_cgi/dte/pe_avance7
+
+Nª de resolucion es siempre 0 para certificacion.
+
+## 11. Estrechar `allowed_class_codes` de HONO/HONE/GADE/GADX a solo `GANANCIA`
+
+**Estado**: diferido (no bloqueante) · **Verificado**: 2026-09-15
+**Capa**: backend (migración) · **Esfuerzo**: S · **Criticidad**: BAJA
+
+> El catastro de hallazgos amarrados al dígito 1..5 (`qdoora-references/Otros/catastro_tipos_plan_cuentas.md`)
+> quedó **cerrado**: Fases 1, 2 y 3 ejecutadas el 2026-09-14/15 (`cont_type_classes`, `Tipo.type_class_code`,
+> `allowed_class_codes`, `AccountPlanTypeClassMap`, importador por columna "Clase Cuenta", Portal Cliente por
+> `type_class_code`). Este es el único seguimiento que dejó abierto.
+
+### Problema
+
+`2026_09_15_100000_replace_allowed_type_codes_with_allowed_class_codes.php` tradujo el `['3','4']` histórico de
+HONO/HONE/GADE/GADX a `['PATRIMONIO','GANANCIA']` sin estrecharlo, porque hay planes reales que ubican esos
+honorarios/gastos de despacho bajo Patrimonio (ver `AccountPlanImport_SiglaMapping.md`, nota HONO/HONE/GADE/GADX).
+
+### Cambio propuesto
+
+Decidir con `erp-accounting-expert` si esas cuatro cuentas maestras deben admitir solo `GANANCIA`; si es así,
+nueva migración que actualice `cont_account_categories.allowed_class_codes` y revisar que ningún plan importado
+en QA las tenga asignadas bajo un Tipo Patrimonio antes de aplicarla.

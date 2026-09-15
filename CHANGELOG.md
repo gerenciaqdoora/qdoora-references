@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-09-15] docs[knowledge]: actualización de reglas de memoria, estándares backend/frontend y refinamiento de skills contables y de seguridad
+
 - [2026-09-07] docs(rules): documentar reglas de libros de certificacion sii, guia 52, folios caf y pendientes
 
 - [2026-08-26] docs(agent): actualizar reglas de backend y pendientes

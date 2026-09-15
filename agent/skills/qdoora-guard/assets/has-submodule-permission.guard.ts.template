@@ -1,0 +1,60 @@
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
+import { map } from 'rxjs';
+import { NotificationService } from '../services/notification.service';
+import { PermissionService, SubmoduleOperation } from '../services/permission.service';
+
+/**
+ * Guard de acceso por submódulo — espejo client-side de `authorizeSubmodule()` del
+ * backend. Es SOLO UX: la autorización real la aplica el FormRequest del endpoint
+ * correspondiente, que rechaza igual aunque alguien navegue a la ruta a la fuerza.
+ *
+ * Regla dura: no crear un guard con esta factory sin verificar antes que el submódulo
+ * y la operación existen en el `authorize()` del backend.
+ *
+ * Usa `can$` (asíncrono) y no `can` (síncrono) a propósito: la matriz llega por HTTP
+ * después del arranque, y un deep-link evaluado de forma síncrona denegaría el acceso
+ * a un usuario que sí tiene permiso.
+ *
+ * @param submoduleCode Código del catálogo, ej. '{{SUBMODULE_CODE}}'
+ * @param operation     Operación exigida; 'review' para simple acceso de lectura
+ */
+export function hasSubmodulePermissionGuard(
+    submoduleCode: string,
+    operation: SubmoduleOperation = 'review'
+): CanActivateFn {
+    return () => {
+        const permissionService = inject(PermissionService);
+        const notificationService = inject(NotificationService);
+        const router = inject(Router);
+
+        return permissionService.can$(submoduleCode, operation).pipe(
+            map((allowed) => {
+                if (allowed) {
+                    return true;
+                }
+
+                notificationService.show(
+                    'No tienes permisos para acceder a esta sección.',
+                    'warning',
+                    [],
+                    'Acceso Restringido'
+                );
+
+                return router.parseUrl('/dashboards/home');
+            })
+        );
+    };
+}
+
+// ---------------------------------------------------------------------------
+// USO en el *.route.ts del módulo:
+//
+// canActivate: [
+//     CompanySelectedRequiredGuard,
+//     hasSubmodulePermissionGuard('{{SUBMODULE_CODE}}', '{{OPERATION}}'),
+// ],
+//
+// NOTA: NotificationService.show() es POSICIONAL — (message, type, actions, title).
+// No recibe un objeto de opciones.
+// ---------------------------------------------------------------------------

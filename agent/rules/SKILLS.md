@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: Catastro completo de Skills especializadas del ecosistema QdoorA — 40 skills
+description: Catastro completo de Skills especializadas del ecosistema QdoorA — 41 skills
 ---
 
 # SKILLS.md — Catastro de Habilidades QdoorA
@@ -52,6 +52,7 @@ description: Catastro completo de Skills especializadas del ecosistema QdoorA �
 | Nuevo diálogo (modal), estandarizar a layout QdoorA con inyección Tailwind y `ChangeDetectionStrategy.OnPush` | `qdoora-dialog-creator` |
 | Tour guiado / walkthrough / onboarding de una pantalla, tours del Centro de Ayuda (`/general/help-center/guides`), "el tour no arranca / no aparece" | `qdoora-new-guided-tour` |
 | UI/UX premium, diseño por portal (Cliente vs Soporte) | `qdoora-ui-ux-master` |
+| Guard de ruta, proteger una página nueva, ocultar botones según permiso de submódulo, control de acceso client-side | `qdoora-guard` |
 | Sincronización tipos Laravel ↔ TypeScript, auditoría de contrato | `api-contract-aligner` |
 
 ### Seguridad
@@ -119,7 +120,7 @@ Usuario: "Agrega un campo 'centro de costo' al formulario de liquidación de nó
 
 ---
 
-## ÍNDICE COMPLETO DE SKILLS (40 disponibles)
+## ÍNDICE COMPLETO DE SKILLS (41 disponibles)
 
 ```
 DOMINIO ERP
@@ -141,6 +142,7 @@ FRONTEND (Angular)
   qdoora-new-table-page            qdoora-new-setting-page  
   qdoora-dialog-creator            qdoora-new-guided-tour
   api-contract-aligner             qdoora-ui-ux-master
+  qdoora-guard
   (* fallback genérico — preferir angular-shared-components-expert o qdoora-ui-ux-master)
 
 SEGURIDAD
