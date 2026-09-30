@@ -23,6 +23,7 @@
 
 ### graphify — Consulta Primero el Grafo (Mandato)
 Cada repo tiene su grafo de código (`<repo>/graphify-out/graph.json`) y la raíz del workspace tiene uno que fusiona los tres (`graphify-out/graph.json`). Las sesiones se abren en la raíz.
+- **Si no existe `graphify-out/graph.json` en la raíz** (máquina sin setup): usa `grep_search`/`list_dir` como antes y avisa una vez al usuario que ejecute `qdoora-references/agent/scripts/graphify-setup.sh` (requiere graphify instalado; el script indica cómo). Nunca lo ejecutes tú.
 - **Primero el grafo**: ante cualquier pregunta sobre el código, corre desde la raíz `graphify query "<términos>"` antes de hacer grep o leer archivos. Usa términos en inglés que calcen con los identificadores (`"treasury create request payment"`, no "cómo se crea un pago"). `graphify explain "X"` para un símbolo, `graphify affected "X"` antes de cambiar algo compartido, `graphify path "A" "B"` para relaciones dentro de un mismo repo.
 - **Acotar a un repo**: agrega `--graph <repo>/graphify-out/graph.json`.
 - **Límite conocido**: el grafo NO enlaza las llamadas HTTP Angular → Laravel (solo conecta repos del mismo lenguaje), así que `path` entre la API y un portal no encuentra nada. Para un contrato, una sola `query` por dominio trae ambos lados; luego sigue el flujo de "Sincronización Full-Stack".

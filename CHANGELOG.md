@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-09-30] feat(agent): agregar graphify-setup.sh para preparar graphify en máquinas nuevas y regla de respaldo sin grafo en AGENT_BASE
+
 - [2026-09-30] feat(agent): integrar graphify como base de consulta de Claude y Codex (sección en AGENT_BASE, gotcha #23 en MEMORY y script graphify-sync.sh)
 
 - [2026-09-30] refactor(agent): fusionar qdoora-cloud-devops-engineer y qdoora-docker-compose-expert en qdoora-despliegue
