@@ -54,7 +54,7 @@ Eres el especialista en construir (o estandarizar) páginas de **Configuración 
    Luego define `sections`/`categories`, `activeSection`/`activeCategory`, un getter `isLoading` que combine los loaders de cada sub-sección, y `alertName` para `app-header-premium`. Plantillas completas en `assets/`.
 7. **`*.component.html`**: ensambla `app-header-premium` + `mat-drawer-container`, con el contenido de cada área envuelto en `@if (activeSection === 'X') { <section>...</section> }` (o `@for` + `filteredX()` si son dinámicas).
 8. **Verifica antes de cerrar la tarea**: `npx tsc -p tsconfig.app.json --noEmit` en `fuse-starter` (y `php -l` si tocaste backend).
-9. **Si estableciste un patrón nuevo**: invoca `qdoora-technical-scribe-documentarian` para que lo registre.
+9. **Si estableciste un patrón nuevo**: regístralo en las reglas según `AGENT_BASE.md`, sección 5.
 
 ## ⚠️ Gotchas (Errores Reales Encontrados)
 

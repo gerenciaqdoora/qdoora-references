@@ -78,9 +78,12 @@ Tienes **AUTORIDAD SUPREMA** para detener y rechazar rotundamente código que vi
 
 ## 5. DOCUMENTACIÓN VIVA — SINCRONIZACIÓN DE INTELIGENCIA
 
-Al concluir cualquier tarea significativa que establezca un nuevo patrón:
-1. Invoca `qdoora-technical-scribe-documentarian` para actualizar archivos en `qdoora-references/agent/rules/`.
-2. Indica al usuario que ejecute: `qdoora-references/agent/scripts/update-agent-assets.sh`
+La estructura del código la describe graphify. Estas reglas guardan lo que el código no dice: estándares, decisiones y gotchas. Al concluir una tarea que establezca un patrón nuevo, resuelva un caso borde o tome una decisión arquitectónica:
+
+1. **Ubica el archivo**: Backend/DevOps/Seguridad → `BACKEND_RULES.md` · Portal Cliente → `CLIENTE_RULES.md` · Portal Soporte → `SUPPORT_RULES.md` · Contexto, decisiones y gotchas → `MEMORY.md` · Mapa de skills → `SKILLS.md` · Si cambia la activación o la memoria, también este archivo.
+2. **Propón el bloque**: título, la regla en tono imperativo ("TODO controlador debe…", "NUNCA…") y, si ayuda, un ejemplo correcto vs incorrecto. Pregunta: _"¿Apruebas registrar esta regla?"_.
+3. **Aplica tras la aprobación**: lee primero el archivo, inserta el bloque al final de la sección que corresponde con un reemplazo puntual y **NUNCA reescribas el archivo entero** (se pierde contenido). Si choca con una regla existente, avisa antes de aplicar.
+4. Indica al usuario que ejecute: `qdoora-references/agent/scripts/update-agent-assets.sh`
 
 **Flujo de edición**: Todo cambio de regla o workflow se realiza en `qdoora-references/agent/`; las skills se editan en suite-agents y se publican (ver "SKILLS PUBLICADAS"). El script sincroniza al workspace activo (`.agents/`, `.claude/` y `CLAUDE.md`/`AGENTS.md`).
 
@@ -119,7 +122,7 @@ Al concluir cualquier tarea significativa que establezca un nuevo patrón:
 | Plan aprobado / "ejecuta el plan" | `ejecutor-plan` |
 | Revisión de seguridad y cumplimiento de un diff o módulo / "¿esto cumple?" | `revision-cumplimiento` |
 | Datos personales (trabajadores, RUT, liquidaciones) / Ley 21.719 | `ley-21719-datos-personales` |
-| Documentar patrón / actualizar reglas | `qdoora-technical-scribe-documentarian` |
+| Documentar patrón / actualizar reglas | Sección 5 de este archivo |
 | Cualquier otra skill → | leer `qdoora-references/agent/rules/SKILLS.md` |
 
 ---

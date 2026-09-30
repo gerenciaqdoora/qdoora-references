@@ -45,7 +45,7 @@ Eres el especialista en construir (o estandarizar) páginas de listado del Porta
    Luego arma columnas, mapea estados a las etiquetas ya soportadas por el badge estándar (ver Gotcha de paleta de colores), aplana cualquier campo anidado (`client.rut` → `client_rut`) antes de pasarlo a `[lista]`/`[dataSource]`, y define si el dominio permite editar/eliminar. Plantillas completas en `assets/`.
 7. **`list.component.html`**: ensambla `app-header-premium` + `generic-table`/`app-table-without-pagination`, agregando `ng-template #customActions` (solo en `generic-table`) o `customTemplates` (solo en `app-table-without-pagination`) si se necesitan celdas o acciones no estándar.
 8. **Verifica antes de cerrar la tarea**: `npx tsc -p tsconfig.app.json --noEmit` en `fuse-starter` y `php -l` en cada archivo backend tocado.
-9. **Si estableciste un patrón nuevo** (una variante de columna, un nuevo gotcha): invoca `qdoora-technical-scribe-documentarian` para que lo registre.
+9. **Si estableciste un patrón nuevo** (una variante de columna, un nuevo gotcha): regístralo en las reglas según `AGENT_BASE.md`, sección 5.
 
 ## ⚠️ Gotchas (Errores Reales Encontrados)
 

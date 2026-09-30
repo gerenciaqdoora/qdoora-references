@@ -166,4 +166,4 @@ Relaciones desde `ThirdCompany` (modelo core) hacia submódulos (ej. Nómina) de
 
 ---
 
-> Actualizar este archivo mediante `qdoora-technical-scribe-documentarian` tras cada nueva decisión arquitectónica relevante. Ejecutar `update-agent-assets.sh` después.
+> Actualizar este archivo siguiendo `AGENT_BASE.md`, sección 5, tras cada nueva decisión arquitectónica relevante. Ejecutar `update-agent-assets.sh` después.

@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: Catastro completo de Skills del ecosistema QdoorA — 47 skills (34 de negocio qdoora-* y 13 universales)
+description: Catastro completo de Skills del ecosistema QdoorA — 46 skills (33 de negocio qdoora-* y 13 universales)
 ---
 
 # SKILLS.md — Catastro de Habilidades QdoorA
@@ -91,7 +91,7 @@ description: Catastro completo de Skills del ecosistema QdoorA — 47 skills (34
 | Requerimiento claro o diseño aprobado → plan de implementación (HARD STOP hasta aprobación) | `planificador` |
 | Ejecutar un plan aprobado con verificación completa | `ejecutor-plan` |
 | Plan con 3+ tareas independientes en paralelo | `desarrollo-con-subagentes` |
-| Documentar patrones, actualizar reglas, documentación viva | `qdoora-technical-scribe-documentarian` |
+| Documentar patrones, actualizar reglas, documentación viva | `AGENT_BASE.md`, sección 5 (sin skill) |
 | Crear o mejorar Skills | Se hace en suite-agents (ver `workflows/create-skill.md`) |
 | Git commits semánticos, mensajes de commit | `qdoora-committer` |
 
@@ -103,7 +103,7 @@ description: Catastro completo de Skills del ecosistema QdoorA — 47 skills (34
 2. **Mapea** a la Skill usando las tablas de arriba.
 3. **Lee** el archivo `qdoora-references/agent/skills/<skill-name>/SKILL.md`.
 4. **Aplica** los patrones exactos de código que define la Skill.
-5. **Al terminar**: invoca `qdoora-technical-scribe-documentarian` si se estableció un nuevo patrón.
+5. **Al terminar**: si se estableció un nuevo patrón, regístralo según `AGENT_BASE.md`, sección 5.
 
 ### Ejemplo de Orquestación
 ```
@@ -112,7 +112,7 @@ Usuario: "Agrega un campo 'centro de costo' al formulario de liquidación de nó
 → Dominio primario: Nómina → skill: qdoora-erp-nomina-expert
 → Capa Backend: FormRequest modificado → skill: qdoora-laravel-form-requests
 → Contrato: cambio en tipos → skill: contratos-api + flujo de qdoora-full-stack-architect
-→ Al terminar: skill: qdoora-technical-scribe-documentarian
+→ Al terminar: registrar el patrón (AGENT_BASE.md, sección 5)
 ```
 
 ---
@@ -125,7 +125,7 @@ Usuario: "Agrega un campo 'centro de costo' al formulario de liquidación de nó
 
 ---
 
-## ÍNDICE COMPLETO DE SKILLS (47 disponibles)
+## ÍNDICE COMPLETO DE SKILLS (46 disponibles)
 
 ```
 DOMINIO ERP
@@ -165,7 +165,7 @@ QA, DEBUGGING Y CALIDAD
 PROCESO Y META-SKILLS
   brainstorming                           planificador
   ejecutor-plan                           desarrollo-con-subagentes
-  qdoora-technical-scribe-documentarian   qdoora-committer
+  qdoora-committer
 ```
 
 ---
