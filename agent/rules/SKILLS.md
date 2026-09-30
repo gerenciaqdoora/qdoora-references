@@ -1,13 +1,13 @@
 ---
 trigger: model_decision
-description: Catastro completo de Skills especializadas del ecosistema QdoorA — 41 skills
+description: Catastro completo de Skills del ecosistema QdoorA — 47 skills (34 de negocio qdoora-* y 13 universales)
 ---
 
 # SKILLS.md — Catastro de Habilidades QdoorA
 
-> Lee este archivo cuando necesites seleccionar la Skill adecuada o mapear un módulo del ERP a su experto. Todas las skills residen en `qdoora-references/agent/skills/<skill-name>/SKILL.md`. Las `qdoora-*` se publican desde suite-agents y no se editan aquí (ver `AGENT_BASE.md`, "SKILLS PUBLICADAS").
+> Lee este archivo cuando necesites seleccionar la Skill adecuada o mapear un módulo del ERP a su experto. Todas las skills residen en `qdoora-references/agent/skills/<skill-name>/SKILL.md` y se publican desde suite-agents: no se editan aquí (ver `AGENT_BASE.md`, "SKILLS PUBLICADAS"). Las `qdoora-*` son de negocio; las demás son universales y leen el perfil del proyecto en `AGENT_BASE.md` (sección 8).
 
-> **Flujo de diseño a implementación**: `brainstorming` (idea → diseño) → `prompt-architect-master` (diseño → plan) → `prompt-executor-master` (plan → código)
+> **Flujo de diseño a implementación**: `brainstorming` (idea → diseño) → `planificador` (diseño → plan) → `ejecutor-plan` (plan → código verificado)
 
 ---
 
@@ -45,7 +45,7 @@ description: Catastro completo de Skills especializadas del ecosistema QdoorA �
 
 | Tarea | Skill a activar |
 |-------|-----------------|
-| Componentes, servicios, pipes, Angular patterns | `angular-developer` |
+| Componentes, servicios, pipes, patrones Angular del proyecto | `qdoora-ui-ux-master` (por portal) · `qdoora-angular-shared-components-expert` |
 | Componentes shared (`app-table`, `app-input-form`, etc.) | `qdoora-angular-shared-components-expert` |
 | Nueva página de listado (tabla), estandarizar `list.component` a `app-header-premium` + `generic-table`/`app-table-without-pagination`, agregar search/sort server-side | `qdoora-new-table-page` |
 | Nueva página de Configuración/Ajustes/Parámetros, estandarizar a `app-header-premium` + `mat-drawer-container` cuando hay 2+ áreas/naturalezas | `qdoora-new-setting-page` |
@@ -53,14 +53,18 @@ description: Catastro completo de Skills especializadas del ecosistema QdoorA �
 | Tour guiado / walkthrough / onboarding de una pantalla, tours del Centro de Ayuda (`/general/help-center/guides`), "el tour no arranca / no aparece" | `qdoora-new-guided-tour` |
 | UI/UX premium, diseño por portal (Cliente vs Soporte) | `qdoora-ui-ux-master` |
 | Guard de ruta, proteger una página nueva, ocultar botones según permiso de submódulo, control de acceso client-side | `qdoora-guard` |
-| Sincronización tipos Laravel ↔ TypeScript, auditoría de contrato | `api-contract-aligner` |
+| Sincronización tipos Laravel ↔ TypeScript, auditoría de contrato | `contratos-api` + flujo de `qdoora-full-stack-architect` |
 
-### Seguridad
+### Seguridad y Cumplimiento
 
 | Tarea | Skill a activar |
 |-------|-----------------|
 | Auth, JWT, IAM, Guards, RBAC, scopes, multi-portal | `qdoora-security-iam-expert` |
 | Ethical hacking, vectores QD-01 a QD-11, tests curl, IDOR | `qdoora-ethical-hacking-auditor` |
+| Auditoría AppSec de un diff, endpoint o módulo (OWASP ASVS/WSTG, CWE, CVSS) | `auditoria-appsec` |
+| Revisión integral de seguridad y cumplimiento, "¿esto cumple?", antes de producción | `revision-cumplimiento` |
+| Datos personales de trabajadores o usuarios, Ley 21.719 | `ley-21719-datos-personales` |
+| ISO 27001 (SGSI) · ISO 22301 (continuidad) · ISO 9001 (calidad) | `iso-27001-seguridad` · `iso-22301-continuidad` · `iso-9001-calidad` |
 
 ### Infraestructura y DevOps
 
@@ -75,18 +79,20 @@ description: Catastro completo de Skills especializadas del ecosistema QdoorA �
 | Tarea | Skill a activar |
 |-------|-----------------|
 | Auditar código/diseño existente: "¿esto escala?", "¿es seguro/estable?", race conditions, N+1, índices faltantes, tabla que congela el navegador | `qdoora-erp-technical-auditor` |
-| Tests unitarios Pest/Laravel, Jest/Angular 18, Vitest/Angular 21 | `qdoora-qa-data-auditor` |
-| Bug, error inesperado, test fallando, diagnóstico de causa raíz | `systematic-debugging` |
+| Tests Pest/Laravel y de los portales Angular | `qdoora-qa-data-auditor` |
+| Escribir el test antes del código (rojo → verde → refactor) | `desarrollo-guiado-por-pruebas` |
+| Bug, error inesperado, test fallando, diagnóstico de causa raíz | `debugging-sistematico` |
 
-### Meta-Skills — Gestión del Agente
+### Proceso y Meta-Skills
 
 | Tarea | Skill a activar |
 |-------|-----------------|
 | Idea sin forma clara, explorar enfoques antes de implementar | `brainstorming` |
-| Diseñar planes de alto impacto (Planning Mode, HARD STOP) | `prompt-architect-master` |
-| Ejecutar prompts complejos multi-paso con cadena de herramientas | `prompt-executor-master` |
+| Requerimiento claro o diseño aprobado → plan de implementación (HARD STOP hasta aprobación) | `planificador` |
+| Ejecutar un plan aprobado con verificación completa | `ejecutor-plan` |
+| Plan con 3+ tareas independientes en paralelo | `desarrollo-con-subagentes` |
 | Documentar patrones, actualizar reglas, documentación viva | `qdoora-technical-scribe-documentarian` |
-| Crear, mejorar o evaluar Skills existentes | `skill-master` |
+| Crear o mejorar Skills | Se hace en suite-agents (ver `workflows/create-skill.md`) |
 | Git commits semánticos, mensajes de commit | `qdoora-committer` |
 
 ---
@@ -105,7 +111,7 @@ Usuario: "Agrega un campo 'centro de costo' al formulario de liquidación de nó
 
 → Dominio primario: Nómina → skill: qdoora-erp-nomina-expert
 → Capa Backend: FormRequest modificado → skill: qdoora-laravel-form-requests
-→ Contrato: cambio en tipos → skill: api-contract-aligner
+→ Contrato: cambio en tipos → skill: contratos-api + flujo de qdoora-full-stack-architect
 → Al terminar: skill: qdoora-technical-scribe-documentarian
 ```
 
@@ -114,12 +120,12 @@ Usuario: "Agrega un campo 'centro de costo' al formulario de liquidación de nó
 ## REGLA DE ORO — Integridad de Contratos (Siempre)
 
 **Si se modifica un FormRequest, Controller o Interface TypeScript, el cambio NO está completo hasta alinear el otro extremo:**
-- Activa `api-contract-aligner` para auditar el impacto completo.
+- Sigue `qdoora-full-stack-architect/assets/api-contract-sync-flow.md` (principios en `contratos-api`).
 - Traduce: `required` → campo obligatorio · `nullable` → `optional?` · `numeric` → `number`.
 
 ---
 
-## ÍNDICE COMPLETO DE SKILLS (41 disponibles)
+## ÍNDICE COMPLETO DE SKILLS (47 disponibles)
 
 ```
 DOMINIO ERP
@@ -137,31 +143,32 @@ BACKEND (Laravel)
   qdoora-laravel-commands-seeders
 
 FRONTEND (Angular)
-  angular-developer*               qdoora-angular-shared-components-expert
-  qdoora-new-table-page            qdoora-new-setting-page  
-  qdoora-dialog-creator            qdoora-new-guided-tour
-  api-contract-aligner             qdoora-ui-ux-master
-  qdoora-guard
-  (* fallback genérico — preferir qdoora-angular-shared-components-expert o qdoora-ui-ux-master)
+  qdoora-angular-shared-components-expert qdoora-ui-ux-master
+  qdoora-new-table-page                   qdoora-new-setting-page
+  qdoora-dialog-creator                   qdoora-new-guided-tour
+  qdoora-guard                            contratos-api
 
-SEGURIDAD
+SEGURIDAD Y CUMPLIMIENTO
   qdoora-security-iam-expert              qdoora-ethical-hacking-auditor
+  auditoria-appsec                        revision-cumplimiento
+  ley-21719-datos-personales              iso-27001-seguridad
+  iso-22301-continuidad                   iso-9001-calidad
 
 INFRAESTRUCTURA
   qdoora-docker-compose-expert            qdoora-cloud-devops-engineer
   qdoora-mailersend-template-expert
 
 QA, DEBUGGING Y CALIDAD
-  qdoora-qa-data-auditor                  systematic-debugging  
-  qdoora-erp-technical-auditor
+  qdoora-qa-data-auditor                  qdoora-erp-technical-auditor
+  desarrollo-guiado-por-pruebas           debugging-sistematico
 
-META-SKILLS
-  brainstorming                    prompt-architect-master
-  prompt-executor-master           qdoora-technical-scribe-documentarian
-  skill-master                     qdoora-committer
+PROCESO Y META-SKILLS
+  brainstorming                           planificador
+  ejecutor-plan                           desarrollo-con-subagentes
+  qdoora-technical-scribe-documentarian   qdoora-committer
 ```
 
 ---
 
-> Todas las skills residen en `qdoora-references/agent/skills/<skill-name>/SKILL.md`.
+> Todas las skills residen en `qdoora-references/agent/skills/<skill-name>/SKILL.md`, publicadas desde suite-agents.
 > Sincronizadas al workspace activo via `qdoora-references/agent/scripts/update-agent-assets.sh`.

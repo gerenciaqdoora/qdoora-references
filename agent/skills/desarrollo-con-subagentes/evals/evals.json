@@ -1,0 +1,29 @@
+{
+  "skill_name": "desarrollo-con-subagentes",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "El plan aprobado tiene 5 tareas: la 1 crea una entidad, la 2 usa esa entidad en un servicio, y las 3, 4 y 5 son módulos separados sin relación. ¿Cómo las ejecutamos con subagentes?",
+      "expected_output": "Agrupa en olas de tareas independientes: la 1 y la 2 van en secuencia (la 2 depende de lo que crea la 1) y las 3, 4 y 5 pueden ir en paralelo si tocan archivos distintos; nunca dos subagentes sobre el mismo archivo en la misma ola; sugiere worktrees si el entorno lo permite.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Despacha la tarea 3 a un subagente.",
+      "expected_output": "El encargo es autosuficiente porque el subagente no comparte memoria: objetivo y criterio de terminado, whitelist de archivos, advertencias del plan y reglas del perfil (idioma, estilo, capas), ciclo TDD obligatorio con el comando exacto de prueba, y qué reportar (archivos cambiados, comando y su salida, desviaciones).",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "El subagente respondió 'listo, todo implementado' sin más detalles. Marca la tarea como completada.",
+      "expected_output": "No acepta 'listo' sin la salida real de las pruebas: revisa que el test falló antes y pasa ahora y que respeta la whitelist; si no cumple, lo devuelve con observaciones concretas en lugar de arreglarlo por encima; marca completada solo con evidencia en verde; si falla dos veces en la misma tarea, la toma él con debugging-sistematico.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Tengo un plan de 2 tareas muy acopladas que tocan los mismos archivos y aún no está aprobado. Usemos subagentes para ir más rápido.",
+      "expected_output": "No usa subagentes: las tareas están muy acopladas y el plan no está aprobado; explica que sin plan aprobado corresponde planificador, y que con tareas encadenadas es mejor ejecutar en secuencia con ejecutor-plan.",
+      "files": []
+    }
+  ]
+}

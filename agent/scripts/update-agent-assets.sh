@@ -29,7 +29,7 @@ mkdir -p "$CLAUDE_DIR/skills"
 
 # VALIDACIÓN OBLIGATORIA DE SKILLS
 echo "Validando integridad de Habilidades..."
-VALIDATION_SCRIPT="$SOURCE_DIR/skills/skill-master/scripts/validate-skill.js"
+VALIDATION_SCRIPT="$SOURCE_DIR/scripts/validate-skill.js"
 
 for skill in "$SOURCE_DIR/skills"/*; do
     if [ -d "$skill" ]; then
@@ -100,16 +100,21 @@ sync_folders "$AGENTS_DIR/workflows" "Workflows (.agents)" "$SOURCE_DIR/workflow
 # Ejecutar sincronización de .claude
 sync_folders "$CLAUDE_DIR/skills" "Habilidades (.claude)" "$SOURCE_DIR/skills"
 
-# SINCRONIZACIÓN CLAUDE CODE (CLAUDE.md) / CODEX (AGENTS.md) / ANTIGRAVITY (GEMINI.md)
+# SINCRONIZACIÓN CLAUDE CODE (CLAUDE.md) / CODEX (AGENTS.md)
 echo "Sincronizando AGENT_BASE.md universal..."
 AGENT_BASE_SOURCE="$SOURCE_DIR/rules/AGENT_BASE.md"
 
 if [ -f "$AGENT_BASE_SOURCE" ]; then
-    for dest in CLAUDE.md AGENTS.md GEMINI.md; do
+    for dest in CLAUDE.md AGENTS.md; do
         rm -f "$WORKSPACE_ROOT/$dest"
         ln -s "$AGENT_BASE_SOURCE" "$WORKSPACE_ROOT/$dest"
         echo "   ✅ $dest -> Raíz del Workspace"
     done
+    # GEMINI.md (Antigravity/Gemini) ya no se usa: se retira solo si es el enlace que creaba este script.
+    if [ -L "$WORKSPACE_ROOT/GEMINI.md" ] && [ "$(readlink "$WORKSPACE_ROOT/GEMINI.md")" = "$AGENT_BASE_SOURCE" ]; then
+        rm -f "$WORKSPACE_ROOT/GEMINI.md"
+        echo "   🗑️  GEMINI.md retirado"
+    fi
 else
     echo "⚠️  Aviso: qdoora-references/agent/rules/AGENT_BASE.md no encontrado."
 fi

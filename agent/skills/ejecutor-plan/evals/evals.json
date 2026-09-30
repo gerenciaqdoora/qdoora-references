@@ -1,0 +1,29 @@
+{
+  "skill_name": "ejecutor-plan",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Dale, ejecuta el plan. (No existe ningún plan aprobado en la conversación ni en docs/planes.)",
+      "expected_output": "No entra en el estado de ejecución sin un plan aprobado: lo dice y propone usar planificador (o pide la ruta del plan); no improvisa la implementación.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Aprobado, ejecuta el plan. Su whitelist solo incluye src/notas/notas.service.ts y su spec; para que compile necesito cambiar un tipo compartido en src/comun/tipos.ts.",
+      "expected_output": "Puede leer el archivo fuera de la whitelist pero declara la desviación; como necesita MODIFICARLO, se detiene y pregunta antes de tocarlo; sigue TDD estricto por tarea y respeta las advertencias del plan.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Aprobado. En la tarea 2 el plan dice que llame a repo.buscarPorSlug(), pero ese método no existe en el repositorio.",
+      "expected_output": "No improvisa un rediseño: se detiene, explica la discrepancia y propone el ajuste al plan; si un test falla sin causa clara cambia a debugging-sistematico en vez de intentar arreglos al azar.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Todas las tareas del plan están completas. Cierra.",
+      "expected_output": "Cierre en orden: verificación completa (suite, linter y compilación con los comandos del perfil, reportando el resultado real aunque falle); alineación de contratos (DTO, OpenAPI y tipos del frontend, regenerando si corresponde); revisión con revision-cumplimiento sobre el diff (o auditoria-appsec); documentación viva solo si cambió un patrón o decisión; reporte con el formato de resultado, incluyendo las desviaciones de la whitelist, y última línea exacta: IMPLEMENTACIÓN COMPLETADA. Esperando revisión.",
+      "files": []
+    }
+  ]
+}

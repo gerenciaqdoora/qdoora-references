@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-09-30] refactor(agent): reemplazar skills genéricas por las universales de suite-agents, perfil del proyecto en AGENT_BASE y retiro de GEMINI.md
+
 - [2026-09-30] refactor(agent): publicar skills de negocio con prefijo qdoora- desde suite-agents y sincronización que respeta enlaces externos
 
 - [2026-09-15] docs[knowledge]: actualización de reglas de memoria, estándares backend/frontend y refinamiento de skills contables y de seguridad

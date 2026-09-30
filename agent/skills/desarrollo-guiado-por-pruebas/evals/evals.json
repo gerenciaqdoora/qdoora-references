@@ -1,0 +1,29 @@
+{
+  "skill_name": "desarrollo-guiado-por-pruebas",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Implementa el descuento del 10% para pedidos de más de 100 unidades. Ya escribí la función, agrega tú un test que pase.",
+      "expected_output": "Aplica la ley de hierro: el código de producción se escribió antes del test, así que se descarta y se empieza de nuevo con el ciclo rojo → verde → refactor; no escribe un test que confirme el código ya hecho.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Escribe el test del endpoint DELETE /notas/:id y córrelo.",
+      "expected_output": "El test cubre éxito, validación, recurso inexistente, usuario sin permiso y recurso de otra persona, no solo el camino feliz; corre el comando exacto del perfil del proyecto y confirma que falla por la aserción y no por un import, sintaxis o configuración; nombres descriptivos en el idioma del proyecto y un motivo de falla por test.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "El test que escribí pasó a la primera. ¿Seguimos con el siguiente?",
+      "expected_output": "Lo trata como sospechoso: verifica que el test realmente pueda fallar (romper el código o correr sin implementación) antes de darlo por bueno; no avanza con un rojo que nunca vio.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Para que las pruebas sean rápidas voy a mockear el repositorio, el servicio que estoy probando y correr los tests directo contra la base de desarrollo.",
+      "expected_output": "Corrige ambos: mocks solo en los bordes (red, reloj, servicios externos) y nunca mockear lo que se está probando; las pruebas jamás tocan bases o servicios reales de desarrollo o producción, se usa la base aislada de pruebas del perfil; prueba comportamiento de la interfaz pública, no implementación.",
+      "files": []
+    }
+  ]
+}

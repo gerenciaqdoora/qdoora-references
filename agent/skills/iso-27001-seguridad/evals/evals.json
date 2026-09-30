@@ -1,0 +1,29 @@
+{
+  "skill_name": "iso-27001-seguridad",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Estamos por certificarnos en ISO 27001. Ya tenemos MFA, respaldos y una política de contraseñas. ¿Estamos conformes? Hazme la Declaración de Aplicabilidad.",
+      "expected_output": "No declara conformidad ni arma la SoA sin la Ley de Hierro: pide o declara como brecha el alcance, la apreciación de riesgos, la evidencia objetiva de cada control y el dueño del riesgo residual; la SoA se deriva de los riesgos y no de los controles que ya existen; cada control citado con edición (27001:2022 §x / 27002:2022 x.y); no inventa evidencia ni fechas; aclara que solo un organismo acreditado certifica.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Revisa este repositorio buscando inyecciones SQL, IDOR y XSS en los controladores.",
+      "expected_output": "Reconoce que es auditoría técnica de código y no gestión del SGSI: delega en auditoria-appsec (o la habilidad de seguridad ofensiva del workspace), y explica que esos hallazgos entran después como insumo del riesgo y de los controles 8.8 y 8.25–8.29.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Encontramos que un proveedor de nube tuvo un incidente y quizá se expusieron nuestros respaldos. ¿Qué hacemos según la norma?",
+      "expected_output": "Trata el caso como gestión de incidentes de seguridad (27002 5.24–5.28) y de proveedores (5.19–5.23): contener, evaluar impacto en confidencialidad, integridad y disponibilidad, recolectar evidencia, comunicar según los requisitos legales y contractuales; registrar una no conformidad con acción correctiva y análisis de causa raíz; no inventa hechos del incidente y pregunta lo que falta; señala la integración con datos personales si aplica.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Prepara la auditoría interna del SGSI y dime qué versión de la norma aplica hoy.",
+      "expected_output": "Indica ISO/IEC 27001:2022 + Amd 1:2024 con controles de ISO/IEC 27002:2022 como la edición vigente, sin asumir ediciones futuras; planifica la auditoría interna según ISO 19011 (programa, criterios, muestreo, evidencia) con independencia del auditor; parafrasea la norma y no reproduce su texto literal.",
+      "files": []
+    }
+  ]
+}

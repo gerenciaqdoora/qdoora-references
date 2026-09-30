@@ -3,30 +3,27 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Tengo una idea para un nuevo módulo de reportería en el portal cliente, ¿cómo deberíamos enfocarlo?",
-      "expectations": [
-        "El agente no invoca ninguna skill de código, archivos o comando de terminal",
-        "El agente inicia haciendo preguntas de clarificación, una a la vez",
-        "El agente propone al menos 2 alternativas de diseño con sus trade-offs",
-        "El agente elabora un documento de diseño y lo guarda en docs/designs/"
-      ]
+      "prompt": "Tengo una idea: quiero que los usuarios puedan compartir informes con gente de fuera de la organización. No sé cómo enfocarlo.",
+      "expected_output": "No escribe código ni crea archivos de producción; primero lee el perfil del proyecto y el código relacionado; hace UNA pregunta por mensaje, en orden de impacto y con opciones cerradas cuando puede (problema y para quién, criterio de éxito); detecta y anota que toca permisos y posiblemente datos personales para la puerta de cumplimiento; después propone 2 o 3 enfoques con ventajas y desventajas y recomienda uno con la razón.",
+      "files": []
     },
     {
       "id": 2,
-      "prompt": "Quiero hacer un cambio en el sistema para que ahora las notificaciones de Aduanas se envíen por SMS además de por email.",
-      "expectations": [
-        "El agente invoca qdoora-erp-customs-expert (o sugiere consultarlo) para validar reglas de negocio",
-        "El agente solicita clarificaciones (proveedor SMS, restricciones de multitenancy)",
-        "El agente pide aprobación tras presentar la propuesta de arquitectura"
-      ]
+      "prompt": "Agrega el campo 'telefono' opcional al DTO de crear cliente y a la tabla, con validación de formato E.164. Ya sé exactamente lo que quiero.",
+      "expected_output": "Reconoce que el requerimiento ya es específico y no hace un ciclo de brainstorming: va directo a planificador (con la habilidad de base de datos si aplica), sin cuestionario de diez puntos; a lo sumo confirma un dato faltante en una sola pregunta.",
+      "files": []
     },
     {
       "id": 3,
-      "prompt": "El documento guardado en docs/designs/2026-07-02-notificaciones-sms.md me parece bien. Podemos proceder.",
-      "expectations": [
-        "El agente detecta la aprobación explícita del usuario",
-        "El agente invoca prompt-architect-master para transicionar a la etapa de plan de implementación"
-      ]
+      "prompt": "Ya me convenciste con el diseño, apruébalo y pasemos a implementarlo de una vez.",
+      "expected_output": "Escribe el documento de diseño con la plantilla (problema y criterio de éxito, enfoques, arquitectura, contrato, datos, seguridad y cumplimiento, UX, pruebas, fuera de alcance, preguntas abiertas) en la ruta del perfil o docs/disenos/AAAA-MM-DD-<tema>.md, con estado borrador hasta la aprobación explícita; la transición es invocar planificador, nunca saltar directo a implementar.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Diseñemos el módulo de facturación de un negocio que ya tiene glosario y reglas propias documentadas en su habilidad de dominio.",
+      "expected_output": "Consulta la habilidad de dominio y el perfil antes de proponer reglas de negocio, sin inventarlas; aplica YAGNI y recorta lo que no sirva al criterio de éxito; pregunta qué pasa con los datos existentes (migración y compatibilidad hacia atrás); sigue el patrón existente del proyecto o justifica el cambio; deja explícito el fuera de alcance.",
+      "files": []
     }
   ]
 }

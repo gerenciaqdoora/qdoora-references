@@ -1,22 +1,20 @@
 # Workflow: Creación de Nueva Skill
 
-Este flujo guía el proceso de creación de una nueva habilidad siguiendo los estándares de arquitectura de QdoorA.
+Las skills de QdoorA **no se crean en `qdoora-references`**: todas se publican desde la biblioteca suite-agents (ver `agent/ORIGEN.md` y `AGENT_BASE.md`, "SKILLS PUBLICADAS").
 
-## Pasos
+## Si trabajas con suite-agents
 
-- [ ] **Investigación Inicial**: Buscar coincidencias con la habilidad global `find-skills` para evitar duplicidad.
-- [ ] **Conceptualización**: Utilizar `skill-creator` para definir la lógica base y el propósito.
-- [ ] **Scaffolding**: Utilizar `skill-master` para generar la estructura de carpetas en `qdoora-references/agent/skills`.
-  ```bash
-  npx ts-node .agents/skills/skill-master/scripts/scaffold-skill.ts --name mi-nueva-skill
-  ```
-- [ ] **Desarrollo**: Escribir las instrucciones en `SKILL.md` y crear scripts/assets necesarios.
-- [ ] **Validación Técnica**: Validar que la skill cumpla con los estándares técnicos y el frontmatter.
-  ```bash
-  npx ts-node .agents/skills/skill-master/scripts/validate-skill.ts --path .agents/skills/mi-nueva-skill
-  ```
-- [ ] **Refinamiento**: Corregir hallazgos y repetir validación si es necesario.
-- [ ] **Sincronización**: Desplegar los cambios al entorno operativo del agente.
+- [ ] **Investigación Inicial**: Revisar `rules/SKILLS.md` y buscar con `find-skills` para evitar duplicidad.
+- [ ] **Ubicación**: Skill de negocio de QdoorA → `suite-agents/qdoora/qdoora-<nombre>/`. Skill sin dependencia de proyecto → `suite-agents/universales/<nombre>/`.
+- [ ] **Desarrollo**: Crear `SKILL.md` y sus evals (`evals/evals.json`, mínimo 3 casos) con `skill-creator`.
+- [ ] **Validación**: En suite-agents, `scripts/evals.py validar`.
+- [ ] **Commit y publicación**: Commitear en suite-agents y ejecutar `scripts/publicar-qdoora.sh`; luego commitear el resultado en `qdoora-references`.
+- [ ] **Catastro**: Registrar la skill en `rules/SKILLS.md` (esto sí se edita en `qdoora-references`).
+- [ ] **Sincronización**:
   ```bash
   bash qdoora-references/agent/scripts/update-agent-assets.sh
   ```
+
+## Si no trabajas con suite-agents
+
+- [ ] Proponer la skill (propósito, disparadores y ejemplos de uso) en un issue o PR de `qdoora-references`; se crea en el origen y se publica.

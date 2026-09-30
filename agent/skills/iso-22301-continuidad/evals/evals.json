@@ -1,0 +1,29 @@
+{
+  "skill_name": "iso-22301-continuidad",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Nuestra plataforma tiene un RTO de 4 horas y hacemos respaldos diarios. Escribe el plan de continuidad y dime si cumplimos ISO 22301.",
+      "expected_output": "Aplica la Ley de Hierro: pide el BIA que justifica las prioridades (impacto en el tiempo, MTPD, RTO/RPO/MBCO); detecta que respaldos diarios implican un RPO de hasta 24 h y puede no ser coherente con lo que el negocio tolera; un RTO nunca probado se reporta como suposición y exige evidencia de ejercicio; no inventa tiempos, resultados de pruebas ni aprobaciones; cita cláusulas con edición (22301:2019 + Amd 1:2024).",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Diseña el plan de evacuación y de primeros auxilios de la oficina.",
+      "expected_output": "Reconoce que la seguridad de las personas es materia de seguridad y salud ocupacional (ISO 45001 y la ley local): el SGCN la asume como prioridad n.º 1 y la referencia, pero no la diseña en detalle; recomienda el especialista competente y ofrece la parte de continuidad (comunicación de crisis, activación de sitio alterno).",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Haz el análisis de impacto (BIA) de un servicio de facturación en línea que depende de un proveedor externo de nube y de un banco.",
+      "expected_output": "Conduce el BIA por actividad priorizada: impacto por tiempo de interrupción, MTPD, RTO, RPO y MBCO; mapea recursos y dependencias (personas, información, instalaciones, TIC, proveedores) incluyendo el proveedor de nube y el banco (ISO/TS 22318); distingue entre lo confirmado y lo que pregunta al negocio; no fija cifras inventadas.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Usa la nueva edición de ISO 22301 que salió este año para revisar nuestro SGCN.",
+      "expected_output": "Usa por defecto ISO 22301:2019 + Amd 1:2024 y aclara que la próxima edición está en borrador de comité (ISO/CD 22301, 2026): no asume su contenido ni la cita como vigente; remite a references/estado-norma.md y sugiere confirmar el estado en el sitio oficial.",
+      "files": []
+    }
+  ]
+}

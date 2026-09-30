@@ -1,0 +1,29 @@
+{
+  "skill_name": "contratos-api",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Agrega un endpoint POST /proyectos/{id}/tareas que cree una tarea. Hoy los errores los devolvemos como 200 con { ok: false, error }.",
+      "expected_output": "Lee el perfil del proyecto (fuente de verdad, estilo de nombres, formato de error vigente y si hay migración en curso) y respeta la convención existente en vez de mezclar dos estilos; define primero entrada, salida, códigos y errores; 201 con Location al crear; errores como RFC 9457 application/problem+json con errores[] por campo en validación (422 o 400 según el perfil); señala el 200 con ok:false como anti-patrón y trata migrar el formato como cambio incompatible coordinado (expandir y contraer); salida como DTO explícito; test E2E de forma, éxito, validación, sin permiso e inexistente.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Renombra el campo 'nombre' a 'titulo' en la respuesta de GET /tareas y hazlo obligatorio en el POST; el cliente Angular lo consume en producción.",
+      "expected_output": "Clasifica ambos cambios como incompatibles (renombrar/quitar un campo, volver obligatorio uno de entrada); propone expandir y contraer (agregar 'titulo' junto a 'nombre', migrar al cliente, luego quitar lo viejo) en vez de renombrar de golpe; menciona la detección automática (oasdiff o tests de contrato) y Deprecation/Sunset si hay consumidores no coordinables; solo acepta el cambio en el mismo PR si servidor y cliente se despliegan juntos y no hay otros consumidores.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Diseña el listado GET /pedidos: hay millones de filas, la pantalla usa scroll infinito y cada pedido trae total en dinero y fecha de entrega.",
+      "expected_output": "Paginación por cursor (keyset) para lista larga con scroll infinito, con límite por defecto y máximo aplicado en el servidor; único caso con sobre { elementos, pagina }; dinero como string decimal más moneda (nunca float); fechas ISO 8601 con zona y la fecha sin hora como AAAA-MM-DD; identificadores como strings opacos; Cache-Control no-store si hay datos personales.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Estamos construyendo solo vistas server-side en un monolito, sin cliente separado ni otros consumidores. ¿Tenemos que escribir un OpenAPI y versionar la API?",
+      "expected_output": "Aplica proporcionalidad y la fuente de verdad única del perfil: sin consumidores externos no impone versionado ni un OpenAPI escrito primero; si el perfil no dice nada, pregunta por la fuente de verdad antes de imponer una; recomienda como mínimo tests de contrato que fijen forma, códigos y errores, y si servidor y cliente se despliegan juntos basta cambiar ambos en el mismo PR.",
+      "files": []
+    }
+  ]
+}

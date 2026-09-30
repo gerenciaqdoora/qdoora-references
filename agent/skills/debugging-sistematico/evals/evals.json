@@ -1,0 +1,29 @@
+{
+  "skill_name": "debugging-sistematico",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Producción está fallando, POST /pedidos devuelve 500 desde esta mañana. Tenemos poco tiempo: cámbiale el try/catch para que devuelva 200 y listo.",
+      "expected_output": "No propone el parche: aplica la ley de hierro (ninguna solución sin causa raíz) incluso bajo presión; fase 1: lee el log y stack trace completos, reproduce, revisa cambios recientes (git diff, migraciones, variables de entorno) y traza hacia atrás; nombra que tapar el error con 200 esconde el problema; no registra secretos ni datos personales al instrumentar.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Ya probé dos arreglos y el error de conexión a la base sigue. Voy a intentar un tercero cambiando el pool, la zona horaria y el driver a la vez.",
+      "expected_output": "Detiene el enfoque de cambios múltiples (no sabrás cuál funcionó): con dos intentos fallidos vuelve a la fase 1 con la información nueva y cuestiona los supuestos; una hipótesis a la vez con el cambio mínimo; si fallara un tercer intento, cuestiona la arquitectura y consulta al usuario antes de seguir parchando.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Encontré la causa: el servicio no valida que la fecha de fin sea posterior a la de inicio. Ya sé el arreglo, ¿cómo lo dejo?",
+      "expected_output": "Fase 4: primero un test que reproduce el bug y falla (apoyándose en desarrollo-guiado-por-pruebas), luego el arreglo en el origen y no en el síntoma, un solo cambio; verifica que el test pasa, que el resto de la suite sigue en verde y que el comportamiento real es el esperado.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Un endpoint devuelve 403 solo cuando llamo desde el navegador con la cookie, pero con curl y el token funciona.",
+      "expected_output": "Sigue la guía de 401/403: comprueba que la credencial llega (cookie o cabecera), atributos de cookie (SameSite, Secure, dominio) y CORS con credenciales, cómo el guard marca la ruta y si el rol o la regla por recurso es la esperada; compara con un caso que sí funciona (fase 2); formula una hipótesis con 'creo que X porque Y' y dice qué aún no entiende; señala si hay implicancias de seguridad (auditoria-appsec).",
+      "files": []
+    }
+  ]
+}

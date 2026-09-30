@@ -1,0 +1,29 @@
+{
+  "skill_name": "ley-21719-datos-personales",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Vamos a guardar huellas dactilares de los empleados para el control de acceso a la oficina. ¿Con qué base de licitud lo hacemos?",
+      "expected_output": "Identifica el dato biométrico como categoría especial (sensible) y aplica el art. 16 (no el 12/13 genéricos): consentimiento o excepción concreta, con cómo se acredita; evalúa necesidad y proporcionalidad y una alternativa menos intrusiva; pide finalidad, plazo y dónde se almacena; menciona evaluación de impacto y el deber de seguridad (art. 14 quinquies); advierte que un caso de sensibles en el trabajo debe validarse con un abogado.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Tuvimos una filtración de datos de clientes. Según la ley chilena, ¿tenemos 72 horas para notificar y debemos llevar un registro de actividades de tratamiento?",
+      "expected_output": "Corrige el supuesto: la Ley 21.719 no fija 72 h para notificar brechas ni exige un registro de actividades de tratamiento (eso es del RGPD); explica el deber de reportar vulneraciones a la Agencia y a los titulares cuando corresponde, sin inventar plazos; advierte que otras leyes pueden aplicar si hay titulares de otros países y recomienda validar con un abogado por el alto impacto.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "¿Desde cuándo rige la ley? Escuché que ya la aplazaron a 2027.",
+      "expected_output": "Indica que rige desde el 1 de diciembre de 2026 según el art. 1° transitorio y que hasta entonces sigue la Ley 19.628 original; menciona que existe un proyecto de prórroga a 2027 (boletín 18.623-07) en trámite y que no asume que fue aprobado: pide verificar su estado antes de afirmar una fecha.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Contratamos a un proveedor de correo masivo con servidores en Estados Unidos para enviar promociones a nuestros clientes.",
+      "expected_output": "Identifica al proveedor como encargado con contrato conforme al art. 15 bis, y la transferencia internacional (arts. 27–28) sin inventar listas de países adecuados ni criterios no publicados por la Agencia; verifica base de licitud y finalidad de las promociones y el derecho de oposición del titular; marca como 'a verificar' lo que depende del contrato; cita artículos con su edición.",
+      "files": []
+    }
+  ]
+}

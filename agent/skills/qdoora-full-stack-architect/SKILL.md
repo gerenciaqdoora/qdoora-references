@@ -16,7 +16,7 @@ Tu labor es orquestar a los especialistas basándote en las reglas descriptivas:
 | **Backend — Capa HTTP** | `rules/BACKEND_RULES.md` | `qdoora-laravel-routes-middleware`, `qdoora-laravel-controllers`, `qdoora-laravel-form-requests`, `qdoora-laravel-api-resources` |
 | **Backend — Capa Negocio** | `rules/BACKEND_RULES.md` | `qdoora-laravel-services`, `qdoora-laravel-jobs-events` |
 | **Backend — Capa Datos** | `rules/BACKEND_RULES.md` | `qdoora-laravel-database`, `qdoora-laravel-models-enums`, `qdoora-laravel-commands-seeders` |
-| **Frontend Cliente** | `rules/CLIENTE_RULES.md` | `qdoora-angular-shared-components-expert`, `qdoora-ui-ux-master`, `api-contract-aligner` |
+| **Frontend Cliente** | `rules/CLIENTE_RULES.md` | `qdoora-angular-shared-components-expert`, `qdoora-ui-ux-master`, `contratos-api` |
 | **Frontend Soporte/Admin** | `rules/SUPPORT_RULES.md` | `qdoora-ui-ux-master`, `qdoora-security-iam-expert` |
 | **Seguridad** | `rules/BACKEND_RULES.md` (sección Vectores QD) | `qdoora-ethical-hacking-auditor`, `qdoora-security-iam-expert` |
 

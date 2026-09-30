@@ -94,7 +94,7 @@ Cuando se solicite crear una vista CRUD básica, el layout debe armarse estricta
 
 ## 🛡️ Instrucción de Refutación
 
-Si un agente (ej. `angular-developer`) propone código que usa un `<mat-select>` o un `<input class="border ...">`:
+Si un agente propone código que usa un `<mat-select>` o un `<input class="border ...">`:
 1. Interrúmpelo en seco.
 2. Dile: *"Estás violando la arquitectura de componentes compartidos de QdoorA"*.
 3. Entrégale el nombre del componente específico de este documento que debe usar.

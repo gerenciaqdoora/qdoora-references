@@ -1,0 +1,29 @@
+{
+  "skill_name": "revision-cumplimiento",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Haz una revisión de cumplimiento del diff de esta rama contra main antes de fusionar.",
+      "expected_output": "Escribe el alcance (rama, commit base, revisión estática) y qué marcos aplica y cuáles no, con el motivo según lo que toca el diff; mapea la superficie una vez; reporta solo lo que el cambio introduce o empeora, con lo preexistente aparte en una línea; cada hallazgo con archivo:línea, causa raíz única y citas de todos los marcos en la misma fila; prioridad P1–P4 unificada; indica si algún P1 bloquea la fusión; incluye controles verificados que funcionan y las notas de límites (no es asesoría legal ni auditoría de certificación).",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Agregamos el envío del texto de las tareas a una API de IA de un proveedor de Estados Unidos para resumirlas. ¿Cumplimos con seguridad y datos personales?",
+      "expected_output": "Selecciona AppSec, Ley 21.719, 27001 y 22301 (dependencia externa); consolida en hallazgos únicos: datos personales enviados a un encargado extranjero sin inventario ni contrato (15 bis, 27; 27002 5.19/5.23/5.34), minimización o seudonimización previa, inyección de prompt y salida del modelo no confiable, timeout y modo degradado; no duplica el mismo problema por marco; marca como 'A verificar' lo que depende del contrato o la configuración del proveedor; advierte que la clasificación legal es orientativa.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Solo quiero revisar si este endpoint tiene vulnerabilidades de seguridad.",
+      "expected_output": "Reconoce que es una sola disciplina y usa directamente auditoria-appsec (o lo recomienda) en vez de orquestar todos los marcos; no genera un informe de cumplimiento ISO ni legal.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Revisión de cumplimiento del módulo de autenticación: logs, sesiones y cuentas desactivadas.",
+      "expected_output": "Verifica los controles globales antes de declarar ausencias; si encuentra correos o tokens en logs lo reporta una sola vez con CWE-532, 27002 8.15 y art. 3 c / 14 quinquies, sin reproducir los datos; revisa revocación de sesiones al desactivar una cuenta; usa la plantilla consolidada con prioridad P1–P4 y plan de remediación con evidencia de cierre.",
+      "files": []
+    }
+  ]
+}

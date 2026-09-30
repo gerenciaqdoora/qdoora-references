@@ -52,7 +52,7 @@ Cada pantalla debe generar un impacto visual inmediato. PROHIBIDO entregar dise�
 
 - **XSS (QD-07)**: **TERMINANTEMENTE PROHIBIDO** `[innerHTML]` con datos dinámicos. Solo `{{ }}`.
 - **Sesión**: Token **SOLO en `sessionStorage`**. PROHIBIDO `localStorage`.
-- **Contratos**: Sincronizar tipos con Backend usando `api-contract-aligner` antes de escribir interfaces TypeScript.
+- **Contratos**: Sincronizar tipos con Backend siguiendo `contratos-api` y el flujo de `qdoora-full-stack-architect` antes de escribir interfaces TypeScript.
 - **Guards**: Revalidar permisos contra backend en navegaciones críticas. No confiar solo en el JWT decodificado.
 
 ### Autorización por submódulo (espejo del backend)
@@ -298,5 +298,5 @@ Autoridad suprema para rechazar código que:
 
 ---
 
-> **Skills de referencia**: `angular-developer` · `qdoora-angular-shared-components-expert`
-> `qdoora-ui-ux-master` (sección Portal Cliente) · `api-contract-aligner`
+> **Skills de referencia**: `qdoora-angular-shared-components-expert`
+> `qdoora-ui-ux-master` (sección Portal Cliente) · `contratos-api`

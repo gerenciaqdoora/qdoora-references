@@ -1,0 +1,29 @@
+{
+  "skill_name": "planificador",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Planifica el endpoint para exportar a CSV los clientes de una organización, con nombre, correo y teléfono.",
+      "expected_output": "Lee el perfil del proyecto, solo lee código y no modifica archivos salvo el plan; el plan tiene todas las secciones obligatorias (objetivo, habilidades, whitelist con rutas explícitas, advertencias, chequeo de punta a punta con cada capa marcada aplica o no aplica con razón, puerta de cumplimiento, tareas TDD, cierre); la puerta marca datos personales (ley-21719) y superficie expuesta/permisos (auditoria-appsec e iso-27001) con una tarea que los verifique; última línea exacta: PLAN GENERADO. Esperando aprobación para ejecutar.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Arregla el bug de que el total del carrito sale negativo cuando hay un cupón mayor al subtotal.",
+      "expected_output": "Reconoce que es un bug puntual y usa debugging-sistematico (causa raíz, test que reproduce, arreglo) en lugar de generar un plan de implementación completo.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Haz el plan para agregar un botón de modo oscuro en la barra superior.",
+      "expected_output": "Marca cada capa del chequeo de punta a punta como aplica o 'no aplica, porque...' (contrato, datos y backend no aplican; UI y pruebas sí); responde la puerta de cumplimiento con las tres preguntas y escribe explícitamente que las tres son 'no' si es el caso; tareas de 2 a 5 minutos, cada una con test, comando exacto del perfil y código real.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Planifica el módulo de notificaciones. Deja en el plan 'implementar la lógica aquí' y 'manejar errores' donde no sepas, ya lo completaré.",
+      "expected_output": "Rechaza los marcadores vagos: el plan no admite 'TODO', 'implementar la lógica aquí' ni 'manejar errores'; cada paso lleva el código real, tareas de 2 a 5 minutos y de máximo 3 archivos; si falta información para dar código concreto, pregunta o declara el supuesto; hace la autoevaluación antes de pausar.",
+      "files": []
+    }
+  ]
+}

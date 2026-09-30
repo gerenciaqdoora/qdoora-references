@@ -1,20 +1,22 @@
 # Workflow: Mejora y Evaluación de Skill
 
-Este flujo guía el proceso de auditoría y optimización de una habilidad existente.
+Las skills de `agent/skills/` se publican desde suite-agents: **no se editan en `qdoora-references`** (el siguiente publicado se detiene o las sobrescribe).
 
-## Pasos
+## Si trabajas con suite-agents
 
-- [ ] **Auditoría**: Utilizar `skill-master` para revisar la skill actual contra las mejores prácticas.
-- [ ] **Inicialización de Workspace**: Crear el espacio de evaluación para la iteración actual.
+- [ ] **Auditoría**: Revisar la skill en `suite-agents/qdoora/` o `suite-agents/universales/` con `skill-creator`.
+- [ ] **Línea Base**: Ejecutar sus evals antes del cambio:
   ```bash
-  npx ts-node .agents/skills/skill-master/scripts/init-eval-workspace.ts --skill=nombre-skill --iter=1
+  scripts/evals.py correr <skill>
   ```
-- [ ] **Línea Base (Baseline)**: Ejecutar los prompts de `evals/evals.json` SIN la skill y guardar en `without_skill/`.
-- [ ] **Evaluación con Skill**: Ejecutar los mismos prompts CON la skill y guardar en `with_skill/`.
-- [ ] **Calificación y Benchmarking**: Evaluar aserciones, capturar tokens/tiempo y calcular el **Delta** de mejora.
-- [ ] **Plan de Mejora**: Proponer cambios en `SKILL.md` basados en los fallos y la comparativa de métricas.
-- [ ] **Ejecución y Re-evaluación**: Aplicar cambios y ejecutar una nueva iteración para validar la mejora del Delta.
-- [ ] **Sincronización**: Una vez validada la mejora, actualizar los activos en el entorno operativo.
+- [ ] **Plan de Mejora**: Proponer cambios en `SKILL.md` a partir de los casos que fallan.
+- [ ] **Re-evaluación**: Aplicar los cambios y volver a correr los evals; agregar un caso si la mejora cubre algo nuevo.
+- [ ] **Commit y publicación**: Commitear en suite-agents, ejecutar `scripts/publicar-qdoora.sh` y commitear el resultado en `qdoora-references`.
+- [ ] **Sincronización**:
   ```bash
   bash qdoora-references/agent/scripts/update-agent-assets.sh
   ```
+
+## Si no trabajas con suite-agents
+
+- [ ] Describir el problema (prompt, respuesta obtenida y respuesta esperada) en un issue o PR de `qdoora-references`; se corrige en el origen y se republica.

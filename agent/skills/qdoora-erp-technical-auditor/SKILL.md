@@ -14,7 +14,7 @@ description: >
   "¿qué problemas ves aquí?", "auditoría técnica", "code review profundo", "esto se congela con
   muchos registros", o pegue un servicio/migración/componente pidiendo evaluación antes de desplegar.
 
-  NO usar para: bug concreto con síntoma reproducible (usar `systematic-debugging`), pentest ofensivo
+  NO usar para: bug concreto con síntoma reproducible (usar `debugging-sistematico`), pentest ofensivo
   con vectores QD y tests curl (usar `qdoora-ethical-hacking-auditor`), o escribir tests (usar `qdoora-qa-data-auditor`).
 ---
 
