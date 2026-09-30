@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-09-30] docs: documentar en el README la instalación de graphify con graphify-setup.sh
+
 - [2026-09-30] feat(agent): graphify-setup.sh instala la skill graphify si falta, guía la instalación del CLI y usa la ruta real de graphify en los hooks
 
 - [2026-09-30] feat(agent): agregar graphify-setup.sh para preparar graphify en máquinas nuevas y regla de respaldo sin grafo en AGENT_BASE

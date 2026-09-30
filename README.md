@@ -25,6 +25,22 @@ Las carpetas con el prefijo `agent-` definen el cerebro y los procesos de **Anti
 - **Planes**: Estrategias de implementación y roadmaps técnicos.
 - **Otros**: Documentación de apoyo y recursos complementarios.
 
+## 🕸️ graphify — Grafo de Conocimiento del Código
+
+Claude Code y Codex consultan primero un grafo del código de `qdoora-api`, `fuse-starter` y `support-portal` (`graphify query`) antes de buscar en los archivos. Las reglas están en `agent/rules/AGENT_BASE.md` (sección "graphify").
+
+Los grafos, los git hooks y los hooks de Claude son locales a cada máquina y no viajan por git. Para prepararlos, ejecuta **una vez** desde la raíz del workspace (`QdoorAChile/`):
+
+```bash
+git -C qdoora-references pull
+qdoora-references/agent/scripts/graphify-setup.sh
+```
+
+- Si graphify no está instalado, el script se detiene y muestra el comando para instalarlo (`uv tool install graphifyy` o `pipx install graphifyy`). Instálalo y vuelve a ejecutar el script.
+- Es idempotente: se puede volver a ejecutar para reparar la instalación o tras clonar un repo de nuevo.
+- Abre siempre las sesiones de Claude y Codex en la raíz del workspace.
+- Para rehacer el grafo a mano tras editar código: `qdoora-references/agent/scripts/graphify-sync.sh`.
+
 ---
 
 > [!TIP]
