@@ -668,4 +668,4 @@ Autoridad suprema para rechazar código que:
 > `qdoora-laravel-controllers` · `qdoora-laravel-form-requests` · `qdoora-laravel-services` · `qdoora-laravel-models-enums`
 > `qdoora-laravel-database` · `qdoora-laravel-api-resources` · `qdoora-laravel-jobs-events`
 > `qdoora-laravel-routes-middleware` · `qdoora-laravel-commands-seeders` · `qdoora-erp-data-modeler`
-> `qdoora-security-iam-expert` · `qdoora-ethical-hacking-auditor` · `qdoora-cloud-devops-engineer` · `qdoora-docker-compose-expert`
+> `qdoora-security-iam-expert` · `qdoora-ethical-hacking-auditor` · `qdoora-despliegue`

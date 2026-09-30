@@ -109,7 +109,7 @@ La estructura del código la describe graphify. Estas reglas guardan lo que el c
 | Contabilidad / PUC / Comprobantes / Tesorería | `qdoora-erp-accounting-expert` |
 | Aduana / DIN / DUS / Despacho | `qdoora-erp-customs-expert` |
 | Seguridad / IDOR / JWT / Auth / vectores QD | `qdoora-security-iam-expert` |
-| Docker / AWS / ECS / deploy / infraestructura | `qdoora-cloud-devops-engineer` |
+| Docker / AWS / ECS / deploy / infraestructura | `qdoora-despliegue` |
 | Diseño / UI premium / componentes Angular | `qdoora-ui-ux-master` |
 | Nueva página de listado / tabla / generic-table / paginación server-side | `qdoora-new-table-page` |
 | Nueva página de Configuración / Ajustes / Parámetros / mat-drawer-container | `qdoora-new-setting-page` |

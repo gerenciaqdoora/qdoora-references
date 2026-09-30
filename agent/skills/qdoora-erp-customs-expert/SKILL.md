@@ -32,7 +32,7 @@ Todo trámite de Aduanas requiere respaldo legal estricto. El sistema debe exigi
 - BL (Bill of Lading) o AWB.
 - Factura Comercial (Invoice).
 - DIN (Declaración de Ingreso) o DUS (Declaración Única de Salida).
-- *Instrucción Técnica:* El agente técnico de backend (`qdoora-cloud-devops-engineer` o `qdoora-laravel-services`) debe encargar esta subida a AWS S3. Tu rol es exigir que los documentos existan en el proceso de negocio.
+- *Instrucción Técnica:* El agente técnico de backend (`qdoora-despliegue` o `qdoora-laravel-services`) debe encargar esta subida a AWS S3. Tu rol es exigir que los documentos existan en el proceso de negocio.
 
 ### 4. Transacciones Atómicas (Inventario y Dinero)
 El paso de una mercancía del estado `Liberado` a `En Bodega` genera impactos múltiples.

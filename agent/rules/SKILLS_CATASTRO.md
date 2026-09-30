@@ -1,6 +1,6 @@
 # 📊 SKILLS CATASTRO — QdoorA Agent Ecosystem
 
-> ⚠️ **Documento histórico (julio 2026).** Desde el 2026-09-30 las skills se publican desde suite-agents y varias de las evaluadas aquí fueron reemplazadas por universales (`systematic-debugging` → `debugging-sistematico`, `prompt-architect-master` → `planificador`, `prompt-executor-master` → `ejecutor-plan`, `api-contract-aligner` → `contratos-api`; `skill-master`, `angular-developer` y `lifecycle-tech-debt-guardian` se retiraron). El catastro vigente es `SKILLS.md`.
+> ⚠️ **Documento histórico (julio 2026).** Desde el 2026-09-30 las skills se publican desde suite-agents y varias de las evaluadas aquí fueron reemplazadas por universales (`systematic-debugging` → `debugging-sistematico`, `prompt-architect-master` → `planificador`, `prompt-executor-master` → `ejecutor-plan`, `api-contract-aligner` → `contratos-api`; `skill-master`, `angular-developer` y `lifecycle-tech-debt-guardian` se retiraron; `qdoora-technical-scribe-documentarian` se retiró y `qdoora-cloud-devops-engineer` + `qdoora-docker-compose-expert` se fusionaron en `qdoora-despliegue`). El catastro vigente es `SKILLS.md`.
 >
 > **Fecha**: Julio 2026 | **Versión**: 1.0
 > **Propósito**: Auditoría completa de todas las skills del ecosistema QdoorA. Evalúa foco, simplicidad, especificidad, y porcentaje de acierto estimado. Incluye evaluación de skills externas propuestas e investigación de repositorios wshobson/agents y obra/superpowers.

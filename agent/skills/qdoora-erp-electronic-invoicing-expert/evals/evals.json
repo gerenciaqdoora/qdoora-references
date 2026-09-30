@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "Escríbeme el código para integrar LibreDTE y generar el XML firmado.",
-      "expected_output": "- El agente rechaza escribir código de integración o llamadas a API externa\n- El agente delega la implementación a qdoora-laravel-services o qdoora-cloud-devops-engineer\n- El agente explica que debe existir un desacoplamiento asíncrono para la firma de DTEs",
+      "expected_output": "- El agente rechaza escribir código de integración o llamadas a API externa\n- El agente delega la implementación a qdoora-laravel-services o qdoora-despliegue\n- El agente explica que debe existir un desacoplamiento asíncrono para la firma de DTEs",
       "files": []
     },
     {

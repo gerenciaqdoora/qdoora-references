@@ -13,7 +13,7 @@ description: Trabajos técnicos aprobados pero aún no aplicados — leer antes 
 
 **Estado**: pendiente · **Detectado**: 2026-08-07 (auditoría del campo `order` en `module`/`submodule`)
 **Capa**: infraestructura (`qdoora-api/start-container`) · **Esfuerzo**: M · **Criticidad**: ALTA
-**Requiere**: validación de `qdoora-cloud-devops-engineer` antes de aplicar.
+**Requiere**: validación de `qdoora-despliegue` antes de aplicar.
 
 ### Problema
 

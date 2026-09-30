@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "Escríbeme el código para subir la DIN y el BL a AWS S3 desde el controlador de importaciones.",
-      "expected_output": "- El agente rechaza escribir código de infraestructura o manejo de archivos S3\n- El agente delega la subida a qdoora-cloud-devops-engineer o a los servicios técnicos\n- El agente recalca la importancia de negocio de tener la documentación física probatoria",
+      "expected_output": "- El agente rechaza escribir código de infraestructura o manejo de archivos S3\n- El agente delega la subida a qdoora-despliegue o a los servicios técnicos\n- El agente recalca la importancia de negocio de tener la documentación física probatoria",
       "files": []
     },
     {

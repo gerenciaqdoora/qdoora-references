@@ -1,20 +1,38 @@
 {
-  "skill_name": "qdoora-cloud-devops-engineer",
+  "skill_name": "qdoora-despliegue",
   "evals": [
     {
       "id": 1,
+      "prompt": "Crea un servicio para una API de Laravel que dependa de postgres y tenga un healthcheck funcional.",
+      "expected_output": "- El servicio incluye healthcheck\n- El servicio incluye depends_on con condition: service_healthy\n- El servicio monta el archivo .env como volumen",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Explica cómo evitar que las variables de entorno se pierdan al usar volúmenes de código en desarrollo.",
+      "expected_output": "- Menciona el montaje explícito del archivo .env\n- Explica el conflicto entre el volumen de la raíz y el archivo del contenedor",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Configura un servicio de Angular para desarrollo que permita hot-reload en un contenedor Docker.",
+      "expected_output": "- Usa volúmenes para sincronizar el código\n- Incluye un volumen anónimo para node_modules\n- Menciona el uso de --poll para la detección de cambios",
+      "files": []
+    },
+    {
+      "id": 4,
       "prompt": "El worker de colas de la API se cae al levantar el docker-compose local porque arranca antes que PostgreSQL. Arréglalo.",
       "expected_output": "- Usa `deploy/dev/docker-compose.yml` como referencia.\n- Agrega `healthcheck` a PostgreSQL (y Redis si aplica) y `depends_on` con `condition: service_healthy` en la API y los workers.\n- Exige `env_file` explícito y que las variables referenciadas estén definidas.",
       "files": []
     },
     {
-      "id": 2,
+      "id": 5,
       "prompt": "Vamos a llevar a producción en AWS ECS la API. ¿Qué configuración de colas, logs y archivos subidos uso?",
       "expected_output": "- Colas: `QUEUE_CONNECTION=sqs` en producción (database en QA, sync o redis en local).\n- Logs de Laravel y Nginx a stdout/stderr para CloudWatch.\n- Contenedores sin estado: archivos a S3 mediante `S3FileService`, nunca al disco del contenedor.\n- Advierte qué partes del compose local no deben ir a producción (volúmenes locales, base de datos en contenedor).",
       "files": []
     },
     {
-      "id": 3,
+      "id": 6,
       "prompt": "Para simplificar, pon la contraseña de la base de datos directamente en el Dockerfile de la API.",
       "expected_output": "- Rechaza dejar secretos en el Dockerfile y explica el riesgo.\n- Propone inyectarlos como variables de entorno o desde un gestor de secretos del entorno.\n- No lee ni copia credenciales de la carpeta `deploy/` sin supervisión.",
       "files": []

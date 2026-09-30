@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: Catastro completo de Skills del ecosistema QdoorA — 46 skills (33 de negocio qdoora-* y 13 universales)
+description: Catastro completo de Skills del ecosistema QdoorA — 45 skills (32 de negocio qdoora-* y 13 universales)
 ---
 
 # SKILLS.md — Catastro de Habilidades QdoorA
@@ -70,8 +70,7 @@ description: Catastro completo de Skills del ecosistema QdoorA — 46 skills (33
 
 | Tarea | Skill a activar |
 |-------|-----------------|
-| Docker Compose, healthchecks, orquestación de servicios | `qdoora-docker-compose-expert` |
-| AWS, ECS Fargate, S3, deploy en producción | `qdoora-cloud-devops-engineer` |
+| Docker Compose, Dockerfile, healthchecks, variables de entorno, AWS ECS/RDS/S3/SQS, deploy a QA o producción | `qdoora-despliegue` |
 | MailerSend, templates de correo premium | `qdoora-mailersend-template-expert` |
 
 ### QA, Debugging y Calidad
@@ -125,7 +124,7 @@ Usuario: "Agrega un campo 'centro de costo' al formulario de liquidación de nó
 
 ---
 
-## ÍNDICE COMPLETO DE SKILLS (46 disponibles)
+## ÍNDICE COMPLETO DE SKILLS (45 disponibles)
 
 ```
 DOMINIO ERP
@@ -155,7 +154,7 @@ SEGURIDAD Y CUMPLIMIENTO
   iso-22301-continuidad                   iso-9001-calidad
 
 INFRAESTRUCTURA
-  qdoora-docker-compose-expert            qdoora-cloud-devops-engineer
+  qdoora-despliegue
   qdoora-mailersend-template-expert
 
 QA, DEBUGGING Y CALIDAD
