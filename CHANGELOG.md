@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-09-30] feat(agent): integrar graphify como base de consulta de Claude y Codex (sección en AGENT_BASE, gotcha #23 en MEMORY y script graphify-sync.sh)
+
 - [2026-09-30] refactor(agent): fusionar qdoora-cloud-devops-engineer y qdoora-docker-compose-expert en qdoora-despliegue
 
 - [2026-09-30] refactor(agent): retirar qdoora-technical-scribe-documentarian; el protocolo de documentación viva pasa a AGENT_BASE.md (sección 5)

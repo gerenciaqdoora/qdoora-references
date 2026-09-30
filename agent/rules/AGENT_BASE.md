@@ -10,7 +10,7 @@
 
 ### Reglas de Conducta (Non-Negotiable)
 1. **Cero Bloqueos**: No uses "Implementation Plan" para tareas triviales o consultas menores. Ejecuta directamente si no hay ambigüedad arquitectónica.
-2. **Prohibición de Suposiciones**: Antes de proponer cualquier `key`, atributo o patrón, realiza `grep_search`/`list_dir` en los módulos existentes. Si no estás 100% seguro del estándar real, pregunta antes de escribir código.
+2. **Prohibición de Suposiciones**: Antes de proponer cualquier `key`, atributo o patrón, consulta el grafo (`graphify query`, ver "graphify") y confírmalo con `grep_search`/`list_dir` en los módulos existentes. Si no estás 100% seguro del estándar real, pregunta antes de escribir código.
 3. **Idioma**: Español para comentarios, documentación y mensajes de usuario final. Inglés estricto para variables, clases, métodos, columnas de BD y propiedades de código.
 4. **DRY & KISS**: Código simple, legible, reutilizable. Sin sobre-ingeniería.
 
@@ -21,8 +21,19 @@
 - **FUENTE DE VERDAD**: `qdoora-references/agent/` es la fuente de las reglas (`rules/`) y los workflows. Edita siempre allí, nunca en `.agents/` directamente.
 - **SKILLS PUBLICADAS**: Todas las skills de `agent/skills/` (listadas en `agent/skills/.publicadas`) se publican desde la biblioteca suite-agents (ver `agent/ORIGEN.md`): las `qdoora-*` son las de negocio; las demás son universales (proceso, seguridad y cumplimiento) y leen este archivo como perfil del proyecto (sección 8). NUNCA las edites en `qdoora-references/`: el siguiente publicado se detiene o las sobrescribe. Para cambiarlas, propón el cambio en un issue o PR; quien trabaje con suite-agents las edita allí (`qdoora/` o `universales/`) y las republica con `scripts/publicar-qdoora.sh`. Una skill nueva también nace en suite-agents.
 
+### graphify — Consulta Primero el Grafo (Mandato)
+Cada repo tiene su grafo de código (`<repo>/graphify-out/graph.json`) y la raíz del workspace tiene uno que fusiona los tres (`graphify-out/graph.json`). Las sesiones se abren en la raíz.
+- **Primero el grafo**: ante cualquier pregunta sobre el código, corre desde la raíz `graphify query "<términos>"` antes de hacer grep o leer archivos. Usa términos en inglés que calcen con los identificadores (`"treasury create request payment"`, no "cómo se crea un pago"). `graphify explain "X"` para un símbolo, `graphify affected "X"` antes de cambiar algo compartido, `graphify path "A" "B"` para relaciones dentro de un mismo repo.
+- **Acotar a un repo**: agrega `--graph <repo>/graphify-out/graph.json`.
+- **Límite conocido**: el grafo NO enlaza las llamadas HTTP Angular → Laravel (solo conecta repos del mismo lenguaje), así que `path` entre la API y un portal no encuentra nada. Para un contrato, una sola `query` por dominio trae ambos lados; luego sigue el flujo de "Sincronización Full-Stack".
+- **Rutas en el grafo fusionado**: `src=` es relativo a cada repo. `.php` → `qdoora-api`; un `.ts` puede ser de `fuse-starter` o `support-portal`: confírmalo con `--graph` del repo o verificando que el archivo exista.
+- **Luego el código**: el grafo orienta, no reemplaza la verificación. Confirma con `grep_search`/lectura antes de escribir, y valida los Hard Reject (§4) contra el código real.
+- **Mantenerlo fresco**: tras modificar código, corre `qdoora-references/agent/scripts/graphify-sync.sh` (AST, sin LLM, ~20 s). Los git hooks de cada repo lo rehacen en cada commit/checkout y Claude lo sincroniza al iniciar sesión.
+- `graphify-out/GRAPH_REPORT.md` (por repo) solo para revisiones de arquitectura amplias.
+- **NUNCA** corras `graphify extract/update/watch` sobre la raíz del workspace ni sobre `deploy/` (secretos, `.pfx`, planillas de clientes), ni extracción semántica con LLM sobre los repos. Tampoco `graphify claude install`/`codex install` en la raíz: `CLAUDE.md` y `AGENTS.md` son enlaces a este archivo.
+
 ### Sincronización Full-Stack (Mandato)
-- Al modificar un `FormRequest`: identifica el endpoint → busca (`grep_search`) los servicios Angular que lo consumen → actualiza Interfaces TypeScript para que coincidan.
+- Al modificar un `FormRequest`: identifica el endpoint → busca (`graphify query` + `grep_search`) los servicios Angular que lo consumen → actualiza Interfaces TypeScript para que coincidan.
 - Al modificar una respuesta API: sugiere/realiza la actualización del tipo correspondiente en el Frontend.
 
 ---
