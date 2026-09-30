@@ -18,7 +18,8 @@
 - **NO LEER NUNCA**: `vendor/`, `node_modules/`, `storage/`, `.angular/`, `dist/`, `*.lock`, assets binarios.
 - **ACCESO VEDADO**: Carpeta `./deploy/` — contiene credenciales y secretos críticos.
 - **DIRECTORIO VOLÁTIL**: NUNCA crees ni edites archivos en `/.agents/`. Es generado automáticamente por `update-agent-assets.sh` y se limpia en cada sincronización.
-- **FUENTE DE VERDAD**: `qdoora-references/agent/` es la única fuente de inteligencia. Edita siempre allí, nunca en `.agents/` directamente.
+- **FUENTE DE VERDAD**: `qdoora-references/agent/` es la fuente de las reglas (`rules/`), los workflows y las skills sin prefijo `qdoora-`. Edita siempre allí, nunca en `.agents/` directamente.
+- **SKILLS PUBLICADAS**: Las skills `qdoora-*` (listadas en `agent/skills/.publicadas`) se publican desde la biblioteca suite-agents (ver `agent/ORIGEN.md`). NUNCA las edites en `qdoora-references/`: el siguiente publicado se detiene o las sobrescribe. Para cambiarlas, propón el cambio en un issue o PR; quien trabaje con suite-agents las edita en `suite-agents/qdoora/` y las republica con `scripts/publicar-qdoora.sh`. Una skill `qdoora-*` nueva también nace en `suite-agents/qdoora/`.
 
 ### Sincronización Full-Stack (Mandato)
 - Al modificar un `FormRequest`: identifica el endpoint → busca (`grep_search`) los servicios Angular que lo consumen → actualiza Interfaces TypeScript para que coincidan.
@@ -78,10 +79,10 @@ Tienes **AUTORIDAD SUPREMA** para detener y rechazar rotundamente código que vi
 ## 5. DOCUMENTACIÓN VIVA — SINCRONIZACIÓN DE INTELIGENCIA
 
 Al concluir cualquier tarea significativa que establezca un nuevo patrón:
-1. Invoca `technical-scribe-documentarian` para actualizar archivos en `qdoora-references/agent/rules/`.
+1. Invoca `qdoora-technical-scribe-documentarian` para actualizar archivos en `qdoora-references/agent/rules/`.
 2. Indica al usuario que ejecute: `qdoora-references/agent/scripts/update-agent-assets.sh`
 
-**Flujo de edición**: Todo cambio de regla o skill se realiza en `qdoora-references/agent/`. El script sincroniza al workspace activo (`.agents/` y `.claude/`).
+**Flujo de edición**: Todo cambio de regla, workflow o skill sin prefijo se realiza en `qdoora-references/agent/`; las skills `qdoora-*` se editan en `suite-agents/qdoora/` y se publican (ver "SKILLS PUBLICADAS"). El script sincroniza al workspace activo (`.agents/`, `.claude/` y `CLAUDE.md`/`AGENTS.md`/`GEMINI.md`).
 
 ---
 
@@ -101,20 +102,20 @@ Al concluir cualquier tarea significativa que establezca un nuevo patrón:
 
 | Dominio mencionado | Skill directa |
 |--------------------|--------------|
-| Nómina / Liquidación / Previred / Vacaciones | `erp-nomina-expert` |
-| Contabilidad / PUC / Comprobantes / Tesorería | `erp-accounting-expert` |
-| Aduana / DIN / DUS / Despacho | `erp-customs-expert` |
-| Seguridad / IDOR / JWT / Auth / vectores QD | `security-iam-expert` |
-| Docker / AWS / ECS / deploy / infraestructura | `cloud-devops-engineer` |
+| Nómina / Liquidación / Previred / Vacaciones | `qdoora-erp-nomina-expert` |
+| Contabilidad / PUC / Comprobantes / Tesorería | `qdoora-erp-accounting-expert` |
+| Aduana / DIN / DUS / Despacho | `qdoora-erp-customs-expert` |
+| Seguridad / IDOR / JWT / Auth / vectores QD | `qdoora-security-iam-expert` |
+| Docker / AWS / ECS / deploy / infraestructura | `qdoora-cloud-devops-engineer` |
 | Diseño / UI premium / componentes Angular | `qdoora-ui-ux-master` |
 | Nueva página de listado / tabla / generic-table / paginación server-side | `qdoora-new-table-page` |
 | Nueva página de Configuración / Ajustes / Parámetros / mat-drawer-container | `qdoora-new-setting-page` |
 | Tour guiado / walkthrough / onboarding de pantalla / Centro de Ayuda (`/general/help-center/guides`) | `qdoora-new-guided-tour` |
 | Tipos TypeScript / contrato API | `api-contract-aligner` |
-| Auditar código o diseño existente / "¿esto escala?" / "¿es seguro?" / race condition / N+1 / falta índice | `erp-technical-auditor` |
+| Auditar código o diseño existente / "¿esto escala?" / "¿es seguro?" / race condition / N+1 / falta índice | `qdoora-erp-technical-auditor` |
 | Bug / error / test fallando / "no funciona" | `systematic-debugging` |
 | Idea sin forma / "quiero hacer..." / explorar enfoques | `brainstorming` |
-| Documentar patrón / actualizar reglas | `technical-scribe-documentarian` |
+| Documentar patrón / actualizar reglas | `qdoora-technical-scribe-documentarian` |
 | Cualquier otra skill → | leer `qdoora-references/agent/rules/SKILLS.md` |
 
 ---

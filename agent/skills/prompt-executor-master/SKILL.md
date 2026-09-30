@@ -23,7 +23,7 @@ Has sido invocado porque el usuario ha aprobado la propuesta arquitectónica. Ba
 Una vez que el código esté escrito y **todas** las tareas "Bite-Sized" estén marcadas como `[x]`, DEBES completar esta secuencia interna en orden antes de devolver el control al usuario:
 - **Alineación de Contratos (`api-contract-aligner`):** Verifica silenciosamente que las interfaces/tipos del Frontend coincidan de forma exacta con los FormRequests y Responses del Backend modificados.
 - **Auditoría de Seguridad (`qdoora-quality-security-guardian`):** Valida que el código implementado cumpla con los vectores de seguridad (QD-XX) y las reglas de `qdoora-quality-security-guardian.md` indicadas en el plan.
-- **Registro Vivo (`technical-scribe-documentarian`):** Prepara la actualización para `technical-scribe-logic.md` (o las reglas relevantes) detallando las mutaciones arquitectónicas realizadas y nuevos patrones.
+- **Registro Vivo (`qdoora-technical-scribe-documentarian`):** Prepara la actualización para `technical-scribe-logic.md` (o las reglas relevantes) detallando las mutaciones arquitectónicas realizadas y nuevos patrones.
 
 **INSTRUCCIÓN FINAL:**
 Al finalizar la construcción, la alineación, auditoría y documentación, debes detener por completo tu ejecución e imprimir obligatoriamente este mensaje exacto para confirmar el cierre del ciclo:

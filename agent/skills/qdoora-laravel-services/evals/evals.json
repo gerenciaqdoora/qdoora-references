@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-laravel-services",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea un método en SaleService para crear una venta y descontar stock simultáneamente.",
+      "expected_output": "Verifica que operaciones que afecten múltiples entidades se envuelvan en DB::transaction.\nLa respuesta incluye: `DB::transaction\\(`.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "En el método anterior, descuenta el stock de Inventory usando InventoryService.",
+      "expected_output": "Verifica que se inyecte el servicio externo en lugar de modificar su modelo directamente.\nLa respuesta incluye: `\\$this->inventoryService->`.\nLa respuesta NO incluye: `Inventory::update`.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Escribe un método para buscar un empleado por ID en el EmployeeService.",
+      "expected_output": "Verifica que se levanten excepciones controladas en lugar de ModelNotFoundExceptions genéricas.\nLa respuesta incluye: `if \\(!\\$.*\\) \\{`, `throw new GenericException`.\nLa respuesta NO incluye: `findOrFail`.",
+      "files": []
+    }
+  ]
+}

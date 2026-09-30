@@ -13,7 +13,7 @@ description: Trabajos técnicos aprobados pero aún no aplicados — leer antes 
 
 **Estado**: pendiente · **Detectado**: 2026-08-07 (auditoría del campo `order` en `module`/`submodule`)
 **Capa**: infraestructura (`qdoora-api/start-container`) · **Esfuerzo**: M · **Criticidad**: ALTA
-**Requiere**: validación de `cloud-devops-engineer` antes de aplicar.
+**Requiere**: validación de `qdoora-cloud-devops-engineer` antes de aplicar.
 
 ### Problema
 
@@ -147,7 +147,7 @@ ni de la renta imponible CCAF hacia los campos del bloque "Datos Caja de Compens
 
 1. Mapear en `PreviredFieldMapperService` los campos del bloque CCAF que correspondan a partir de
    `liquidacion->ccaf_empleador` y de la base imponible topada usada en el cálculo.
-2. Confirmar antes con `erp-nomina-expert` **qué campos exactos** del layout Previred deben poblarse:
+2. Confirmar antes con `qdoora-erp-nomina-expert` **qué campos exactos** del layout Previred deben poblarse:
    el bloque distingue cotizaciones de trabajadores afiliados a AFP de los no afiliados (IPS), y ese
    criterio no está definido en el código actual.
 
@@ -175,7 +175,7 @@ Consecuencia inmediata: el aporte CCAF recién implementado —igual que el SIS 
 
 ### Cambio propuesto
 
-Implementar la centralización siguiendo el blueprint de la skill `new-accounting-process` (3 capas:
+Implementar la centralización siguiendo el blueprint de la skill `qdoora-new-accounting-process` (3 capas:
 servicio dueño del documento → servicio de reglas del dominio → `AccountingEntryService` como motor
 genérico). Las cuentas de cada monto deben resolverse vía `cont_accounting_imputations` por concepto
 de nómina, no hardcodeadas.
@@ -183,7 +183,7 @@ de nómina, no hardcodeadas.
 ### Dependencia
 
 Requiere que existan los `purpose` de imputación contable para conceptos de nómina (incluido el aporte
-CCAF). Coordinar con `erp-accounting-expert` para las reglas contables y con `new-accounting-process`
+CCAF). Coordinar con `qdoora-erp-accounting-expert` para las reglas contables y con `qdoora-new-accounting-process`
 para el cómo técnico.
 
 ## 6. Informar los aportes mutual (Ley 16.744) y SANNA en el archivo Previred
@@ -222,7 +222,7 @@ tasa por período configurada en `global_lists` (`type=MUTUAL` → `values.tasa_
 2. Quitar la condición `$codigoMutual !== '00'`. En MUTUAL no existe la opción "sin organismo"
    — a diferencia de CCAF, donde `SIN_CCAF`/`00` sí significa no adherida.
 3. Mapear el SANNA a su campo propio del layout.
-4. Confirmar con `erp-nomina-expert` **qué campos exactos** corresponden a cada monto antes de tocar
+4. Confirmar con `qdoora-erp-nomina-expert` **qué campos exactos** corresponden a cada monto antes de tocar
    el layout.
 
 ### Criterio de aceptación
@@ -275,7 +275,7 @@ schema y el service persiste solo lo validado, así que la clave nunca llega al 
    el config actual de la empresa.
 3. Decidir qué hacer con `forma_pago`: agregarlo al `schema_definition` de la feature APVC y a la UI de
    `/nomina/settings`, o quitar la lectura si el layout no lo exige.
-4. Confirmar con `erp-nomina-expert` **qué campos exactos** del layout corresponden a cada monto.
+4. Confirmar con `qdoora-erp-nomina-expert` **qué campos exactos** del layout corresponden a cada monto.
 
 ### Criterio de aceptación
 
@@ -471,6 +471,6 @@ honorarios/gastos de despacho bajo Patrimonio (ver `AccountPlanImport_SiglaMappi
 
 ### Cambio propuesto
 
-Decidir con `erp-accounting-expert` si esas cuatro cuentas maestras deben admitir solo `GANANCIA`; si es así,
+Decidir con `qdoora-erp-accounting-expert` si esas cuatro cuentas maestras deben admitir solo `GANANCIA`; si es así,
 nueva migración que actualice `cont_account_categories.allowed_class_codes` y revisar que ningún plan importado
 en QA las tenga asignadas bajo un Tipo Patrimonio antes de aplicarla.

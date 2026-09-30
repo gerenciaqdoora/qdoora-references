@@ -54,7 +54,7 @@ Reglas que hacen que este endpoint no sea una brecha:
 - **Proyecta, no decide.** `SubscriberService::getOwnSubmodulePermissions()` llama a `User::canOperateOnSubmodule()` celda por celda — la MISMA función que evalúan los FormRequests. Prohibido consultar `users_permission_submodule` directamente para decidir: se desincroniza del `authorize()` real y reintroduce QD-04.
 - **Ability `TRANSACTION`**, el default del trait. `SHOW`/`UPDATE` siguen reservados a la ficha de empresa. Un `USER_ROLE` sin `TRANSACTION` recibiría una matriz vacía de todos modos, así que el 403 es la respuesta semánticamente correcta.
 - **Payload minimizado**: solo viajan los submódulos con al menos una operación concedida. No se le enumera al cliente lo que NO puede hacer.
-- **Nunca dentro de un JWT.** Firmar no cifra: el payload es base64url y lo lee cualquiera, y el frontend debe poder leerlo para renderizar. Además `security-iam-expert` veta inyectar arrays de permisos en el token (QD-09).
+- **Nunca dentro de un JWT.** Firmar no cifra: el payload es base64url y lo lee cualquiera, y el frontend debe poder leerlo para renderizar. Además `qdoora-security-iam-expert` veta inyectar arrays de permisos en el token (QD-09).
 - **Throttle propio.** El grupo `v1/company` no trae throttle; este GET es repetible y con valor de reconocimiento, así que lleva `throttle.api:general,60,1` (QD-08).
 
 #### El bypass del suscriptor es invariante — preguntarlo una vez
@@ -647,7 +647,7 @@ services:
 | **QD-08** | Sin rate limiting | Middleware throttle en TODOS los endpoints |
 
 Para el mapa completo QD-01 a QD-11 y tests de confirmación con curl:
-→ Activar skill `ethical-hacking-auditor` · leer `skills/ethical-hacking-auditor/references/qdoora-vectors.md`.
+→ Activar skill `qdoora-ethical-hacking-auditor` · leer `skills/qdoora-ethical-hacking-auditor/references/qdoora-vectors.md`.
 
 ---
 
@@ -665,7 +665,7 @@ Autoridad suprema para rechazar código que:
 ---
 
 > **Skills de referencia** (plantillas exactas de código por capa):
-> `laravel-controllers` · `laravel-form-requests` · `laravel-services` · `laravel-models-enums`
-> `laravel-database` · `laravel-api-resources` · `laravel-jobs-events`
-> `laravel-routes-middleware` · `laravel-commands-seeders` · `erp-data-modeler`
-> `security-iam-expert` · `ethical-hacking-auditor` · `cloud-devops-engineer` · `docker-compose-expert`
+> `qdoora-laravel-controllers` · `qdoora-laravel-form-requests` · `qdoora-laravel-services` · `qdoora-laravel-models-enums`
+> `qdoora-laravel-database` · `qdoora-laravel-api-resources` · `qdoora-laravel-jobs-events`
+> `qdoora-laravel-routes-middleware` · `qdoora-laravel-commands-seeders` · `qdoora-erp-data-modeler`
+> `qdoora-security-iam-expert` · `qdoora-ethical-hacking-auditor` · `qdoora-cloud-devops-engineer` · `qdoora-docker-compose-expert`

@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-mailersend-template-expert",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea una plantilla de correo para 'facturacion' que incluya el nombre del cliente, número de factura y monto total. Debe seguir el estándar de QdoorA.",
+      "expected_output": "- El archivo 'qdoora-api/resources/views/emails/mailsersend/facturacion/facturacion.html' existe\n- El archivo 'qdoora-api/resources/views/emails/mailsersend/facturacion/prueba.json' existe\n- El HTML contiene el header con la imagen de QdoorA\n- El HTML contiene el footer azul Iozean\n- El JSON contiene las variables 'cliente', 'factura' y 'monto'",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Crea una plantilla de bienvenida para un nuevo cliente.",
+      "expected_output": "- El archivo 'qdoora-api/resources/views/emails/mailsersend/bienvenida-cliente/bienvenida-cliente.html' existe\n- El archivo 'qdoora-api/resources/views/emails/mailsersend/bienvenida-cliente/prueba.json' existe\n- El HTML hereda exactamente la estructura de 'ms-container' y 'header-img' de base.html",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Hazme el correo de restablecimiento de contraseña con un diseño distinto: sin el header de QdoorA y con footer negro.",
+      "expected_output": "- No acepta quitar el header ni cambiar el footer: son inamovibles (logo a 640px y footer azul `#007bff`).\n- Personaliza solo el cuerpo (`<!-- BODY -->`) sobre `references/base.html`, con estilos en línea, tablas y variables `{{ variable }}`.\n- Entrega el `.html` y su `prueba.json` en `qdoora-api/resources/views/emails/mailsersend/<nombre>/`.",
+      "files": []
+    }
+  ]
+}

@@ -1,24 +1,23 @@
 {
-    "evals": [
-        {
-            "input": "Crea un diálogo para editar un perfil de usuario.",
-            "expected_output_includes": [
-                "¿Qué ancho deseas para este diálogo",
-                "standard-dialog-container",
-                "ViewEncapsulation.None",
-                "ChangeDetectionStrategy.OnPush",
-                "app-dialog-header",
-                "app-dialog-footer",
-                "src/app/dialog/"
-            ]
-        },
-        {
-            "input": "Necesito un modal de confirmación de borrado.",
-            "expected_output_includes": [
-                "ancho",
-                "app-dialog-button-cancel",
-                "app-dialog-button-confirm"
-            ]
-        }
-    ]
+  "skill_name": "qdoora-dialog-creator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea un diálogo para editar un perfil de usuario.",
+      "expected_output": "La respuesta incluye: `¿Qué ancho deseas para este diálogo`, `standard-dialog-container`, `ViewEncapsulation.None`, `ChangeDetectionStrategy.OnPush`, `app-dialog-header`, `app-dialog-footer`, `src/app/dialog/`.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Necesito un modal de confirmación de borrado.",
+      "expected_output": "La respuesta incluye: `ancho`, `app-dialog-button-cancel`, `app-dialog-button-confirm`.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Crea el diálogo de edición de centro de costo dentro de la carpeta del módulo de empresas, al lado de su componente.",
+      "expected_output": "- No lo crea en el módulo: explica que todo diálogo va en `src/app/dialog/`.\n- Pregunta el ancho antes de escribir código.\n- Usa `ViewEncapsulation.None`, `ChangeDetectionStrategy.OnPush`, los estilos inyectados y la estructura `standard-dialog-container` con `app-dialog-header` y `app-dialog-footer`.",
+      "files": []
+    }
+  ]
 }

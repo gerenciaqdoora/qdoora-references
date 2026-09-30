@@ -127,11 +127,11 @@ Esperar respuesta. Solo tras aprobación explícita: **invocar `prompt-architect
 
 - **Una pregunta a la vez** — No abrumar con listas de preguntas
 - **YAGNI sin piedad** — Eliminar de los diseños todo lo que no sea estrictamente necesario
-- **Respetar los dominios de negocio** — Siempre validar con el expert de dominio relevante (erp-nomina-expert, erp-accounting-expert, etc.) antes de proponer lógica de negocio
+- **Respetar los dominios de negocio** — Siempre validar con el expert de dominio relevante (qdoora-erp-nomina-expert, qdoora-erp-accounting-expert, etc.) antes de proponer lógica de negocio
 - **Separación de portales** — Siempre identificar si el feature es para Portal Cliente (Angular 18, fuse-starter) o Portal Soporte (Angular 21, Zoneless), ya que las reglas son distintas
 
 ---
 
 > **Flujo QdoorA**: `brainstorming` → diseño aprobado → `prompt-architect-master` → plan aprobado → `prompt-executor-master` → implementación
 >
-> **Skills de dominio para validar reglas de negocio**: `erp-nomina-expert` · `erp-accounting-expert` · `erp-customs-expert` · `erp-electronic-invoicing-expert` · `erp-global-parameters-expert`
+> **Skills de dominio para validar reglas de negocio**: `qdoora-erp-nomina-expert` · `qdoora-erp-accounting-expert` · `qdoora-erp-customs-expert` · `qdoora-erp-electronic-invoicing-expert` · `qdoora-erp-global-parameters-expert`

@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-cloud-devops-engineer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "El worker de colas de la API se cae al levantar el docker-compose local porque arranca antes que PostgreSQL. Arréglalo.",
+      "expected_output": "- Usa `deploy/dev/docker-compose.yml` como referencia.\n- Agrega `healthcheck` a PostgreSQL (y Redis si aplica) y `depends_on` con `condition: service_healthy` en la API y los workers.\n- Exige `env_file` explícito y que las variables referenciadas estén definidas.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Vamos a llevar a producción en AWS ECS la API. ¿Qué configuración de colas, logs y archivos subidos uso?",
+      "expected_output": "- Colas: `QUEUE_CONNECTION=sqs` en producción (database en QA, sync o redis en local).\n- Logs de Laravel y Nginx a stdout/stderr para CloudWatch.\n- Contenedores sin estado: archivos a S3 mediante `S3FileService`, nunca al disco del contenedor.\n- Advierte qué partes del compose local no deben ir a producción (volúmenes locales, base de datos en contenedor).",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Para simplificar, pon la contraseña de la base de datos directamente en el Dockerfile de la API.",
+      "expected_output": "- Rechaza dejar secretos en el Dockerfile y explica el riesgo.\n- Propone inyectarlos como variables de entorno o desde un gestor de secretos del entorno.\n- No lee ni copia credenciales de la carpeta `deploy/` sin supervisión.",
+      "files": []
+    }
+  ]
+}

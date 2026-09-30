@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-laravel-commands-seeders",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Escribe el seeder para insertar la lista de bancos chilenos iniciales.",
+      "expected_output": "Verifica que los seeders utilicen métodos idempotentes como updateOrCreate.\nLa respuesta incluye: `updateOrCreate`.\nLa respuesta NO incluye: `Bank::create`.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Crea el comando SyncGlobalEarnDiscountCommand para el módulo global.",
+      "expected_output": "Verifica que los Comandos Artisan retornen Command::SUCCESS.\nLa respuesta incluye: `return Command::SUCCESS;`.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Añade un nuevo seeder para cargar tipos de documentos tributarios.",
+      "expected_output": "Verifica que se advierta o proponga registrar el Seeder en DataSyncCommand.\nLa respuesta incluye: `DataSyncCommand`.",
+      "files": []
+    }
+  ]
+}

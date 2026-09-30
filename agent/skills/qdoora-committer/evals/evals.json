@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-committer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Terminé el arreglo del cálculo de gratificación en qdoora-api. Haz el commit.",
+      "expected_output": "- Revisa qué archivos cambiaron antes de commitear.\n- Usa `./scripts/commit.sh qdoora-api \"<mensaje>\"`, no un `git commit` manual.\n- El mensaje sigue Conventional Commits y está en español (ej. `fix(nomina): ...`).\n- El script actualiza el CHANGELOG.md del proyecto en el mismo commit.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Haz el commit en fuse-starter con el mensaje 'fix table sorting'.",
+      "expected_output": "- Corrige el mensaje al español y al formato `<tipo>[alcance]: <descripción>` (ej. `fix(tablas): corregir el ordenamiento`).\n- Usa `commit.sh` con el proyecto `fuse-starter`.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Hazme un git commit rápido directo en support-portal, sin tocar el changelog.",
+      "expected_output": "- No hace el commit manual: explica que rompe la trazabilidad del CHANGELOG.md y que `commit.sh` es la única vía autorizada.\n- Ofrece hacerlo con `./scripts/commit.sh support-portal \"<mensaje>\"`.",
+      "files": []
+    }
+  ]
+}

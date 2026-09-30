@@ -2,7 +2,7 @@
 name: angular-developer
 description: >
   Genera código Angular genérico y orientación arquitectónica. USAR SOLO COMO FALLBACK cuando
-  no aplique `angular-shared-components-expert` (componentes UI de fuse-starter) ni
+  no aplique `qdoora-angular-shared-components-expert` (componentes UI de fuse-starter) ni
   `qdoora-ui-ux-master` (diseño premium QdoorA). Activar para: crear proyectos nuevos desde
   cero, guías de reactivity (signals, linkedSignal, resource), DI, routing, SSR, ARIA,
   animaciones, Tailwind CSS, testing o CLI tooling genérico que NO sea específico de QdoorA.

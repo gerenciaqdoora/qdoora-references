@@ -185,5 +185,5 @@ Autoridad suprema para rechazar código que:
 
 ---
 
-> **Skills de referencia**: `qdoora-ui-ux-master` (sección Portal Soporte) · `security-iam-expert`
+> **Skills de referencia**: `qdoora-ui-ux-master` (sección Portal Soporte) · `qdoora-security-iam-expert`
 > `angular-developer` · `api-contract-aligner`

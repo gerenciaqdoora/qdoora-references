@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-qa-data-auditor",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Escribe los tests del nuevo endpoint que crea comprobantes contables en la API.",
+      "expected_output": "- Usa Pest (Laravel 11) y carga `references/pest-laravel.md`.\n- Incluye al menos dos tests de autorización: usuario sin permisos → 403 y usuario de otra empresa → 403 (aislamiento por `company_id`).\n- Usa `RefreshDatabase` o `DatabaseTransactions`; ningún test toca infraestructura real.\n- Las descripciones de los tests están en español.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Necesito probar el servicio que sube el PDF de la liquidación a S3 y envía el correo al trabajador.",
+      "expected_output": "- Usa `Storage::fake('s3')` y `Mail::fake()` (o `Notification::fake()`); no hace llamadas reales.\n- Si hay llamadas al SII u otras APIs externas, usa `Http::fake()`.\n- Explica el riesgo de tocar S3 real (costo y datos).",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "El módulo de nómina está listo; despleguémoslo aunque todavía no tenga tests, los hacemos después.",
+      "expected_output": "- Rechaza el despliegue sin cobertura porque Nómina es un módulo crítico, citando `references/critical-modules-qa.md`.\n- Propone la cobertura mínima que falta.\n- Recuerda que cada carpeta nueva en `tests/Feature/` necesita su comando `Audit<Nombre>Command` en `app/Console/Commands/Security`.",
+      "files": []
+    }
+  ]
+}

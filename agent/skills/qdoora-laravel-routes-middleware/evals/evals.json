@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-laravel-routes-middleware",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea el grupo de rutas para el módulo de Empleados, incluyendo un endpoint para listar.",
+      "expected_output": "Verifica que todas las rutas se registren bajo el prefijo v1/.\nLa respuesta incluye: `prefix.*v1`, `Route::get\\(`.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Agrega un endpoint de login para un nuevo portal de auditores.",
+      "expected_output": "Verifica la aplicación de middleware throttle a endpoints críticos.\nLa respuesta incluye: `middleware.*throttle\\.api`.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Crea la configuración de un canal de broadcast para notificar la finalización del cierre contable de una empresa.",
+      "expected_output": "Verifica que los canales validen la propiedad por companyId o userId.\nLa respuesta incluye: `Broadcast::channel`, `companyId`, `where\\('id', \\$companyId\\)`.\nLa respuesta NO incluye: `return true;`.",
+      "files": []
+    }
+  ]
+}

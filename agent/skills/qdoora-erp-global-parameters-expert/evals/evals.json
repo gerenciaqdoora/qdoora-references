@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-erp-global-parameters-expert",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Necesito el código de un Job para sincronizar la UF desde el Banco Central y guardarlo en caché.",
+      "expected_output": "- El agente rechaza escribir código del Job\n- El agente indica que debe delegarse a los agentes técnicos correspondientes\n- El agente especifica la regla de periodicidad y obligatoriedad de que la UF esté disponible antes del cálculo",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Vamos a hacer una función que calcule la liquidación. Simplemente tomaré el valor actual de la tabla del Impuesto Único (IUT).",
+      "expected_output": "- El agente detiene la acción y advierte sobre el anti-patrón de usar un valor 'actual' global\n- El agente exige que todo cálculo de nómina extraiga el IUT asociado explícitamente al Periodo de la liquidación (La Regla del Tiempo)",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Crea una migración para agregar un nuevo Haber de Nómina en GlobalHaberDescuento.",
+      "expected_output": "- El agente no genera código de la migración\n- El agente instruye qué significa a nivel legal el nuevo Haber (Imponible/Tributable) delegando la estructura SQL a qdoora-laravel-database",
+      "files": []
+    }
+  ]
+}

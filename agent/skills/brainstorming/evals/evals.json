@@ -15,7 +15,7 @@
       "id": 2,
       "prompt": "Quiero hacer un cambio en el sistema para que ahora las notificaciones de Aduanas se envíen por SMS además de por email.",
       "expectations": [
-        "El agente invoca erp-customs-expert (o sugiere consultarlo) para validar reglas de negocio",
+        "El agente invoca qdoora-erp-customs-expert (o sugiere consultarlo) para validar reglas de negocio",
         "El agente solicita clarificaciones (proveedor SMS, restricciones de multitenancy)",
         "El agente pide aprobación tras presentar la propuesta de arquitectura"
       ]

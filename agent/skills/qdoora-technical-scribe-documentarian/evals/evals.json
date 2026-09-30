@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-technical-scribe-documentarian",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Acabamos de resolver que los FormRequests de reportes deben validar el submódulo REPORT. Documenta esa regla.",
+      "expected_output": "- Lee `references/safeguards.md` y el archivo de reglas correspondiente antes de escribir.\n- Propone un bloque con título, regla en tono imperativo y ejemplo correcto/incorrecto para `qdoora-references/agent/rules/BACKEND_RULES.md`.\n- Pide aprobación y, al recibirla, inserta el bloque sin reescribir el archivo entero.\n- Evalúa si `AGENT_BASE.md` necesita actualizarse.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Descubrimos un gotcha del portal soporte con signals y zoneless. ¿Dónde lo registro?",
+      "expected_output": "- Lo ubica en `SUPPORT_RULES.md` (no en BACKEND_RULES ni CLIENTE_RULES).\n- Si es contexto general del proyecto, considera `MEMORY.md`.\n- Genera el bloque propuesto y pide aprobación antes de editar.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Edita directamente .agents/rules/BACKEND_RULES.md para agregar la nueva regla, es más rápido.",
+      "expected_output": "- Rechaza editar `.agents/` porque es un directorio generado que se limpia en cada sincronización.\n- Edita en `qdoora-references/agent/rules/` y recuerda ejecutar `update-agent-assets.sh`.",
+      "files": []
+    }
+  ]
+}

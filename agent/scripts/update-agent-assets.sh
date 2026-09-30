@@ -58,9 +58,17 @@ sync_folders() {
 
     echo "Sincronizando $type..."
     
-    # Limpieza total previa para asegurar sincronización exacta
-    # (Elimina archivos obsoletos o renombrados, ignorando archivos ocultos)
-    find "$dst" -mindepth 1 -maxdepth 1 ! -name '.*' -exec rm -rf {} +
+    # Limpieza previa: elimina solo los enlaces que apuntan a qdoora-references/agent (o que quedaron rotos),
+    # para retirar activos renombrados o borrados. Respeta los enlaces de otras bibliotecas (ej. suite-agents)
+    # y cualquier archivo real, que no son de este script.
+    for item in "$dst"/*; do
+        [ -L "$item" ] || continue
+        local target
+        target="$(readlink "$item")"
+        if [[ "$target" == "$SOURCE_DIR"/* || ! -e "$item" ]]; then
+            rm -f "$item"
+        fi
+    done
 
     for src in "${sources[@]}"; do
         if [ ! -d "$src" ]; then
@@ -92,19 +100,16 @@ sync_folders "$AGENTS_DIR/workflows" "Workflows (.agents)" "$SOURCE_DIR/workflow
 # Ejecutar sincronización de .claude
 sync_folders "$CLAUDE_DIR/skills" "Habilidades (.claude)" "$SOURCE_DIR/skills"
 
-# SINCRONIZACIÓN CLAUDE CODE (CLAUDE.md) / ANTIGRAVITY (GEMINI.md)
+# SINCRONIZACIÓN CLAUDE CODE (CLAUDE.md) / CODEX (AGENTS.md) / ANTIGRAVITY (GEMINI.md)
 echo "Sincronizando AGENT_BASE.md universal..."
 AGENT_BASE_SOURCE="$SOURCE_DIR/rules/AGENT_BASE.md"
-CLAUDE_DEST="$WORKSPACE_ROOT/CLAUDE.md"
-GEMINI_DEST="$WORKSPACE_ROOT/GEMINI.md"
 
 if [ -f "$AGENT_BASE_SOURCE" ]; then
-    rm -f "$CLAUDE_DEST"
-    rm -f "$GEMINI_DEST"
-    ln -s "$AGENT_BASE_SOURCE" "$CLAUDE_DEST"
-    echo "   ✅ CLAUDE.md -> Raíz del Workspace"
-    ln -s "$AGENT_BASE_SOURCE" "$GEMINI_DEST"
-    echo "   ✅ GEMINI.md -> Raíz del Workspace"
+    for dest in CLAUDE.md AGENTS.md GEMINI.md; do
+        rm -f "$WORKSPACE_ROOT/$dest"
+        ln -s "$AGENT_BASE_SOURCE" "$WORKSPACE_ROOT/$dest"
+        echo "   ✅ $dest -> Raíz del Workspace"
+    done
 else
     echo "⚠️  Aviso: qdoora-references/agent/rules/AGENT_BASE.md no encontrado."
 fi

@@ -173,4 +173,4 @@ Secuencia de diagnóstico:
 
 ---
 
-> **Skills relacionadas**: `qa-data-auditor` (para escribir tests de cobertura tras el fix) · `ethical-hacking-auditor` (si el bug tiene implicaciones de seguridad) · `laravel-services` / `laravel-controllers` (para el fix en backend) · `prompt-architect-master` (si el fix requiere un plan arquitectónico mayor)
+> **Skills relacionadas**: `qdoora-qa-data-auditor` (para escribir tests de cobertura tras el fix) · `qdoora-ethical-hacking-auditor` (si el bug tiene implicaciones de seguridad) · `qdoora-laravel-services` / `qdoora-laravel-controllers` (para el fix en backend) · `prompt-architect-master` (si el fix requiere un plan arquitectónico mayor)

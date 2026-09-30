@@ -4,29 +4,20 @@
     {
       "id": 1,
       "prompt": "Crea un componente de formulario para el alta de empleados en fuse-starter.",
-      "expectations": [
-        "No se utiliza <mat-form-field> directo",
-        "Se utilizan componentes compartidos como <app-input-form>",
-        "El componente es Standalone e importa sus dependencias"
-      ]
+      "expected_output": "- No se utiliza <mat-form-field> directo\n- Se utilizan componentes compartidos como <app-input-form>\n- El componente es Standalone e importa sus dependencias",
+      "files": []
     },
     {
       "id": 2,
       "prompt": "Implementa una lista de tickets en el portal de soporte usando Angular 21.",
-      "expectations": [
-        "Se utilizan Signals para manejar el estado de la lista",
-        "El componente no depende de zone.js (Zoneless)",
-        "Se utiliza el nuevo Control Flow (@for) en el template"
-      ]
+      "expected_output": "- Se utilizan Signals para manejar el estado de la lista\n- El componente no depende de zone.js (Zoneless)\n- Se utiliza el nuevo Control Flow (@for) en el template",
+      "files": []
     },
     {
       "id": 3,
       "prompt": "Configura un diálogo de confirmación para eliminar un registro.",
-      "expectations": [
-        "El diálogo se ubica en app/dialog",
-        "Utiliza la estructura app-dialog-header y app-dialog-footer",
-        "No se utiliza [innerHTML] para mostrar el nombre del registro"
-      ]
+      "expected_output": "- El diálogo se ubica en app/dialog\n- Utiliza la estructura app-dialog-header y app-dialog-footer\n- No se utiliza [innerHTML] para mostrar el nombre del registro",
+      "files": []
     }
   ]
 }

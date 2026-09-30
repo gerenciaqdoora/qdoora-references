@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-laravel-jobs-events",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea el Job ImportInventoryJob e inyecta el InventoryService.",
+      "expected_output": "Verifica que los Services se inyecten en el método handle y no en el constructor del Job.\nLa respuesta incluye: `public function handle\\(.*Service`.\nLa respuesta NO incluye: `public function __construct\\(.*Service`.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Crea el evento InventoryImported para notificar progreso al usuario.",
+      "expected_output": "Verifica que los eventos broadcast usen canales privados.\nLa respuesta incluye: `PrivateChannel`.\nLa respuesta NO incluye: `new Channel`.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Configura la clase para enviar el job a la cola 'imports'.",
+      "expected_output": "Verifica que el Job declare explícitamente su cola.\nLa respuesta incluye: `public \\$queue = 'imports';`.",
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-laravel-models-enums",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea el modelo Product para gestionar el inventario.",
+      "expected_output": "Verifica que se use $fillable en lugar de $guarded = [].\nLa respuesta incluye: `protected \\$fillable =`.\nLa respuesta NO incluye: `protected \\$guarded = \\[\\];`.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Crea el Enum ProductStatus con valores ACTIVO e INACTIVO.",
+      "expected_output": "Verifica que los Enums utilicen el respaldo estricto a string.\nLa respuesta incluye: `enum ProductStatus: string`.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "En el modelo Company, declara la relación para obtener sus empleados.",
+      "expected_output": "Verifica que los métodos de relaciones de Eloquent tengan el tipo de retorno de PHP declarado.\nLa respuesta incluye: `public function employees\\(\\): HasMany`.",
+      "files": []
+    }
+  ]
+}

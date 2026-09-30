@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-angular-shared-components-expert",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea un formulario con un campo de texto usando <mat-form-field> y un <input>.",
+      "expected_output": "- El agente rechaza usar <mat-form-field> o <input>\n- El agente propone usar app-input-form",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Necesito hacer una tabla usando <table mat-table>.",
+      "expected_output": "- El agente prohíbe el uso de tablas nativas de material\n- El agente exige el uso de generic-table o app-table-without-pagination",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Crea un campo para ingresar dinero y ponle el pipe currency.",
+      "expected_output": "- El agente rechaza el formateo manual con pipe currency\n- El agente instruye el uso de app-shared-amount-input-form",
+      "files": []
+    }
+  ]
+}

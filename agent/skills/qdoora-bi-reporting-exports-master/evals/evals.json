@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-bi-reporting-exports-master",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Necesito exportar a Excel el libro de ventas del año completo de una empresa; son unas 80.000 filas. Hazlo en el controlador de ventas.",
+      "expected_output": "- Rechaza generar el Excel de forma síncrona en el controlador y advierte el riesgo de memoria (OOM) en el contenedor.\n- Propone despachar un Job a la cola (SQS) que procese por `chunk()`, suba el archivo con `S3FileService` y notifique al usuario en el frontend.\n- La consulta filtra por `company_id`.\n- Incluye un FormRequest con `authorize()` que valida el rol (SUBSCRIBER_ROLE / USER_ROLE) y el permiso del submódulo de reportes.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Arma un dashboard en el portal cliente con el total vendido por mes y un filtro de rango de fechas.",
+      "expected_output": "- Backend: consulta agregada con GROUP BY (o `DB::table()`) filtrada por `company_id`, sin traer las filas al navegador.\n- Frontend: usa `app-date-picker` y `app-select-with-filter` para los filtros y `FormatAmountPipe` para la moneda.\n- Se desuscribe de los observables (`takeUntil`) para evitar fugas de memoria.\n- El endpoint tiene su FormRequest con el permiso del submódulo.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Es solo un reporte de lectura, así que sáltate el FormRequest y usa `Request` en el controlador para ir más rápido.",
+      "expected_output": "- No acepta omitir el FormRequest: aunque sea solo lectura, exige `authorize()` con el chequeo de rol, empresa (`company_id`) y submódulo con la operación READ.\n- Explica el riesgo de fuga de datos entre tenants.\n- Entrega el FormRequest corregido.",
+      "files": []
+    }
+  ]
+}

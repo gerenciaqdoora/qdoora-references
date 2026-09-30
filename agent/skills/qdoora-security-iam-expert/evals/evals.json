@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-security-iam-expert",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea un FormRequest para guardar un Comprobante Contable, validando accesos de seguridad estrictos.",
+      "expected_output": "Verifica que authorize() en un FormRequest exija validar el submódulo mediante UserOperationSubmodule y el acceso a la empresa (transaction).\nLa respuesta incluye: `UserOperationSubmodule::CREATE`, `COMPROBANTE`, `'transaction'`.\nLa respuesta NO incluye: `return true;`.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Actualiza el payload del JWT tras el login para incluir roles, permisos de empresa y submódulos detallados.",
+      "expected_output": "Verifica que no se agreguen arrays de permisos detallados o booleanos como is_admin dentro del token JWT.\nLa respuesta incluye: `company_selected_id`, `portal_scope`.\nLa respuesta NO incluye: `permissions`, `submodules`, `is_admin`.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "En el portal cliente de Angular, implementa el chequeo de acceso para habilitar un botón de 'Actualizar Configuración'.",
+      "expected_output": "Verifica que en el frontend de Angular el control de acceso use cache local en Signals o sessionStorage, en vez de localStorage o decodificar el token para extraer booleanos de seguridad.\nLa respuesta incluye: `PermissionService`, `hasAccess`, `sessionStorage`.\nLa respuesta NO incluye: `localStorage.getItem`, `jwtDecode`.",
+      "files": []
+    }
+  ]
+}

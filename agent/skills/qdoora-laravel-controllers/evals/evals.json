@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-laravel-controllers",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea el controlador para almacenar un nuevo Centro de Costo.",
+      "expected_output": "Verifica que el método delegue al servicio envuelto en try-catch.\nLa respuesta incluye: `try \\{`, `catch`, `\\$this->loggerService->log`, `return response\\(\\)->json`.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Crea un controlador vacío para el módulo de Soporte.",
+      "expected_output": "Verifica que se utilice el trait de manejo centralizado de errores.\nLa respuesta incluye: `use HandlesControllerLogs;`, `\\$this->handleError->logAndResponse`.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "En el CompanyController, crea el método show para buscar una empresa por su ID.",
+      "expected_output": "Verifica que el controlador actúe como pasarela sin interactuar con Modelos directamente.\nLa respuesta incluye: `\\$this->companyService->`.\nLa respuesta NO incluye: `Company::find`, `Company::where`, `->save\\(\\)`.",
+      "files": []
+    }
+  ]
+}

@@ -66,7 +66,7 @@ El frontend replica el modelo de dos capas del trait `AuthorizesClientRequests`.
 
 - **El guard es UX, nunca seguridad.** Prohibido escribir un guard sin verificar antes que el endpoint que consume la ruta valida el mismo submódulo y operación en su `authorize()`. Un guard sin contraparte backend es decoración (QD-01).
 - **`can$()` en guards, `can()` en templates.** La matriz llega por HTTP después del arranque: un guard síncrono deniega deep-links a usuarios con permiso. En templates el re-render corrige solo.
-- **La matriz vive solo en memoria.** Prohibido `localStorage`/`sessionStorage`, fusionarla al objeto `User` o al payload del login, o entregarla dentro de un JWT — firmar no cifra, y `security-iam-expert` lo veta expresamente (QD-09).
+- **La matriz vive solo en memoria.** Prohibido `localStorage`/`sessionStorage`, fusionarla al objeto `User` o al payload del login, o entregarla dentro de un JWT — firmar no cifra, y `qdoora-security-iam-expert` lo veta expresamente (QD-09).
 - **Ocultar acciones con `@if` + método booleano**, nunca con directivas estructurales nuevas. Precedente: `canEmit(doc)` en `emission-type-selector.component.ts`.
 - **Fail-closed**: si la consulta de permisos falla, `PermissionService` devuelve `{}`. Clave ausente y `false` son equivalentes — el payload viene minimizado (solo submódulos con algún permiso concedido).
 
@@ -298,5 +298,5 @@ Autoridad suprema para rechazar código que:
 
 ---
 
-> **Skills de referencia**: `angular-developer` · `angular-shared-components-expert`
+> **Skills de referencia**: `angular-developer` · `qdoora-angular-shared-components-expert`
 > `qdoora-ui-ux-master` (sección Portal Cliente) · `api-contract-aligner`

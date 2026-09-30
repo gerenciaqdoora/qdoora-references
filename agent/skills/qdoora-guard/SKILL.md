@@ -28,7 +28,7 @@ Consecuencia práctica y obligatoria:
 > **Nunca escribas un guard sin verificar antes que existe su contraparte en el backend.**
 > Si la ruta que proteges consume un endpoint cuyo FormRequest NO valida ese submódulo,
 > no estás asegurando: estás decorando. Corrige primero el backend
-> (skill `laravel-form-requests`), después el guard.
+> (skill `qdoora-laravel-form-requests`), después el guard.
 
 Un `submodule_code` inventado en el frontend bloquea la UI sin que ninguna validación
 real lo respalde — el peor de los dos mundos.
@@ -67,7 +67,7 @@ canActivate: [
    `BehaviorSubject` de `PermissionService`, y se recalcula en cada carga de página.
 
 4. **Prohibido inyectar permisos en el JWT.** Firmar no es cifrar: el payload de un JWT es
-   base64url y lo lee cualquiera. Además `security-iam-expert` lo veta expresamente
+   base64url y lo lee cualquiera. Además `qdoora-security-iam-expert` lo veta expresamente
    ("JWT Delgado: prohibido inyectar arrays de permisos" → QD-09) y decodificar el JWT en
    Angular para resolver permisos es QD-01.
 
@@ -145,6 +145,6 @@ todo sin explicación.
 
 ## Skills relacionadas
 
-- `laravel-form-requests` — la contraparte backend, que es la autorización real
-- `security-iam-expert` — modelo de 3 capas y reglas de refutación (QD-01, QD-04, QD-09)
+- `qdoora-laravel-form-requests` — la contraparte backend, que es la autorización real
+- `qdoora-security-iam-expert` — modelo de 3 capas y reglas de refutación (QD-01, QD-04, QD-09)
 - `qdoora-new-table-page` / `qdoora-new-setting-page` — al crear la página que vas a proteger

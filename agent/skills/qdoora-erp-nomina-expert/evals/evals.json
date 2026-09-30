@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-erp-nomina-expert",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Genera el controlador y el FormRequest para guardar el cálculo de la liquidación.",
+      "expected_output": "- El agente rechaza escribir código PHP, FormRequests o Controladores\n- El agente instruye delegar el código a los agentes técnicos (qdoora-laravel-controllers, qdoora-laravel-form-requests)\n- El agente indica las reglas de negocio, como el descuento por inasistencia y topes imponibles, para que el código sea correcto",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Un empleado cambió su AFP hoy, y quieren que recalculemos el archivo de Previred del año pasado. ¿Cómo hacemos esto en la base de datos?",
+      "expected_output": "- El agente rechaza categóricamente alterar el historial\n- El agente explica la ley de Inmutabilidad Histórica de las liquidaciones pagadas y reportes pasados",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Muestra cómo renderizar la liquidación de sueldo usando pipes de Angular para el monto.",
+      "expected_output": "- El agente se niega a proveer código UI o directivas de Angular\n- El agente delega las tareas frontend a qdoora-ui-ux-master\n- El agente provee directrices de negocio sobre qué debe mostrar el PDF (Sueldo Base Ajustado, ordenamiento de haberes, total tributable)",
+      "files": []
+    }
+  ]
+}

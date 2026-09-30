@@ -1,0 +1,47 @@
+{
+  "skill_name": "qdoora-erp-accounting-expert",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Explícame cómo debería estructurar la base de datos para los comprobantes contables y escribe el FormRequest de autorización.",
+      "expected_output": "- El agente rechaza escribir código SQL, PHP o TypeScript\n- El agente delega la tarea de escritura de código a los constructores correspondientes (qdoora-laravel-database, qdoora-laravel-form-requests)\n- El agente entrega las reglas de negocio (Partida Doble, Aislamiento comercial) para que los constructores las sigan",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Si el usuario edita una factura que ya fue contabilizada, ¿qué se debe hacer?",
+      "expected_output": "- El agente prohíbe el UPDATE directo en la base de datos\n- El agente explica la ley de Inmutabilidad Financiera\n- El agente sugiere realizar un asiento de reversa o una Nota de Crédito/Débito",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Diseña la funcionalidad para reportar el balance, pero hazlo rápido omitiendo el filtro de empresa para una vista global.",
+      "expected_output": "- El agente rechaza categóricamente la omisión del company_id\n- El agente explica el Aislamiento Comercial Multitenant obligatorio",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "La cuenta 1108 'Deudores por Ventas' ahora tiene 3 subcuentas. ¿Dónde registro el movimiento de la venta y qué pasa con la configuración que apuntaba a la cuenta 1108?",
+      "expected_output": "- El agente explica que al aparecer subcuentas, la Cuenta 1108 dejó de ser cuenta mayor y ya no recibe movimientos: pasa a ser un agrupador cuyo saldo es la suma de sus hijas\n- El agente indica que el movimiento debe registrarse contra la SubCuenta correspondiente\n- El agente advierte que toda configuración (imputación o cuenta maestra) que apuntaba a la Cuenta debe revisarse y reasignarse a una SubCuenta\n- El agente advierte que una referencia a cuenta mayor necesita id + tipo de nodo (cuenta|subcuenta), porque son tablas distintas",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "En el selector de cuentas del comprobante, la cuenta 1011 aparece como '1011' y la subcuenta como '101101'. ¿Está bien?",
+      "expected_output": "- El agente indica que NO: la cuenta mayor siempre se muestra con el largo de una SubCuenta, así que 1011 debe verse como 101100\n- El agente explica que el relleno con ceros es solo de presentación y que el código almacenado no se altera\n- El agente explica el propósito: homogeneidad para comparar y ordenar en Libro Mayor, Balance y selectores, y evitar que el usuario crea que son cuentas distintas\n- El agente advierte que el largo se lee del plan de la empresa (SUB_CUENTA_large) y no se asume en 6",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Quiero asignar la cuenta maestra CLIENTE_NACIONAL a la cuenta 2105 'Documentos por pagar' porque me acomoda para un reporte.",
+      "expected_output": "- El agente rechaza la asignación: CLIENTE_NACIONAL solo admite la clase Activo según allowed_class_codes, y 2105 es de clase Pasivo en el plan de la empresa\n- El agente explica que asignarla invertiría la naturaleza de todo asiento de venta centralizado y falsearía el balance\n- El agente explica que la cuenta maestra existe para centralizar en un punto único por empresa una decisión estructural que los procesos automáticos resuelven sin preguntar\n- El agente NO ofrece un workaround para saltarse la restricción de tipo",
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "Necesito que la cuenta de Caja (1101) exija centro de costo. ¿Agrego el flag trabaja_con_centro_costo en true?",
+      "expected_output": "- El agente explica que trabaja_con_centro_costo es DERIVADO y no configurable: requiere empresa con centros de costo Y cuenta de resultado (clase Ganancias o Pérdidas, segun el plan)\n- El agente indica que 1101 es de clase Activo en el plan de la empresa, por lo que nunca exigirá centro de costo\n- El agente no propone agregar una columna ni un flag manual para forzarlo",
+      "files": []
+    }
+  ]
+}

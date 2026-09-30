@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-laravel-api-resources",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea un Resource para el modelo Employee que retorne el id, name y el nombre de la sucursal (branch_company->name).",
+      "expected_output": "Verifica que el Resource utilice el operador null-safe (?->) para acceder a propiedades de relaciones que podrían ser nulas.\nLa respuesta incluye: `\\$this->branch_company\\?->name`.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "En el EmployeeResource, incluye la relación contracts como una colección de ContractResource solo si la relación ha sido cargada.",
+      "expected_output": "Verifica que el Resource utilice whenLoaded() al incluir relaciones completas o colecciones anidadas.\nLa respuesta incluye: `whenLoaded\\('contracts'\\)`, `ContractResource::collection`.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Crea el Resource para User, incluye id, email, status y excluye el password. El status es un Enum UserStatus.",
+      "expected_output": "Verifica que el Resource NO exponga datos sensibles internos, y aplique el casting/wrapping de enums.\nLa respuesta incluye: `\\$this->status->value|\\$this->status`, `email`.\nLa respuesta NO incluye: `password`, `remember_token`.",
+      "files": []
+    }
+  ]
+}

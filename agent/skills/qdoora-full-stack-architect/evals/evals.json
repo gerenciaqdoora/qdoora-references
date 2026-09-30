@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-full-stack-architect",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Diseña un nuevo módulo de facturación electrónica.",
+      "expected_output": "- El plan incluye la sincronización de contratos (Laravel -> Angular)\n- Se especifica el uso de servicios para la lógica de negocio\n- Se menciona la necesidad de una auditoría de seguridad final",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Propón una refactorización para un proceso de carga masiva en AWS.",
+      "expected_output": "- Se prohíbe el uso de almacenamiento local en el contenedor\n- Se especifica el uso de S3 y procesamiento asíncrono\n- Se incluye un health check para monitorear el proceso",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Valida una nueva ruta para el portal administrativo.",
+      "expected_output": "- La ruta se registra bajo el grupo v1/support\n- Se incluye un guard con validación server-side\n- Se prohíbe el uso de localStorage para el token administrativo",
+      "files": []
+    }
+  ]
+}

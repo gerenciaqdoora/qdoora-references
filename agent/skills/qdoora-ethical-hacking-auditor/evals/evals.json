@@ -1,0 +1,41 @@
+{
+  "skill_name": "qdoora-ethical-hacking-auditor",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Auditar un controlador de Laravel que procesa la generación de PDFs buscando vulnerabilidades de inyección HTML (QD-11) y rate limiting ausente (QD-08). Proponer la remediación adecuada.",
+      "expected_output": "- Identifica correctamente el vector QD-11 y propone prepareForValidation() o strip_tags() en FormRequest.\n- Identifica correctamente la falta de control de frecuencia (QD-08) y sugiere aplicar el middleware de throttle.\n- El código de remediación sigue el estándar del archivo references/laravel-remediation.md.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Evaluar un componente y guard de Angular 18/21 que valida permisos decodificando localmente el JWT desde localStorage. Proponer la remediación para mitigar QD-01 y QD-07.",
+      "expected_output": "- Identifica la vulnerabilidad QD-01 (client-side auth bypass) por verificar permisos en local y propone cambiar a validación asíncrona server-side.\n- Identifica el riesgo de stored XSS QD-07 por el uso inseguro de [innerHTML] y propone interpolación standard o SafeRichTextComponent.\n- Recomienda migrar de localStorage a sessionStorage para almacenar el token de sesión.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Auditar la descarga de planillas y la inyección de secretos en la base de datos de PostgreSQL en producción buscando IDOR/BOLA (QD-05) y exposición de credenciales (QD-02). Proponer la remediación en AWS ECS y Laravel.",
+      "expected_output": "- Detecta el uso de identificadores numéricos secuenciales (QD-05) y propone enforzar multitenancy mediante addGlobalScope y UUIDs.\n- Identifica la fuga de secretos en texto claro de PostgreSQL (QD-02) y propone inyección stateless de Secrets Manager en la Task Definition de ECS y cifrado simétrico Crypt en base de datos.\n- El reporte final sigue rigurosamente el formato de references/report-template.md.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Auditar un Job asíncrono de Laravel consumiendo colas SQS, donde extrae una URL del payload y usa Http::get() sin validaciones previas. Identificar el vector de riesgo (QD-12).",
+      "expected_output": "- Identifica correctamente la posibilidad de SQS Message Poisoning, SSRF o Deserialización insegura (QD-12).\n- Propone validar la estructura del payload entrante usando el facade Validator.\n- Sugiere restricciones de red y parsing de URL (evitar subredes 169.254.x.x o localhost) siguiendo references/laravel-remediation.md.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Revisar el controlador de subida de archivos (UploadController) de Laravel que persiste imágenes .svg directo a un bucket público o sin Content-Disposition en S3. Identificar el vector (QD-13).",
+      "expected_output": "- Identifica el riesgo de Stored XSS a través de payloads insertados en archivos SVG u HTML permitidos (QD-13).\n- Propone forzar la cabecera 'Content-Disposition: attachment' al almacenar el archivo en S3.\n- Asegura que se cumplan las restricciones de tipos MIME permitidos y límites de tamaño.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Evaluar el aprovisionamiento de infraestructura IAM en AWS SQS, específicamente la asignación de la acción 'sqs:*' al rol del worker y la configuración base de la cola. (QD-14 y QD-12).",
+      "expected_output": "- Detecta permisos excesivos (QD-12) y propone limitarlos a sqs:ReceiveMessage y sqs:DeleteMessage para workers, aplicando Least Privilege.\n- Advierte la falta de encriptación en reposo (QD-14) y recomienda encarecidamente utilizar SSE-KMS con un alias específico de SQS.\n- Sugiere la configuración apropiada de AWS CLI en base a references/aws-hardening.md.",
+      "files": []
+    }
+  ]
+}

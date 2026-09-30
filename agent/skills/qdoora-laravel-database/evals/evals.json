@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-laravel-database",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Escribe la migración para agregar una columna department_id a la tabla employees.",
+      "expected_output": "Verifica que las Foreign Keys utilicen constrained() de Laravel.\nLa respuesta incluye: `foreignId\\('department_id'\\)->constrained`.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Crea una nueva tabla de productos.",
+      "expected_output": "Verifica que la tabla incluya un índice compuesto con company_id.\nLa respuesta incluye: `foreignId\\('company_id'\\)->constrained`, `\\$table->index\\(\\[.*'company_id'`.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Agrega una columna status (activo, inactivo) a la tabla users.",
+      "expected_output": "Verifica que los estados se guarden como string para usar String Backed Enums en PHP.\nLa respuesta incluye: `string\\('status'\\)->default`.\nLa respuesta NO incluye: `\\$table->enum`.",
+      "files": []
+    }
+  ]
+}

@@ -22,7 +22,7 @@ Una vez generado el plan, tu última línea de texto debe ser obligatoriamente:
 Debes generar el documento utilizando exactamente esta estructura para garantizar el ahorro masivo de tokens y la máxima granularidad de ejecución (Filosofía Superpowers):
 
 - **Objetivo:** [Resumen conciso del requerimiento].
-- **Skills a Activar:** [Ej: erp-accounting-expert, angular-frontend-master. Nombra SOLO las estrictamente necesarias para esta tarea].
+- **Skills a Activar:** [Ej: qdoora-erp-accounting-expert, angular-frontend-master. Nombra SOLO las estrictamente necesarias para esta tarea].
 - **Contexto Acotado (Whitelist):** [Lista EXPLÍCITA de las rutas de los archivos que el Agente Ejecutor tiene permitido leer. Queda prohibida la lectura de directorios completos].
 - **Anti-Patrones (Gotchas):** [Instrucciones tácticas de ahorro de tokens. Ej: "Modificar solo el método X del controlador", "Evitar reescribir imports innecesarios", "No leer node_modules"].
 - **Plan de Ejecución Granular (Builder - TDD):** 

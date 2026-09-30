@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-erp-electronic-invoicing-expert",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Escríbeme el código para integrar LibreDTE y generar el XML firmado.",
+      "expected_output": "- El agente rechaza escribir código de integración o llamadas a API externa\n- El agente delega la implementación a qdoora-laravel-services o qdoora-cloud-devops-engineer\n- El agente explica que debe existir un desacoplamiento asíncrono para la firma de DTEs",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Crea el FormRequest para autorizar el acceso al endpoint de emisión de facturas.",
+      "expected_output": "- El agente se niega a escribir el código de PHP o FormRequest\n- El agente deriva a qdoora-security-iam-expert la responsabilidad de manejar los submódulos\n- El agente solo recalca que la acción pertenece al dominio de FACTURACION",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Un usuario se equivocó al hacer la factura. Quiero poner un botón en el frontend para borrarla.",
+      "expected_output": "- El agente prohíbe tajantemente borrar la factura\n- El agente explica la Regla de la Inmutabilidad Tributaria\n- El agente instruye que se debe generar una Nota de Crédito",
+      "files": []
+    }
+  ]
+}

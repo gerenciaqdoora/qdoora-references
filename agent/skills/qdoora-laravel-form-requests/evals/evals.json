@@ -1,0 +1,41 @@
+{
+  "skill_name": "qdoora-laravel-form-requests",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Crea el FormRequest para eliminar un documento del submódulo COMPROBANTE, asegurando que solo lo pueda hacer quien tenga permiso sobre la empresa.",
+      "expected_output": "Un FormRequest nuevo de Portal Cliente debe autorizar vía el trait AuthorizesClientRequests, no duplicando el switch/case de roles ni inventando métodos inexistentes de User.\nLa respuesta incluye: `use App\\\\Traits\\\\AuthorizesClientRequests`, `authorizeSubmodule\\(`.\nLa respuesta NO incluye: `return true;`, `hasPermission\\(`, `Gate::`.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Crea el FormRequest para emitir una Nota de Crédito en el submódulo COMPROBANTE.",
+      "expected_output": "Las acciones que no son CRUD genérico (NC/ND, cierre contable, cambio de consignatario) se autorizan pasando el ability_code, no creando un permiso booleano nuevo.\nLa respuesta incluye: `authorizeSubmodule\\(.*,.*,.*,.*'`.\nLa respuesta NO incluye: `return true;`, `Gate::`.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Crea el FormRequest para que un administrador cree una cuenta en el plan de cuentas global del portal de soporte.",
+      "expected_output": "Un FormRequest nuevo de Portal Soporte debe usar authorizeAdmin() (patrón dominante 42/43), no el combo con SUPPORT_ROLE ni el método inexistente isExclusiveAdminEndpoint().\nLa respuesta incluye: `use App\\\\Traits\\\\AuthorizesSupportRequests`, `authorizeAdmin\\(\\)`.\nLa respuesta NO incluye: `isExclusiveAdminEndpoint`, `return true;`, `SUPPORT_ROLE`.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "En el StoreProductRequest, valida que el sku del producto sea único para la empresa actual.",
+      "expected_output": "Verifica que las reglas unique() apliquen el scope company_id.\nLa respuesta incluye: `Rule::unique`, `->where\\('company_id'`.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Agrega la validación de la foreign key company_id en el request.",
+      "expected_output": "La tabla de empresas es core_companies; usar 'companies' produce una regla que nunca valida correctamente.\nLa respuesta incluye: `exists:core_companies,id`.\nLa respuesta NO incluye: `exists:companies,id`.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Agrega mensajes personalizados para las validaciones requeridas del request.",
+      "expected_output": "Verifica que el método messages() esté implementado y devuelva texto en español.\nLa respuesta incluye: `obligatorio|requerido|válido|existe`.",
+      "files": []
+    }
+  ]
+}

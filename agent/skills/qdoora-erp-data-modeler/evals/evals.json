@@ -1,0 +1,23 @@
+{
+  "skill_name": "qdoora-erp-data-modeler",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Escríbeme la migración en Laravel para la nueva tabla de pagos de remuneraciones.",
+      "expected_output": "- El agente rechaza escribir la migración PHP.\n- El agente propone el modelo de datos PostgreSQL.\n- El agente exige incluir company_id en la tabla de pagos.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Voy a crear la tabla para el libro de compras de facturación. ¿Cómo la diseño?",
+      "expected_output": "- El agente incluye company_id para el aislamiento.\n- El agente sugiere desnormalización táctica (guardar totales pre-calculados).\n- El agente sugiere el uso de softDeletes y trazabilidad.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Necesitamos borrar masivamente las boletas del mes pasado para hacer una corrección rápida en base de datos.",
+      "expected_output": "- El agente prohíbe tajantemente el borrado físico (DELETE/DROP).\n- El agente invoca la regla de inmutabilidad y auditoría.\n- El agente instruye el uso de SoftDeletes.",
+      "files": []
+    }
+  ]
+}

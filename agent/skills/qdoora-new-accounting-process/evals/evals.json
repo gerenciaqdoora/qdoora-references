@@ -1,0 +1,41 @@
+{
+  "skill_name": "qdoora-new-accounting-process",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Necesito centralizar las boletas de honorarios. Hoy el HonorariumSlipService ya crea un comprobante llamando a VoucherService. Quiero que quede como el proceso de ventas.",
+      "expected_output": "- El agente identifica que la vía actual (VoucherService::crearCabeceraComprobante + crearCuentasComprobante) es legacy y salta la cuadratura obligatoria y la inversión por reversa\n- El agente propone las 3 capas: HonorariumSlipService (dueño, transacción y estado) -> HonorariumCentralizationService (reglas) -> AccountingEntryService::postEntry (motor)\n- El agente NO modifica AccountingEntryService para acomodar el dominio de honorarios\n- El agente usa las categorías maestras HONORARIO_POR_PAGAR y RETE_2DA_CATEGORIA en vez de inventar constantes\n- El agente consulta o referencia qdoora-erp-accounting-expert para el mapa contable (qué monto va a qué cuenta y a qué lado)",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Agrega la centralización masiva por período a las liquidaciones de nómina. Ya existe la centralización de una liquidación.",
+      "expected_output": "- El agente NO duplica la lógica de armado del asiento: el lote itera y llama al mismo método unitario de contabilización\n- El agente usa lazyById() y explica que chunk() por offset salta registros porque el documento deja de cumplir el filtro PENDING al centralizarse\n- El agente calcula el total con un clon de la query ANTES de recorrerla\n- El agente acumula los errores por documento con su motivo (id, num_doc, reason) en vez de solo contar los fallos\n- El Job registra el detalle en LoggerService y transmite una muestra acotada por broadcast\n- El agente crea un FormRequest con authorize() (permiso de empresa + submódulo), nunca un Request plano",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "En la centralización de DIN de aduana, la cuenta del proveedor extranjero se resuelve por cuenta maestra. ¿Necesito validar que la cuenta exija auxiliar o centro de costo?",
+      "expected_output": "- El agente explica que la centralización NO valida requisitos: las restricciones se aplican al configurar la imputación (AccountingImputationService::save -> AccountRequirementService) y en la revalidación diferida\n- El agente advierte que una cuenta resuelta por maestra NO pasa por save(), así que el proceso es responsable de entregar el auxiliar correcto en la línea\n- El agente recuerda que el centro de costo es derivado (company.allow_cost_center && cuenta de resultado de clase Ganancias o Pérdidas, según el plan), no un flag configurable por cuenta\n- El agente no propone agregar validaciones de requisitos dentro de postEntry",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "El resumen de configuración masiva dice que 40 auxiliares están configurados, pero al centralizar fallan 12 por 'faltan cuentas'. ¿Qué pasa?",
+      "expected_output": "- El agente identifica que la causa es contar como 'configurada' una AccountingImputation con needs_review = true\n- El agente explica que resolverCuentas trata needs_review igual que una cuenta ausente, y que el conteo debe usar el mismo criterio\n- El agente propone informar needs_review como estado propio y permitir que la configuración masiva lo repare, en vez de omitirlo\n- El agente no propone ignorar el flag needs_review al contabilizar",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "La centralización masiva de 3.000 facturas se demora muchísimo. ¿Cómo la optimizo?",
+      "expected_output": "- El agente identifica el N+1: cada documento reconsulta la cuenta maestra (constante por empresa), la del impuesto y la del auxiliar\n- El agente propone memoización por operación en el servicio de reglas (patrón remember + flushResolutionCache), memorizando también el null\n- El agente explica por qué el memo es seguro (instancia fresca por request/job, el escritor de imputaciones no pasa por el resolutor) y por qué las entradas unitarias hacen flush explícito\n- El agente propone consulta en lote (whereIn indexado por imputable_id) para los resúmenes que hoy preguntan auxiliar por auxiliar\n- El agente propone lazyById en vez de get() para no cargar miles de modelos en memoria\n- El agente NO propone cachear en Redis ni introducir un cache persistente entre requests",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Escribe el método que contabiliza una nota de crédito de venta y vincula el comprobante al documento.",
+      "expected_output": "- El agente respeta el orden: guarda temprana -> resolverCuentas -> excepción si falta -> ensureYearForDate FUERA de la transacción -> DB::transaction con lockForUpdate -> segunda guarda -> postEntry -> update del documento\n- El agente explica que ensureYearForDate es DDL y no debe quedar atado al rollback\n- El agente incluye la doble guarda de inmutabilidad y explica que sin ella dos procesos concurrentes generan dos comprobantes\n- El agente usa is_note_credit para que el motor invierta las líneas, en vez de invertir los lados a mano en el dominio\n- El agente muta el documento SOLO desde su servicio dueño\n- El mensaje de error va en español y nombra el concepto faltante",
+      "files": []
+    }
+  ]
+}
