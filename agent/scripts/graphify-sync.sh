@@ -17,8 +17,8 @@ REPOS=(qdoora-api fuse-starter support-portal)
 LOG="$HOME/.cache/graphify-qdoora-sync.log"
 LOCK="$WORKSPACE_ROOT/graphify-out/.sync.lock"
 
-# Los hooks de Claude no cargan el PATH del perfil: graphify vive en ~/.local/bin
-export PATH="$HOME/.local/bin:$PATH"
+# Los hooks de Claude no cargan el PATH del perfil: graphify vive en ~/.local/bin (uv/pipx) o en Homebrew
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
 sync() {
     echo "---- $(date '+%Y-%m-%d %H:%M:%S') graphify-sync"

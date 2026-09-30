@@ -30,13 +30,41 @@ echo "QDOORA GRAPHIFY SETUP"
 echo "----------------------------------------------------------------"
 echo "Workspace: $WORKSPACE_ROOT"
 
+# El CLI descarga paquetes de internet: su instalación la decide la persona, no el script
+# (AGENT_BASE.md §2). El paquete se llama "graphifyy" (doble y).
 if ! command -v graphify > /dev/null 2>&1; then
-    echo "❌ graphify no está instalado. Instálalo y vuelve a ejecutar este script:"
-    echo "   uv tool install graphifyy"
-    echo "   graphify install --platform claude && graphify install --platform codex && graphify install --platform agents"
+    echo "❌ graphify no está instalado. Instálalo con UNA de estas opciones y vuelve a ejecutar este script:"
+    if command -v uv > /dev/null 2>&1; then
+        echo "   uv tool install graphifyy"
+    elif command -v pipx > /dev/null 2>&1; then
+        echo "   pipx install graphifyy"
+    else
+        echo "   a) Instala uv:  curl -LsSf https://astral.sh/uv/install.sh | sh   (o: brew install uv)"
+        echo "      y luego:     uv tool install graphifyy"
+        echo "   b) Con pipx:    brew install pipx && pipx ensurepath && pipx install graphifyy"
+    fi
+    echo "   Abre una terminal nueva si 'graphify' no queda en el PATH."
     exit 1
 fi
-echo "graphify: $(graphify --version 2>/dev/null)"
+GRAPHIFY_BIN="$(command -v graphify)"
+echo "graphify: $(graphify --version 2>/dev/null) ($GRAPHIFY_BIN)"
+
+# La skill /graphify ($graphify en Codex) solo copia archivos a las carpetas de skills del usuario
+echo "== Skill graphify"
+install_skill() {
+    local platform="$1"
+    local skill_file="$2"
+    if [ -f "$skill_file" ]; then
+        echo "   = $platform: ya instalada"
+    elif graphify install --platform "$platform" > /dev/null 2>&1; then
+        echo "   ✅ $platform: instalada"
+    else
+        echo "   ⚠️  $platform: falló. Ejecuta: graphify install --platform $platform"
+    fi
+}
+install_skill claude "$HOME/.claude/skills/graphify/SKILL.md"
+install_skill codex "$HOME/.codex/skills/graphify/SKILL.md"
+install_skill agents "$HOME/.agents/skills/graphify/SKILL.md"
 
 write_ignore() {
     local repo="$1"
@@ -134,10 +162,13 @@ for repo in "${REPOS[@]}"; do
 done
 
 echo "== Claude Code (.claude/settings.json de la raíz)"
-python3 - "$WORKSPACE_ROOT/.claude/settings.json" <<'EOF'
+python3 - "$WORKSPACE_ROOT/.claude/settings.json" "$GRAPHIFY_BIN" <<'EOF'
 import json, os, sys
 
-path = sys.argv[1]
+path, graphify_bin = sys.argv[1], sys.argv[2]
+# Ruta portable si graphify vive en ~/.local/bin (uv/pipx); si no, la ruta real
+home_bin = os.path.expanduser("~/.local/bin/graphify")
+graphify_cmd = '"$HOME"/.local/bin/graphify' if graphify_bin == home_bin else f'"{graphify_bin}"'
 os.makedirs(os.path.dirname(path), exist_ok=True)
 settings = {}
 if os.path.exists(path):
@@ -148,8 +179,8 @@ sync_cmd = '"$CLAUDE_PROJECT_DIR"/qdoora-references/agent/scripts/graphify-sync.
 wanted = {
     "SessionStart": [{"hooks": [{"type": "command", "command": sync_cmd}]}],
     "PreToolUse": [
-        {"matcher": "Bash|Grep", "hooks": [{"type": "command", "command": '"$HOME"/.local/bin/graphify hook-guard search'}]},
-        {"matcher": "Read|Glob", "hooks": [{"type": "command", "command": '"$HOME"/.local/bin/graphify hook-guard read'}]},
+        {"matcher": "Bash|Grep", "hooks": [{"type": "command", "command": f"{graphify_cmd} hook-guard search"}]},
+        {"matcher": "Read|Glob", "hooks": [{"type": "command", "command": f"{graphify_cmd} hook-guard read"}]},
     ],
 }
 
