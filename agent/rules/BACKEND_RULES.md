@@ -536,6 +536,23 @@ if ($env !== SiiEnvironment::CERTIFICACION) {
 
 ---
 
+## 🛃 ADUANA ↔ AUXILIARES — Rol Consignatario (oct-2026)
+
+Diseño: `docs/designs/2026-10-08-sincronizacion-consignatario-auxiliar.md` · plan: `docs/implementations/2026-10-08-sincronizacion-consignatario-auxiliar.md`.
+
+- **El auxiliar manda.** Todo consignatario (`aduana_agent_consignees`, `type = CONSIGNATARIO`) de una empresa con módulo Aduana se vincula a un auxiliar (`core_third_companies`) por `third_company_id`. La copia de los campos compartidos (documento, nombre, dirección, tipo de persona) vive en ambos lados y se mantiene **solo** a través de `ConsigneeAuxiliarySyncService`; ante conflicto gana el auxiliar. Comuna/municipio y país **no** se sincronizan (los catálogos core y Anexo51 no coinciden; ver `PENDIENTE.md`).
+- **Toda escritura pasa por el servicio dueño.** El orquestador nunca hace `create/update` sobre el modelo ajeno: muta el auxiliar con `ThirdCompanyService` y el consignatario con `AduanaAgentService`. Para evitar rebote y dependencia circular, `crearEntidad`, `actualizaEntidad`, `storeConsignee` y `updateConsignee` reciben `bool $propagate = true`; el orquestador los llama con `false`, y los servicios se resuelven con `app()` dentro del método (nunca por constructor).
+- **`ConsigneeFieldMapper` es puro** (sin base de datos): normaliza documentos (`03` RUT → solo dígitos y `K`; otros → sin espacios) y traduce `natural`/`juridica` ↔ `NATURAL`/`JURIDICA`. Compara siempre documentos normalizados: el auxiliar guarda el RUT plano y el formulario de Aduana lo envía con máscara.
+- **Guardia de módulo:** la sincronización solo actúa si el suscriptor tiene `Module::ADUANA` (`isActive()`). Con solo Contabilidad el rol no se asigna (403).
+- **Cliente implica Consignatario** (Aduana + Contabilidad): un auxiliar con cuenta `CLIENTE_NACIONAL` (categoría efectiva: la de la subcuenta si existe; si no, la de la cuenta) es también consignatario. Lo deriva `syncImpliedConsignee()` desde los únicos tres puntos que escriben `cont_auxiliary_accounts` (`asegurarCuentasPorCategoria`, `crearEntidad`, `actualizaEntidad`). Sin documento o dirección **no falla**: queda pendiente hasta completarlos. Quitar la cuenta o desmarcar el rol no elimina el consignatario. Clientes existentes: `aduana:link-consignees --from-clients` (no entra en `data:sync` porque crea registros).
+- **Exigencia al editar desde Auxiliares:** con Aduana, Contabilidad y plan de cuentas, un auxiliar que ya es consignatario no se guarda sin cuenta `CLIENTE_NACIONAL` (`assertConsigneeKeepsClientAccount`, 422, dentro de la transacción). Solo en ediciones del usuario (`$propagate = true`); crear un consignatario en Aduana **no** asigna la cuenta.
+- **Persona natural vinculada:** su nombre lo manda el auxiliar y es de solo lectura en Aduana (el auxiliar lo guarda en partes). Un auxiliar global (`is_standard`) no se edita desde Aduana (403).
+- **Despachos:** `aduana_dispatches` **no tiene** `consignee_id` ni `consignee_*`. El consignatario de una DIN queda como **copia** (RUT, nombre, código, dirección…) en `aduana_dispatch_identifications` (en el DUS solo `consignee_name`, sin RUT). Tesorería lo resuelve por RUT normalizado dentro de la empresa (`TreasuryDispatchService::findConsigneeOfDispatch`). La sincronización **jamás reescribe** esas copias.
+- **`authorize()` nunca devuelve `true` a ciegas** en un FormRequest con `{company_id}` en la ruta: usar `AuthorizesClientRequests::authorizeCompany()`. `StoreConsigneeRequest` y `UpdateConsigneeRequest` lo hacían y permitían crear/editar en otra empresa (se corrigió con tests de aislamiento).
+- **Índice:** `uq_aduana_consignee_active_aux` (único parcial: `company_id` + `third_company_id` para consignatarios no eliminados). Un consignatario eliminado se **restaura** (mismo id) en lugar de recrearse.
+
+---
+
 ## 📧 IDENTIDAD DE USUARIO — Email como identidad canónica (ago-2026)
 
 `users.email` es simultáneamente el identificador de login (`JWTAuth::attempt(['email' => ...])`), la

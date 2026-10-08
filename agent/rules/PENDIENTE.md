@@ -474,3 +474,190 @@ honorarios/gastos de despacho bajo Patrimonio (ver `AccountPlanImport_SiglaMappi
 Decidir con `qdoora-erp-accounting-expert` si esas cuatro cuentas maestras deben admitir solo `GANANCIA`; si es así,
 nueva migración que actualice `cont_account_categories.allowed_class_codes` y revisar que ningún plan importado
 en QA las tenga asignadas bajo un Tipo Patrimonio antes de aplicarla.
+
+## 12. Tesorería: filtrar consignatarios por cuenta CLIENTE_NACIONAL en Provisión de fondos
+
+**Estado**: pendiente (se retoma tras cerrar "Cancelación de facturas") · **Detectado**: 2026-10-08
+**Capa**: full-stack (`qdoora-api` Tesorería + `fuse-starter` `common-update-pago-cobro`) · **Esfuerzo**: S · **Criticidad**: MEDIA
+
+### Problema
+
+En Provisión de fondos el consignatario es el auxiliar del asiento, pero la lista de consignatarios
+(`TreasuryDispatchService::listConsignees`, tabla `aduana_agent_consignees`) **no se cruza con los auxiliares de
+Tesorería**. Aparece cualquier consignatario con `third_company_id`, aunque ese tercero no tenga una cuenta
+`CLIENTE_NACIONAL`; `VoucherService` rechazaría después el asiento.
+
+### Cómo funciona hoy
+
+- `GET treasury/auxiliaries` (`TreasuryService::getListaAuxiliares`) entrega `{id, rut, full_name, email,
+  cuentas[{account_id, type, category}], is_disbursement}`; la ruta lo carga una vez como `entities`.
+- `search-documents` filtra el selector de auxiliar por `cuentas[].account_id` (`filterEntitiesByAccount`).
+- `manual-application` pide `getConsignees()` (`{id, auxiliary_id, name, rut}`) solo si el despacho no existe o no
+  tiene consignatario.
+
+### Cambio propuesto
+
+1. Pasar `entities` a `manual-application` y dejar solo los consignatarios cuyo `auxiliary_id` coincida con un
+   auxiliar que tenga una cuenta `CLIENTE_NACIONAL`.
+2. Despacho encontrado cuyo consignatario no cumple: avisar y no permitir continuar.
+3. Aplicar la misma regla en backend (`listConsignees` y `TreasuryFlowRules`); la validación real debe estar ahí.
+
+### Decisión abierta
+
+Filtrar por categoría `CLIENTE_NACIONAL` o por el `account_id` exacto de la cuenta elegida (más estricto: una
+empresa con varias subcuentas de cliente no dejaría pasar consignatarios asociados a otra).
+
+**Actualización 2026-10-08:** con la sincronización Consignatario ↔ Auxiliar (pendiente 14), `listConsignees` ya devuelve consignatarios vinculados y, con Aduana + Contabilidad, todo cliente (`CLIENTE_NACIONAL`) es también consignatario. El filtro de este pendiente sigue siendo necesario: un consignatario creado en Aduana **puede existir sin cuenta de cliente** (se exige recién al editarlo desde Auxiliares).
+
+## 13. Tesorería: consultar si se pueden hacer ingresos/egresos de asientos sin documento
+
+**Estado**: pendiente — **es una consulta a negocio/contabilidad, no una tarea de código aún** · **Detectado**: 2026-10-08
+**Capa**: backend (`VoucherAccount::scopePendingForIncome`/`scopePendingForPayment`, `VoucherService::crearCuentaComprobante`) · **Esfuerzo**: M · **Criticidad**: MEDIA
+**Preguntar a**: `qdoora-erp-accounting-expert` / responsable contable antes de tocar código.
+
+### Pregunta abierta
+
+¿Debe poder cobrarse (ingreso) o pagarse (egreso) desde Tesorería un asiento que **no tiene documento**, por ejemplo
+una cuenta que trabaja con auxiliar (con RUT o de concepto) pero no con documentos, o un saldo inicial/ajuste cargado
+con un comprobante manual?
+
+### Hallazgo (verificado 2026-10-08, solo lectura de código)
+
+Un comprobante manual con Debe en una cuenta de Tesorería (ej. 124 con RUT, 125 de concepto) **nunca aparece** en
+`GET treasury/incomes/pending`, por dos causas:
+
+1. **Exige documento.** `scopePendingForIncome` hace `join core_documents` por `document_id`; una línea sin
+   documento queda excluida.
+2. **`max_amount_application` queda en 0.** El scope exige `applied_amount < max_amount_application`. Ese campo solo lo
+   llenan los procesos de centralización (ventas, compras, honorarios) vía `AccountingEntryService`
+   (`max_amount`). El comprobante manual no lo envía (ni el `FormRequest` ni el frontend) y
+   `VoucherService::crearCuentaComprobante` lo guarda como `0.00`.
+
+Consecuencia: por la UI no hay forma de crear un pendiente de cobro/pago con un comprobante manual; solo la
+centralización los genera. Para pruebas se ajustó por SQL (`max_amount_application = debit`, `document_id`,
+`document_number`).
+
+### Si la respuesta es "sí"
+
+1. Que las líneas de un comprobante manual a una cuenta de Tesorería con auxiliar guarden
+   `max_amount_application = |Debe − Haber|`.
+2. Decidir si el documento pasa a ser opcional: cambiar el `join` por `leftJoin` y mostrar "No aplica" en la
+   columna Documento. Revisar el efecto en Cancelación (selección por documento, `document_id`/`document_number` de la
+   aplicación y del asiento de contrapartida).
+3. Definir cómo se identifica la línea sin documento (id de línea del comprobante) y cómo evitar duplicados.
+4. Ojo: cambia qué líneas se consideran pendientes. Validar con contabilidad y cubrir con tests de aislamiento
+   por `company_id`.
+
+### Si la respuesta es "no"
+
+Documentarlo: las cuentas de Tesorería con auxiliar que no centralizan documento solo admiten Gasto directo, y los
+saldos iniciales deben cargarse con documento y `max_amount_application`.
+
+## 14. Auxiliares de empresa: roles (cliente, proveedor, emisor, empleado, consignatario, desembolso) inconsistentes
+
+**Estado**: pendiente · **Detectado**: 2026-10-08 (lectura de código de `/general/catalogue/entity`; la UI no se pudo abrir en vivo)
+**Capa**: full-stack (`qdoora-api` `ThirdCompanyService` + `fuse-starter` `formulario-entidad`) · **Esfuerzo**: M · **Criticidad**: MEDIA
+**Relacionado**: pendiente 12 (consignatarios en Provisión de fondos) y `Otros/disenno-tesoreria.md` (flujo de ingreso por despacho).
+
+### Cómo funciona hoy (contexto)
+
+- Tabla `core_third_companies` (`company_id`, global scope `not_certification`). Los auxiliares globales
+  (`is_standard = true`, enlazados a `global_entities.standard_entity_id`) se ocultan en el listado y no se editan
+  ni eliminan desde la empresa.
+- Tipo de auxiliar deducido: **con RUT/pasaporte** (`rut` + `identification_document_id` llenos) o **de concepto**
+  (ambos vacíos). Con solo uno lleno no califica para ninguno (`esAuxiliarConRut` / `esAuxiliarConcepto`).
+- Unicidad por empresa: `rut` + documento, o `full_name` si no hay RUT. El borrado está condicionado a que no existan
+  asientos, ventas, compras, honorarios, tesorería ni liquidaciones (no hay `deleted_at` en la tabla).
+- **Los roles no son columnas** (`es_cliente`, `es_proveedor`, etc. no están en `fillable`). Se deducen así:
+
+| Rol | Fuente real | Toggle visible si |
+|---|---|---|
+| Cliente | Cuenta asociada (`cont_auxiliary_accounts`) con categoría maestra `CLIENTE_NACIONAL` | módulo contabilidad |
+| Proveedor | Ídem `PROVEEDOR_NACIONAL` | módulo contabilidad |
+| Emisor | Ídem `HONORARIO_POR_PAGAR` | módulo contabilidad |
+| Empleado | `EmployeeProfile` y, con plan de cuentas, cuenta `REMUNERACIONES_POR_PAGAR` | módulo nómina |
+| Consignatario | Fila en `aduana_agent_consignees` (`third_company_id`, `company_id`); categoría frontend `CLIENTE_NACIONAL` | módulo aduana |
+| Desembolso | Cuenta con categoría `DESEMBOLSO` | aduana + contabilidad + plan de cuentas |
+
+- Al activar un toggle el frontend agrega la cuenta maestra de esa categoría; si ninguna cuenta la tiene, obliga a
+  elegir una cuenta libre (`getAccountsWithOutMasterAccount`). Un auxiliar admite una sola cuenta con prefijo
+  `CLIENTE` y una con `PROVEEDOR` (`validateRestrictionsCategoryAccounts`). Si el documento no es RUT (`code` 03) se
+  apagan todos los roles. Empleado no se quita desde el auxiliar (se hace en nómina).
+- Consignatario y Empleado validan en backend que el módulo (`aduana` / `nomina`) esté activo en el plan.
+
+### Problemas detectados
+
+1. **El filtro por rol Emisor nunca devuelve resultados.** `ThirdCompanyService::getListaEntidad` usa
+   `HONORARIOS_POR_PAGAR`; el código real es `HONORARIO_POR_PAGAR` (`AccountCategories`). Usar la constante.
+2. **El filtro por rol no incluye Desembolso** (ni el selector `roles` de `entity/list/list.component.ts`).
+3. **Empleado se evalúa distinto** en el filtro (solo categoría de la cuenta) y en la ficha (`EmployeeProfile` +
+   categoría si hay plan).
+4. **`es_consignatario` no viaja en el payload.** `getFormattedData` (`formulario-entidad.component.ts`) no lo envía,
+   por lo que el diálogo no crea ni actualiza el consignatario. `crearEntidad` tiene además el `firstOrCreate`
+   comentado; `actualizaEntidad` lo ejecuta solo con `company_id` y `third_company_id`.
+5. **Verificar la migración de `aduana_agent_consignees`**: define `type` (enum) y `name` NOT NULL, y el
+   `firstOrCreate` de (4) no los informa. Confirmar si una migración posterior los relajó; si no, falla al guardar.
+6. **El filtro `is_consignee` es una consulta cruda** (`whereExists`) que ignora `deleted_at` (la tabla usa
+   SoftDeletes) y `company_id`.
+7. **`ThirdCompanyDetailResource` solo devuelve `es_empleado`.** Cliente, proveedor, emisor y desembolso se
+   reconstruyen en el frontend cruzando cuentas con el plan; `ThirdCompany.is_disbursement` (TS) no lo llena ningún
+   recurso revisado, y el listado (`AuxiliaryResource`) no devuelve roles.
+8. **Existen dos categorías**: `DESEMBOLSO` (la del auxiliar) y `DESEMBOLSO_POR_PAGAR` (solo aduana, según
+   `disenno-tesoreria.md`). Dejar explícito cuál usa cada flujo.
+
+### Cambio propuesto
+
+1. Corregir 1 a 4 y 6 (cambios chicos y de bajo riesgo). Validar 5 antes de tocar el consignatario.
+2. Centralizar la lógica de "rol de un auxiliar" en un solo servicio (backend) y exponer los roles en detalle y
+   listado, para que filtro, ficha y Tesorería usen la misma regla.
+3. Tras eso, decidir el modelo: (a) mantener roles implícitos por cuenta maestra, (b) índice o vista que materialice
+   roles por auxiliar, o (c) tabla `third_company_roles` (`company_id`, `third_company_id`, `role`, índices por FK).
+
+### Decisión abierta
+
+Si el rol debe seguir siendo una relación implícita con la cuenta maestra (útil para la imputación contable, caro de
+filtrar) o pasar a una tabla explícita. Recomendación: corregir primero 1 a 4 y decidir con datos de rendimiento.
+
+### Avance (2026-10-08)
+
+Resuelto **para el rol consignatario** por `docs/implementations/2026-10-08-sincronizacion-consignatario-auxiliar.md`: ítems 4 (`es_consignatario` ahora viaja y persiste), 5 (`firstOrCreate` reemplazado por `ConsigneeAuxiliarySyncService`) y 6 (el filtro por rol ignora consignatarios eliminados y se acota por empresa y tipo). Siguen abiertos los ítems 1 a 3, 7 (parcial: el detalle ya informa `es_consignatario`; cliente, proveedor, emisor y desembolso siguen reconstruyéndose en el frontend) y 8, y la decisión de modelo (a/b/c) para el resto de los roles. Ver reglas en `BACKEND_RULES.md` ("ADUANA ↔ AUXILIARES — Rol Consignatario").
+
+## 15. Comuna/municipio entre auxiliar y consignatario
+
+**Estado**: pendiente (retomar al cerrar la sincronización del rol consignatario) · **Detectado**: 2026-10-08
+**Capa**: datos (`core_comunas` ↔ `aduana_anexo51_municipality`) · **Esfuerzo**: M · **Criticidad**: MEDIA
+
+### Problema
+
+La sincronización Consignatario ↔ Auxiliar **no** copia comuna: el auxiliar usa `core_comunas` y el consignatario `aduana_anexo51_municipality`, y no existe una clave común confiable. Un auxiliar creado desde Aduana queda con `comuna_id = null`; un consignatario creado desde el auxiliar queda con `municipality_id = null` (el formulario de Aduana lo exige al editar).
+
+### Antecedentes (verificado sobre los CSV de siembra, 2026-10-08)
+
+- `ComunaSeeder` **no carga la columna `CODE`**: las comunas de Chile quedan sin código. Coincidencia por `code` con Anexo51 (CUT, ej. `05804`): 4 de 346.
+- `core_comunas` es un catálogo mundial (48.044 filas); Chile tiene solo **204 comunas** contra 346 municipios Anexo51 (faltan casi todas las del Gran Santiago).
+- Por nombre normalizado y restringido a Chile: 151 coinciden de forma única, 22 son ambiguas (nombre repetido, ej. Santiago) y 173 no tienen contraparte. Erratas en core: `Villarica`, `Paiguano`, `Punitaci`, `Concon`, `Llaillay`, `Putaendeo`, `Aisen`, `Cabo de Horno`.
+- No verificado sobre una base real.
+
+### Cambio propuesto
+
+Cargar el catálogo oficial de comunas de Chile en `core_comunas` con su código CUT (afecta facturación y empresas: validar con `qdoora-erp-electronic-invoicing-expert`), y mapear por código en lugar de por nombre. Alternativa: columna `core_comunas.aduana_municipality_id` poblada por un seeder idempotente (nombre normalizado + excepciones).
+
+## 16. Exigir la cuenta CLIENTE_NACIONAL del consignatario antes de conciliar o contabilizar un despacho (DIN/DUS)
+
+**Estado**: pendiente · **Detectado**: 2026-10-08 · **Capa**: backend (contabilización de despachos) · **Esfuerzo**: M · **Criticidad**: MEDIA
+
+Crear un consignatario en Aduana no le asigna la cuenta `CLIENTE_NACIONAL` (decisión del usuario): hoy solo se exige al editar el auxiliar desde Auxiliares (con Aduana + Contabilidad + plan de cuentas). Debe exigirse, como mínimo, antes de conciliar o contabilizar un despacho.
+
+Nota: en el DUS el consignatario solo guarda `consignee_name` (sin RUT), por lo que `TreasuryDispatchService::resolveDispatch` no puede resolver su auxiliar; hoy solo resuelve DIN.
+
+## 17. Auditar `authorize()` de los FormRequest de Aduana
+
+**Estado**: pendiente · **Detectado**: 2026-10-08 (revisión de cumplimiento) · **Capa**: backend/seguridad · **Esfuerzo**: S · **Criticidad**: ALTA
+
+`StoreConsigneeRequest` y `UpdateConsigneeRequest` devolvían `authorize(): true` y permitían crear/editar en otra empresa (corregido). Quedan con el mismo patrón `Agent/Carrier/StoreCarrierRequest`, `Agent/Carrier/UpdateCarrierRequest` y `Context/GetContextRequest`. Cambiar a `AuthorizesClientRequests::authorizeCompany((int) $this->route('company_id'))` y agregar tests de aislamiento entre empresas (patrón de `ConsigneeEndpointSyncTest`). Revisar también que los tests de Aduana usen la fixture `SetsUpAduanaAccess` (SUBSCRIBER_ROLE).
+
+## 18. Purga de datos personales en filas eliminadas de consignatarios (Ley 21.719)
+
+**Estado**: pendiente · **Detectado**: 2026-10-08 · **Capa**: datos/cumplimiento · **Esfuerzo**: M · **Criticidad**: BAJA
+
+Eliminar un auxiliar hace soft delete de su consignatario (`aduana_agent_consignees.deleted_at`) y deja nombre, RUT y dirección en esa fila; los despachos conservan además su copia. Definir con `ley-21719-datos-personales` el plazo de retención y una política de purga/anonimización de filas eliminadas, y qué copias (despachos) deben conservarse por obligación aduanera.
