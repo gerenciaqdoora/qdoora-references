@@ -90,6 +90,8 @@ export const adminGuard: CanActivateFn = () => {
 ### Tokens de Sesión
 - **EXCLUSIVAMENTE `sessionStorage`** — la sesión muere al cerrar la pestaña.
 - **TERMINANTEMENTE PROHIBIDO** `localStorage` para tokens o estados de permisos.
+- **Rutas de autenticación**: se reconocen SOLO con `isAuthEndpoint()` (`core/interceptors/auth-endpoints.ts`), por ruta exacta. PROHIBIDO `url.includes(...)`. El logout NO es ruta de autenticación: sin el access token el servidor no revoca la sesión.
+- **Renovación**: una sola en curso, compartida por todas las peticiones con 401 (`refreshOnce` en el interceptor). `/v1/refresh` responde solo tokens: NUNCA pasar su respuesta por `_setSession()`, que exige `user`.
 
 ---
 

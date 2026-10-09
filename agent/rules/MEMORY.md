@@ -69,7 +69,7 @@ QdoorAChile/                         ← workspace raíz
 | Storage | AWS S3 | — | Único storage permitido en producción |
 | Infra actual | Docker Compose | — | PostgreSQL + Redis + API en contenedores |
 | Infra objetivo | AWS ECS Fargate | — | Migración pendiente — diseño stateless |
-| Auth | JWT | — | Claims: `company_id`, `user_id`, `scope` |
+| Auth | JWT (tymon) | — | Claims: `sub`, `role`, `typ` (`access`/`refresh`), `sid` (fila de `user_sessions`), `login` |
 | Mail | MailerSend | — | Templates premium, único proveedor |
 | Queues async | AWS SQS | — | Cálculos de nómina asincrónicos |
 
@@ -105,7 +105,7 @@ QdoorAChile/                         ← workspace raíz
 
 ### Multi-tenancy
 - Toda query DEBE estar filtrada por `company_id` (scope Eloquent global).
-- JWT contiene: `company_id`, `user_id`, `scope` (`client` / `support` / `admin`).
+- JWT contiene: `sub` (id de usuario), `role`, `typ`, `sid` y `login`. **No** lleva `company_id` ni `scope`: el tenant se deriva server-side (ver `BACKEND_RULES.md`).
 - Rutas de soporte/admin registradas bajo prefijo `v1/support` en `routes/api.php`.
 
 ### Autorización Multinivel (Backend)
@@ -134,6 +134,9 @@ Todo nuevo Seeder DEBE registrarse en `DataSyncCommand.php` respetando el orden 
 
 ### Relaciones Inter-Módulos
 Relaciones desde `ThirdCompany` (modelo core) hacia submódulos (ej. Nómina) deben mantenerse explícitas dentro del modelo base hasta que se estandarice un sistema via Traits.
+
+### Sesiones de login — oct-2026
+Decisión (diseño `docs/designs/2026-10-09-sesiones-jwt-refresh.md`): la sesión dura **24 h absolutas** desde el login y se guarda en `user_sessions` (varias por usuario: una por pestaña o dispositivo). Access de 1 h; el refresh rota en cada renovación y su reuso revoca la sesión. Ambos portales guardan los tokens en `sessionStorage`; "Duplicar pestaña" copia el refresh, por eso cada portal detecta la copia al arrancar (`TabSessionService`, `BroadcastChannel`) y la obliga a iniciar sesión. Reglas en `BACKEND_RULES.md` ("Sesiones JWT"), `CLIENTE_RULES.md` y `SUPPORT_RULES.md`.
 
 ---
 
@@ -166,6 +169,7 @@ Relaciones desde `ThirdCompany` (modelo core) hacia submódulos (ej. Nómina) de
 | 23 | Agentes/graphify | graphify (sep-2026, v0.9.59) es la base de consulta de Claude y Codex (reglas en `AGENT_BASE.md` §1 "graphify"). La raíz del workspace **no es repo git**: hay un grafo AST por repo (`qdoora-api`, `fuse-starter`, `support-portal`), con git hooks post-commit/post-checkout, y un grafo fusionado en `QdoorAChile/graphify-out/` que rehace `agent/scripts/graphify-sync.sh`, llamado por el hook `SessionStart` de `.claude/settings.json`. Codex no tiene hook: depende de la instrucción en `AGENTS.md`. `graphify-out/` y `.graphifyignore` se excluyen vía `.git/info/exclude` (no se versionan). `graphify hook install` agrega `graphify-out/graph.json merge=graphify` a `.gitattributes`; se decidió **revertirlo** en los 3 repos. Nada de esto viaja por git (salvo los scripts y esta regla): **una máquina o clon nuevo** se prepara con `agent/scripts/graphify-setup.sh` (idempotente: `.graphifyignore`, exclude, grafos, git hooks, reversión de `.gitattributes`, hooks de `.claude/settings.json` y grafo fusionado). `merge-graphs` NO enlaza las llamadas HTTP Angular → Laravel (0 aristas entre repos). Solo extracción de código: nunca LLM ni la raíz (`deploy/`, `.pfx`, `.xlsx`). |
 | 24 | Backend/Aduana | `aduana_dispatches` ya no tiene `consignee_id` ni `consignee_*` (la migración original `2026_05_22_000001` los creaba, pero el esquema vigente los guarda en `aduana_dispatch_identifications`, y en el DUS solo `consignee_name` sin RUT). Código que lea `$dispatch->consignee_id` recibe `null` sin error: `TreasuryDispatchService::resolveDispatch` nunca resolvía el consignatario hasta oct-2026. El único vínculo despacho → consignatario es el RUT normalizado (`ConsigneeFieldMapper::normalizeDocumentNumber`). |
 | 25 | Backend/Seguridad | Varios FormRequest de Aduana devolvían `authorize(): true` sin validar la empresa de la ruta (`StoreConsigneeRequest`/`UpdateConsigneeRequest`, ya corregidos con `AuthorizesClientRequests::authorizeCompany()`). Quedan `Agent/Carrier/StoreCarrierRequest`, `Agent/Carrier/UpdateCarrierRequest` y `Context/GetContextRequest` (ver `PENDIENTE.md`). `LoggerEvent::ADUANA_AGENT_CONSIGNEE` no existía: toda excepción del controlador de consignatarios respondía 500 y no dejaba registro de auditoría (agregado). |
+| 26 | Backend/Testing | **Las pruebas usan el Redis real del contenedor de desarrollo.** El contenedor exporta `CACHE_STORE=redis` como variable del sistema y pisa el `array` de `phpunit.xml` (misma trampa que el #15). Lo que vive en caché persiste entre corridas: el limitador `ApiThrottle` (login por email, `/refresh` por IP, 10 cada 5 min) acumula intentos y produce 429 intermitentes. En pruebas de autenticación usa `Tests\Support\AuthTestHelpers` (email e IP únicos por petición, y reinicia el guard y el token de tymon entre peticiones). Corriendo la suite con `CACHE_STORE=database`, 11 fallas de contabilidad de la línea base pasan: probable contaminación por estado compartido en Redis (sin confirmar). |
 
 ---
 

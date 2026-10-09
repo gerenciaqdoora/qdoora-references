@@ -596,12 +596,13 @@ pero la cuenta no existe. Patrón correcto: capturar los datos necesarios dentro
 transacción cierre, y enviar el correo después, fuera del `DB::transaction()`
 (ver `SubscriberService::crearUsuarioTrabajo()` y `provisionClientDemo()`).
 
-### Cambio de email de perfil invalida el refresh token
+### Cambio de email de perfil cierra las sesiones del usuario
 
 Dueño de la lógica: `UserService::updateProfile()` (nunca el controlador — regla HARD REJECT #1). Si el
 email cambia respecto al valor previo:
-- `$user->jwt_token = null; $user->save();` — invalida el refresh token, fuerza un nuevo login (mismo
-  patrón que `AuthController::forgotPassword`, comentario `QD-09`).
+- `$this->authSessionService->revokeAllForUser($user, SessionRevokeReason::EMAIL_CHANGE)` — cierra todas
+  las sesiones del usuario (access y refresh dejan de servir de inmediato) y fuerza un nuevo login (`QD-09`).
+  Ver "Sesiones JWT" en la sección de seguridad.
 - Se notifica a la dirección **anterior** vía `EmailService::notificarCambioDeCorreo()`. No es
   verificación double-opt-in; solo evita que un cambio de correo pase inadvertido para el dueño real.
 
@@ -665,6 +666,32 @@ services:
 
 Para el mapa completo QD-01 a QD-11 y tests de confirmación con curl:
 → Activar skill `qdoora-ethical-hacking-auditor` · leer `skills/qdoora-ethical-hacking-auditor/references/qdoora-vectors.md`.
+
+### Sesiones JWT: `user_sessions` + `auth.session` (oct-2026)
+
+Diseño: `docs/designs/2026-10-09-sesiones-jwt-refresh.md`. Una fila de `user_sessions` por login (pestaña o
+dispositivo); su id viaja como claim `sid` en ambos tokens. La sesión dura **24 h absolutas** desde el login:
+renovar rota el refresh pero nunca extiende `expires_at`.
+
+- TODA ruta autenticada lleva `['auth:api', 'auth.session', ...]`. `auth:api` solo valida firma y `exp`;
+  `auth.session` (`EnsureActiveSession`) exige `typ=access` y una sesión vigente (EXISTS por PK, sin caché).
+- TODA invalidación de sesión pasa por `AuthSessionService` (`revoke`, `revokeById`, `revokeAllForUser`).
+  PROHIBIDO `$jwtAPI->refresh()`, `invalidate()` o la blacklist de tymon, y PROHIBIDO reintroducir `users.jwt_token`.
+- Los tokens se emiten SOLO con `AuthTokenService::issue()`. El tope de 24 h está en código
+  (`AuthSessionService::MAX_SESSION_MINUTES`): ninguna variable de entorno puede alargarlo.
+- Un refresh ya rotado que vuelve a usarse revoca la sesión completa (`reuse_detected`) y queda en el log.
+- Dentro de un `DB::transaction()` que revoca, NUNCA lanzar la excepción desde el closure (el rollback
+  desharía la revocación): devolver `null` y lanzar fuera, como `AuthService::refresh()`.
+- Revocan sesiones: forgot-password y reset desde Soporte (`UserService::resetToTemporaryPassword`), cambio
+  de email propio o por admin, baja de suscriptor (`ACCOUNT_SUSPENDED`) y cambio forzado de clave (conserva la actual).
+
+```php
+// ❌ PROHIBIDO
+$user->jwt_token = null; $user->save();
+
+// ✅ OBLIGATORIO
+$this->authSessionService->revokeAllForUser($user, SessionRevokeReason::PASSWORD_CHANGE);
+```
 
 ---
 

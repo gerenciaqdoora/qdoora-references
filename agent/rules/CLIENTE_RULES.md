@@ -54,6 +54,8 @@ Cada pantalla debe generar un impacto visual inmediato. PROHIBIDO entregar dise�
 - **Sesión**: Token **SOLO en `sessionStorage`**. PROHIBIDO `localStorage`.
 - **Contratos**: Sincronizar tipos con Backend siguiendo `contratos-api` y el flujo de `qdoora-full-stack-architect` antes de escribir interfaces TypeScript.
 - **Guards**: Revalidar permisos contra backend en navegaciones críticas. No confiar solo en el JWT decodificado.
+- **Tokens**: se leen y escriben SOLO con `TokenStorage` (`core/auth/token-storage.ts`). PROHIBIDO `sessionStorage.getItem('accessToken')` disperso por el código.
+- **Rutas de autenticación**: se reconocen SOLO con `isAuthEndpoint()` (`core/auth/auth-endpoints.ts`), por ruta exacta. PROHIBIDO `url.includes('/refresh')` y similares: calza con `nomina/liquidaciones/{id}/refresh`. El logout NO es ruta de autenticación: necesita el access token para que el servidor revoque la sesión.
 
 ### Autorización por submódulo (espejo del backend)
 
