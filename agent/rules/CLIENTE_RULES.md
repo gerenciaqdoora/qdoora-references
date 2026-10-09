@@ -285,6 +285,23 @@ try {
 }
 ```
 
+### Colores de dominio en badges de `generic-table` (`badgeColors`, oct-2026)
+Si un dominio necesita colores propios en una columna `type: 'badge'`, defínelos en un mapa del dominio y pásalos en la propiedad opcional `badgeColors` de la columna (valor mostrado → clases Tailwind, con variante dark). NUNCA agregues literales de dominio a la paleta fija de `table.component.html`: sin `badgeColors`, la columna sigue usando esa paleta estándar.
+
+El mapa vive junto al dominio para reutilizar el mismo color en toda la app (listados, resúmenes, informes). Las clases van completas como string literal en un `.ts`, porque Tailwind escanea `./src/**/*.{html,scss,ts}` y no ve clases armadas dinámicamente.
+```typescript
+// ✅ treasury-flow.ts — colores por modo, únicos en todo el sistema
+export const TREASURY_FLOW_COLORS: Record<TreasuryMode, string> = {
+    CANCELACION: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
+    // ...
+};
+
+// ✅ Listado: la columna recibe el mapa indexado por la etiqueta mostrada
+{ key: 'flow_label', label: 'Tipo', type: 'badge', badgeColors: TREASURY_FLOW_BADGE_COLORS }
+
+// ❌ Agregar 'PROVISIÓN DE FONDOS' a la paleta fija de table.component.html
+```
+
 ---
 
 ## 🛑 HARD REJECT — Frontend Cliente

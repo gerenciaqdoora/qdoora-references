@@ -291,6 +291,15 @@ public function withValidator($validator)
 ```
 Antes de escribir una guardia de inmutabilidad por origen: `grep` el método del Service en busca de llamadores internos. Si hay más de uno y no todos comparten el mismo origen permitido, la guardia no puede vivir en el Service.
 
+### Edición de operaciones de Tesorería: en el lugar, con bloqueo por conciliación (oct-2026)
+**Excepción aprobada** a la Inmutabilidad Histórica, mientras no exista cierre de período contable. Es coherente con los comprobantes manuales (`CC`), que ya se editan hasta que algo los bloquea.
+
+- TODA edición de una operación de tesorería conserva la cabecera del comprobante (id, folio, fecha y año) y reemplaza sus líneas, aplicaciones y medios de pago en **una sola transacción**: `TreasuryService::revertLines()` + `generateLines()`. NUNCA se implementa como "eliminar la operación y crear otra": cambia folio y fecha, deja huecos en la numeración y puede cruzar la partición del año.
+- NUNCA se edita ni elimina una operación con algún medio de pago conciliado: `VoucherIntegrityService::assertTreasuryOperationEditable()` / `assertTreasuryOperationDeletable()`. `cont_bank_reconciliation_match_lines` referencia los asientos por `voucher_account_id` **sin FK**: borrarlos deja la conciliación apuntando a asientos inexistentes sin que la BD lo impida.
+- NUNCA edición granular (agregar o quitar una línea por request). Con varios medios de pago no hay forma de saber cuál absorbe la diferencia, y cada clic deja un estado intermedio descuadrado. La UI arma la operación completa y la envía una sola vez.
+- El modo de cada aplicación se persiste en `cont_treasury_applications.flow`: sin él, provisión, devolución y desembolso se reaplican como "manual" y escapan de sus validaciones (ej. el tope de saldo acreedor de la devolución).
+- Cuando exista cierre de período, la misma guardia exigirá mes abierto; ahí se evalúa pasar a reversa con contra-asiento.
+
 ### AWS S3 (Único Storage Permitido)
 ```php
 // Almacenar — SOLO ruta relativa en BD

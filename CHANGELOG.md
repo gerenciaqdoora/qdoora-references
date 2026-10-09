@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-10-09] docs(reglas): edición de tesorería en el lugar con bloqueo por conciliación y colores de dominio con badgeColors
+
 - [2026-10-09] docs(rules): sesiones JWT con user_sessions y auth.session, claims reales del JWT y rutas de autenticación en los portales
 
 - [2026-09-30] docs: documentar en el README la instalación de graphify con graphify-setup.sh
