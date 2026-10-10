@@ -661,3 +661,70 @@ Nota: en el DUS el consignatario solo guarda `consignee_name` (sin RUT), por lo 
 **Estado**: pendiente · **Detectado**: 2026-10-08 · **Capa**: datos/cumplimiento · **Esfuerzo**: M · **Criticidad**: BAJA
 
 Eliminar un auxiliar hace soft delete de su consignatario (`aduana_agent_consignees.deleted_at`) y deja nombre, RUT y dirección en esa fila; los despachos conservan además su copia. Definir con `ley-21719-datos-personales` el plazo de retención y una política de purga/anonimización de filas eliminadas, y qué copias (despachos) deben conservarse por obligación aduanera.
+
+## 19. Tesorería: condiciones para ofrecer "Cancelación de facturas / Pago de documentos"
+
+**Estado**: pendiente — **requiere validar con un analista (negocio/contabilidad) antes de implementar** · **Detectado**: 2026-10-10
+**Capa**: full-stack (`fuse-starter` `treasury-flow.ts` + `qdoora-api` `TreasuryService` / `TreasuryFlowRules`) · **Esfuerzo**: M · **Criticidad**: MEDIA
+**Preguntar a**: `qdoora-erp-accounting-expert` / responsable contable. Diseño base: `Otros/disenno-tesoreria.md`.
+
+### Regla planteada por el usuario
+
+La Cancelación de facturas (ingreso) y el Pago de documentos (egreso) solo deben ofrecerse si la cuenta contrapartida cumple **las dos** condiciones a la vez:
+
+1. Trabaja con **auxiliar con RUT/pasaporte**.
+2. Tiene **cuenta maestra** cuya categoría tiene **documentos asociados**.
+
+**Requisito: las categorías deben ser dinámicas.** Si se agrega o quita una asociación categoría ↔ documento, Tesorería debe reflejarlo sin tocar código. Hoy ya es así en el frontend (`hasDocuments` sale de `searchDocumentsByMasterAccountCode`) y en el backend (`document_ids` de la categoría); no introducir listas fijas de categorías ni de documentos al implementar.
+
+### Hallazgo (verificado 2026-10-10, solo lectura de código)
+
+El sistema **no exige** esa condición. `resolveTreasuryFlow` (`treasury-flow.ts`) ofrece `CANCELACION` en todo caso salvo los cuatro siguientes, sin mirar auxiliar con RUT ni documentos:
+
+- Ingreso, cliente con despacho: `CANCELACION` + `PROVISION`.
+- Ingreso, otra cuenta con despacho: `MANUAL` (no ofrece Cancelación).
+- Egreso, cliente con despacho: `DEVOLUCION` + `MANUAL` (no ofrece Cancelación).
+- Egreso, desembolso: `DESEMBOLSO` (no ofrece Cancelación).
+
+| Caso (ingreso y egreso) | Hoy ofrece | ¿Cumple la regla? |
+|---|---|---|
+| Cliente sin despacho (la maestra fuerza auxiliar con RUT y tiene documentos) | Cancelación | Sí, pero solo por convención de la configuración |
+| Sin maestra y sin auxiliar | Cancelación + Directo | No: sobra Cancelación |
+| Sin maestra, auxiliar con RUT | Cancelación | No: no hay documentos |
+| Auxiliar de concepto | Cancelación | No: no es RUT ni hay documentos |
+| Con maestra sin documentos (ej. `RETE_2DA_CATEGORIA`) | Cancelación + Directo | No |
+| Egreso, `DESEMBOLSO_POR_PAGAR` | Cancelación | **No verificado**: depende de si su maestra tiene documentos asociados |
+
+Otros hechos relevantes:
+
+- **El backend no valida los atributos de la cuenta en la cancelación.** `TreasuryService::applyAndGenerate` (rama de cancelación) solo valida el movimiento pendiente (existe, no saldado, signo correcto, monto ≤ saldo, tiene auxiliar). La regla, si se adopta, hoy solo podría vivir en pantalla; la validación real debe estar también en backend (`TreasuryFlowRules`).
+- **Specs que encodan lo contrario** (`treasury-flow.spec.ts`): auxiliar solo con RUT → `['CANCELACION']`; auxiliar de concepto → `['CANCELACION']`; sin auxiliar ni documentos → `['CANCELACION','DIRECTO']`; maestra sin documentos → `['CANCELACION','DIRECTO']`. Habría que reescribirlos.
+- **Diseño**: `disenno-tesoreria.md` (caso "Caso contrario / Pago de factura") dice "Si `CUENTA_TRABAJA_CON_AUXILIAR` se selecciona. Si `CUENTA_TRABAJA_CON_DOCUMENTOS` se selecciona", que se lee como condiciones independientes, no como las dos obligatorias. Habría que actualizarlo.
+- **`DIRECTO` exige lo contrario**: solo cuentas sin auxiliar, sin despacho y sin documentos.
+
+### Decisión abierta (bloquea la implementación)
+
+Con la regla estricta, estas combinaciones quedan **sin ninguna operación disponible** (no cumplen Cancelación ni Directo):
+
+- Auxiliar con RUT sin documentos.
+- Auxiliar de concepto.
+- Documentos sin auxiliar con RUT.
+
+Opciones a validar con el analista:
+
+1. Dejarlas sin modos, con un mensaje del tipo "esta cuenta no admite operaciones en Tesorería".
+2. Permitir Aplicación manual (solo monto) cuando tienen auxiliar o documentos, pidiendo el auxiliar.
+3. Otra regla definida por contabilidad.
+
+Confirmar también si la maestra `DESEMBOLSO_POR_PAGAR` debe tener documentos asociados: si no los tiene, la regla estricta la bloquearía, y el diseño dice que ese caso busca documentos pendientes de pago.
+
+### Cambio propuesto (una vez decidido)
+
+1. Ajustar `resolveTreasuryFlow` para exigir auxiliar con RUT (`wk_auxiliary_rut`) y `hasDocuments` al ofrecer `CANCELACION`, y definir el modo (o mensaje) de las combinaciones sin salida.
+2. Replicar la regla en backend (`TreasuryFlowRules` / `applyAndGenerate`) con mensajes en español, y tests de aislamiento por `company_id`.
+3. Reescribir los specs de `treasury-flow.spec.ts` y actualizar `disenno-tesoreria.md`.
+
+### Contexto relacionado (ya aplicado el 2026-10-09/10)
+
+- El select de auxiliar en Cancelación solo se muestra si la cuenta trabaja con auxiliar, y una cuenta sin auxiliar ni documentos parte en `DIRECTO` (`defaultMode`).
+- Para la maestra `DESEMBOLSO_POR_PAGAR` el selector lista todos los auxiliares con rol desembolso, sin exigir su asociación a esa cuenta. Es solo un filtro de búsqueda: `assertAuxiliaryMatchesAccount` se aplica a aplicaciones manuales, y esa cuenta rechaza la aplicación manual.
