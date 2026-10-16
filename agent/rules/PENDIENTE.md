@@ -728,3 +728,23 @@ Confirmar también si la maestra `DESEMBOLSO_POR_PAGAR` debe tener documentos as
 
 - El select de auxiliar en Cancelación solo se muestra si la cuenta trabaja con auxiliar, y una cuenta sin auxiliar ni documentos parte en `DIRECTO` (`defaultMode`).
 - Para la maestra `DESEMBOLSO_POR_PAGAR` el selector lista todos los auxiliares con rol desembolso, sin exigir su asociación a esa cuenta. Es solo un filtro de búsqueda: `assertAuxiliaryMatchesAccount` se aplica a aplicaciones manuales, y esa cuenta rechaza la aplicación manual.
+
+---
+
+## 20. Conciliación bancaria: regla del saldo bancario ante el futuro cierre de ejercicio
+
+**Estado**: decisión abierta (parcial) · **Detectado**: 2026-10-15 (análisis de la guía de conciliación bancaria vs QdoorA, pregunta P14)
+**Capa**: backend (`BankLedgerService`, futuro cierre de ejercicio) · **Esfuerzo**: S · **Criticidad**: MEDIA
+**Requiere**: definirlo junto con el diseño del cierre de ejercicio.
+
+### Ya resuelto (2026-10-15)
+
+El saldo inicial del banco viene del **comprobante de apertura**: un comprobante manual (`voucher_type = CC`) con `type = APERTURA`. El diseño de la conciliación por corte (`docs/designs/2026-10-15-conciliacion-bancaria.md`) excluye esas líneas del universo de cruce, sin sacarlas del saldo contable, y las usa como eslabón 0 de la cadena de cortes.
+
+### Decisión abierta
+
+Hoy no existe lógica de cierre ni de apertura automática de ejercicio (`CR`/`AP` solo existen en `VoucherType`). `BankLedgerService::ledgerBalance()` acumula `debit - credit` desde `2000-01-01`, lo que es correcto mientras nada cierre ni reabra cuentas de balance. Si el futuro cierre de ejercicio cierra y reabre cuentas de balance (incluido el banco), el saldo acumulado del banco quedaría duplicado.
+
+### Cambio propuesto (una vez decidido)
+
+Al diseñar el cierre de ejercicio, dejar escrito uno de estos dos caminos: el cierre no toca cuentas de balance, o el saldo bancario acumulado ignora el par cierre/apertura y se calcula desde la última apertura.

@@ -227,6 +227,8 @@ Caso descubierto: `SupportService::generateTicketCode()` (módulo Soporte/Ticket
 LoggerService::debug(LoggerOperation::CREATE, LoggerEvent::MODULE_ACTION, $data, $uri, $text, $json);
 ```
 
+NUNCA se registra en el log texto libre que pueda traer datos de personas (justificaciones, motivos, glosas de cartola, archivos). `LoggerService` ya oculta contraseñas y tokens, pero no esto. En el `catch`, pasa esos campos en el último argumento: `$this->handleError->logAndResponse($e, $request, $op, $event, $user, ['justification', 'reason'])`. Modelo: `BankReconciliationController::LOG_EXCLUDED_FIELDS`.
+
 ### Reglas de negocio condicionales: si Angular las exige, el `withValidator()` también debe exigirlas
 Cuando un campo es obligatorio **solo si** el registro relacionado tiene cierto atributo (ej. "el auxiliar es obligatorio solo si la cuenta `trabaja_con_auxiliar_con_rut`"), esa condición **no puede vivir solo en el frontend**. Un POST/PUT directo a la API la evade por completo.
 
@@ -299,6 +301,20 @@ Antes de escribir una guardia de inmutabilidad por origen: `grep` el método del
 - NUNCA edición granular (agregar o quitar una línea por request). Con varios medios de pago no hay forma de saber cuál absorbe la diferencia, y cada clic deja un estado intermedio descuadrado. La UI arma la operación completa y la envía una sola vez.
 - El modo de cada aplicación se persiste en `cont_treasury_applications.flow`: sin él, provisión, devolución y desembolso se reaplican como "manual" y escapan de sus validaciones (ej. el tope de saldo acreedor de la devolución).
 - Cuando exista cierre de período, la misma guardia exigirá mes abierto; ahí se evalúa pasar a reversa con contra-asiento.
+
+### Bloqueos de conciliación bancaria sobre comprobantes (oct-2026)
+TODA vía que cree, edite, anule o elimine líneas de `cont_voucher_accounts` DEBE llamar a `VoucherIntegrityService::assertVoucherBankLocks($voucherId, $voucherYear, $incomingAccounts)` antes de escribir. Es el punto único de los dos bloqueos:
+- **Nivel 1:** una línea con cruce vigente no se toca.
+- **Nivel 2:** si la cuenta banco ya tiene un corte cerrado a la fecha del comprobante o después, se bloquea el comprobante completo.
+
+`$incomingAccounts` lleva las cuentas mayores `[account_id, sub_account_id]` de las líneas nuevas o cambiadas: sin ellas, agregar una línea de banco a un comprobante de un período cerrado no se detecta. Hoy la llaman `VoucherService`, `Venta` y `Compra`, y `VoucherIntegrityService` la usa internamente.
+```php
+// ❌ Escribir líneas sin la guardia: se modifica el libro banco de un período cerrado
+VoucherAccount::create([...]);
+// ✅
+$this->voucherIntegrityService->assertVoucherBankLocks($voucher->id, (int) $voucher->year, [[$account->id, $sub_account?->id]]);
+```
+Un flujo nuevo que escriba asientos (centralización, importación, nómina) también pasa por aquí. Sin la llamada, ningún test existente lo detecta.
 
 ### AWS S3 (Único Storage Permitido)
 ```php
