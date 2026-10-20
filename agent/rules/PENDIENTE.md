@@ -748,3 +748,97 @@ Hoy no existe lógica de cierre ni de apertura automática de ejercicio (`CR`/`A
 ### Cambio propuesto (una vez decidido)
 
 Al diseñar el cierre de ejercicio, dejar escrito uno de estos dos caminos: el cierre no toca cuentas de balance, o el saldo bancario acumulado ignora el par cierre/apertura y se calcula desde la última apertura.
+
+---
+
+## 21. Rotar los secretos expuestos de QA y exigir su rotación cada 2 meses
+
+**Estado**: pendiente · **Detectado**: 2026-10-20 (endurecimiento de seguridad del EC2 compartido)
+**Capa**: infraestructura (Secrets Manager `qdoora/chile/qa/api`, `.env.qa` del EC2) · **Esfuerzo**: M · **Criticidad**: ALTA
+**Requiere**: `qdoora-despliegue` y `qdoora-security-iam-expert`. Los comandos los ejecuta el usuario: nunca se autoejecutan.
+
+### Problema
+
+Se compararon los hashes SHA-256 de los valores actuales con los del historial de git de `backend_app_cl` (`.env.dev/.local/.prod/.qa`, versionados hasta 2026-01-20), sin mostrar valores. Coinciden, o sea **están expuestos**: `APP_KEY`, `JWT_SECRET`, `DB_USERNAME`/`DB_PASSWORD` (en el secreto y en `.env.qa`), `BC_USER`/`BC_PASS` y `PUSHER_APP_ID`. `PUSHER_APP_KEY` y `PUSHER_APP_SECRET` ya son distintos. También quedaron en un chat `QDOORA_ADMIN_API_KEY`, `THOMSON_COMEX_TOKEN` (vencido el 2026-09-11) y una contraseña antigua de la BD. Una contraseña de BD del historial era la palabra de diccionario "password".
+
+### Cambio propuesto
+
+1. Rotar una vez (el `APP_KEY` queda fuera de este paso; ver más abajo):
+
+| Secreto | Dónde vive | Cómo se rota | Efecto |
+|---|---|---|---|
+| `JWT_SECRET` | Secreto | Valor aleatorio nuevo (`openssl rand -base64 48`) | Todos vuelven a iniciar sesión |
+| `DB_USERNAME`/`DB_PASSWORD` | Secreto y `.env.qa` | `ALTER ROLE` en `postgres-qa` y luego actualizar ambos lugares (`POSTGRES_PASSWORD` solo aplica al crear el volumen) | `up -d --force-recreate qdoora-api queue-worker scheduler` |
+| `BC_USER`/`BC_PASS` | Secreto | Cambiar la contraseña en el portal del Banco Central (API SIE) | Ninguno |
+| `PUSHER_APP_ID` | Secreto | Crear una app nueva en Pusher si se usa en QA | Actualizar también `PUSHER_APP_KEY`/`SECRET` |
+| `MAILERSEND_API_KEY` | Secreto | No está expuesta; entra en la rotación periódica | Ninguno |
+| `QDOORA_ADMIN_API_KEY` | `.env.qa` | Valor aleatorio nuevo. Hoy ninguna ruta usa `admin.apikey` | Ninguno |
+| `THOMSON_COMEX_TOKEN` | `.env.qa` | Pedir un token nuevo al proveedor | Actualizar `THOMSON_COMEX_EXPIRES_AT` |
+
+Después de cambiar el secreto: `up -d --force-recreate qdoora-api queue-worker scheduler` (los secretos se cachean al arrancar).
+
+2. **Agente de rotación cada 2 meses.** Una rutina programada de Claude Code (`/schedule`, cada 60 días) que:
+   - Lee con un rol de solo lectura (`secretsmanager:DescribeSecret` y `ListSecrets`, **sin** `GetSecretValue`) la fecha `LastChangedDate` y los tags `rotated:<KEY>=AAAA-MM-DD` de `qdoora/chile/*/api`.
+   - Lista los secretos de la tabla del punto 1 con más de 60 días (no incluye `APP_KEY`) y abre un issue en `backend_app_cl` con la lista de pasos.
+   - Nunca rota ni lee valores: solo exige el cambio. Quien rota actualiza el tag `rotated:<KEY>`.
+   - Para `DB_PASSWORD`, preferir a futuro la rotación nativa de Secrets Manager con Lambda, cuando la BD salga del contenedor (RDS en producción).
+
+3. **`APP_KEY` para producción (durable, sin rotación periódica).**
+   - Se genera una sola vez en la instalación (`php artisan key:generate --show`) y va solo a `qdoora/chile/prod/api`, cifrado con una **llave KMS propia** (no `aws/secretsmanager`). La key policy permite `kms:Decrypt` solo al rol de la tarea ECS de producción. Nunca va en `.env`, git, chat ni logs.
+   - No se rota por calendario porque cifra datos persistentes: `Certificate.certificate_password_encrypted`, `ExternalSystem` (`username`, `password`, `api_key`) y `GlobalSystemParameter` con `is_encrypted`. Solo se rota ante un incidente: llave nueva, la anterior en `APP_PREVIOUS_KEYS`, un comando artisan que vuelve a cifrar esos campos y, al terminar, quitar la anterior.
+   - Mejora recomendada: separar esos campos del `APP_KEY` usando **cifrado de sobre con KMS** (un Encrypter propio con data keys de KMS). La llave maestra nunca sale de KMS y rota sola cada año, y el `APP_KEY` queda solo para cookies y firmas, por lo que se puede rotar sin tocar datos.
+   - El `APP_KEY` de QA también está expuesto: si QA guarda certificados SII reales, sus contraseñas se pueden descifrar con esa llave más acceso a la BD.
+
+4. Correcciones de código relacionadas: `AdminApiKeyMiddleware` debe comparar con `hash_equals()` (hoy usa `!==`, que es vulnerable a ataques de tiempo) y leer la llave desde `config()` en lugar de `env()`, porque `env()` deja de funcionar con `config:cache`.
+
+### Criterio de aceptación
+
+Repetir la comparación de hashes en el EC2 y que ningún secreto marque `EXPUESTO`. Además, la rutina de 60 días ya abrió su primer issue y todos los secretos tienen su tag `rotated:<KEY>`.
+
+---
+
+## 22. Cierre del endurecimiento de seguridad del EC2 compartido
+
+**Estado**: pendiente · **Detectado**: 2026-10-20 (endurecimiento del EC2 `i-0ceea9ec1bca59eda`)
+**Capa**: infraestructura AWS, GitHub y backend · **Esfuerzo**: M · **Criticidad**: MEDIA
+**Requiere**: `qdoora-despliegue` y `qdoora-security-iam-expert`. Los cambios de IAM, SG y cuenta se ejecutan en **CloudShell con root**: el rol del EC2 ya no administra.
+
+### Ya aplicado (2026-10-19/20)
+
+- SG `sg-0f694298398eab664`: 5432 cerrado (se quitó la IP externa de `pg_hba.conf` del PG14 del host). SSH 22 solo desde `18.237.140.160/29` (EC2 Instance Connect). 4208 (Gregorio) y 4209 (Nutrición) solo desde el SG del ALB `sg-0480b37b4e6611eca`. SSH con `PermitRootLogin no`.
+- Rol `qdoora-role-node` reducido a `AmazonSSMManagedInstanceCore`, `AmazonEC2ContainerRegistryReadOnly`, `QdooraQAS3Policy` y `S3AccessLaravelApi`. Se quitaron `AdministratorAccess`, `AmazonS3FullAccess`, las 2 políticas de EKS y la de CodeDeploy, y se deshabilitó el agente de CodeDeploy.
+- Llaves: se eliminó el usuario `qdoora-chile-qa`, se borró la llave …7HUM del `.env.prod` de Colombia y se creó la …24KY para `codecommit-franco`.
+- Dumps de `/tmp` borrados; permisos `600` en los `.env` y en los respaldos de Gregorio.
+- Detección: CloudTrail `qdoora-trail` (multirregión, bucket `qdoora-cloudtrail-310734905914`, 365 días); GuardDuty con avisos de severidad >= 4 a SNS `qdoora-alertas-seguridad` (correo); `scanOnPush` en los 7 repos ECR; presupuesto mensual con alerta al 80%. Root tiene MFA.
+- Inventario de solo lectura reutilizable: `qdoora-api/ops/security-inventory.sh` (sin commitear).
+
+### Cambio propuesto
+
+**Con fecha**
+1. **~2026-10-27:** desactivar y borrar la llave **…RBOX** de `codecommit-franco`, que está en el historial de git (`InstalacionQA.md`, ramas `dev-temporal` y `aduana-nano`).
+2. **~2026-11-19:** termina la prueba gratis de GuardDuty. Revisar en su consola el costo estimado y decidir si se mantiene.
+
+**Cuenta y accesos**
+
+3. Crear un usuario administrador con MFA (o IAM Identity Center) para el trabajo diario y dejar root solo para emergencias.
+4. Colombia: 4200 y 4202 siguen abiertos a `0.0.0.0/0`. Llevarlos detrás del ALB con dominio y aceptar solo desde el SG del ALB, como el 4201.
+5. Al volver Colombia a producción: usar el rol de la instancia (o uno propio), nunca llaves en `.env`, y agregar una política solo para `co-qdoora-production-disk`.
+6. Cuando `agente-gregorio` entre en funcionamiento, crear `GregorioS3Policy` (`ListBucket` sobre `gregorio-disk` y `Get/Put/DeleteObject` sobre `gregorio-disk/*`) y adjuntarla al rol. Si el agente corre fuera del EC2, adjuntarla a su propio rol. `qdoora-latam-disk` es de desarrollo y **no** va en el rol.
+7. Evaluar el bloqueo de IMDS para los contenedores que no usan AWS (Nutrición): todos comparten el rol con hop limit 2. El aislamiento real por app llega con ECS (un rol por tarea).
+
+**Código y repositorios**
+
+8. `AdminApiKeyMiddleware`: comparar con `hash_equals()` (hoy usa `!==`) y leer la llave desde `config()` en lugar de `env()`.
+9. Agregar `gitleaks` como check de los PR en los 3 repos. En el plan Free de GitHub, el secret scanning no aplica a repos privados.
+10. Commitear `qdoora-api/ops/security-inventory.sh`.
+11. Borrar `deploy/qdoora_qa.dump` del Mac del usuario y los dumps viejos (`/home/ubuntu/qdoora-colombia/backup-15092023.sql`).
+
+### Gotchas
+
+- Revocar una regla `0.0.0.0/0` corta al instante las conexiones abiertas (AWS no las mantiene). Si es la regla de SSH, se corta la sesión.
+- CloudShell: pegar comandos de una sola línea y sin variables (la primera línea de un pegado múltiple se puede perder) y poner entre comillas simples todo texto con `!`.
+- Access Advisor del rol va con horas de retraso. Para saber qué usa el rol, mejor `aws cloudtrail lookup-events --lookup-attributes AttributeKey=Username,AttributeValue=i-0ceea9ec1bca59eda`. Las lecturas de S3 no aparecen ahí.
+
+### Criterio de aceptación
+
+Volver a ejecutar `security-inventory.sh`: solo el 22 queda abierto a una IP pública (el rango de Instance Connect), no queda ninguna llave AWS activa con más de 90 días ni escrita en disco, y los puntos 1 a 11 están cerrados.

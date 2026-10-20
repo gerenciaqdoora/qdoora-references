@@ -1,6 +1,6 @@
 # Patrones de Orquestación QdoorA
 
-Patrones deterministas extraídos de la infraestructura real del proyecto.
+Patrones deterministas extraídos de la infraestructura real del proyecto. Los ejemplos con Redis aplican solo a local: QA no tiene Redis (cola y caché en PostgreSQL).
 
 ### 1. API Laravel con Healthcheck Quirúrgico
 La API debe esperar a la base de datos y a Redis antes de considerarse operativa.

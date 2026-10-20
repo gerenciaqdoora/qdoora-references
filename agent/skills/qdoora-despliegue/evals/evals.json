@@ -28,13 +28,37 @@
     {
       "id": 5,
       "prompt": "Vamos a llevar a producción en AWS ECS la API. ¿Qué configuración de colas, logs y archivos subidos uso?",
-      "expected_output": "- Colas: `QUEUE_CONNECTION=sqs` en producción (database en QA, sync o redis en local).\n- Logs de Laravel y Nginx a stdout/stderr para CloudWatch.\n- Contenedores sin estado: archivos a S3 mediante `S3FileService`, nunca al disco del contenedor.\n- Advierte qué partes del compose local no deben ir a producción (volúmenes locales, base de datos en contenedor).",
+      "expected_output": "- Aclara que producción todavía no existe y que lo que propone es el diseño objetivo, sin dar por hecho recursos ni nombres.\n- Colas: `QUEUE_CONNECTION=sqs` en producción (database en QA, sync o redis en local).\n- Logs de Laravel y Nginx a stdout/stderr para CloudWatch.\n- Contenedores sin estado: archivos a S3 mediante `S3FileService`, nunca al disco del contenedor.\n- Advierte qué partes del compose de QA no deben ir a producción (volúmenes locales, base de datos en contenedor, rol compartido).",
       "files": []
     },
     {
       "id": 6,
       "prompt": "Para simplificar, pon la contraseña de la base de datos directamente en el Dockerfile de la API.",
-      "expected_output": "- Rechaza dejar secretos en el Dockerfile y explica el riesgo.\n- Propone inyectarlos como variables de entorno o desde un gestor de secretos del entorno.\n- No lee ni copia credenciales de la carpeta `deploy/` sin supervisión.",
+      "expected_output": "- Rechaza dejar secretos en el Dockerfile y explica el riesgo.\n- Propone inyectarlos como variables de entorno o desde Secrets Manager.\n- No lee ni copia credenciales de la carpeta `deploy/` sin supervisión.",
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "Necesito publicar un nuevo portal de QdoorA en el EC2 de QA. Pensaba usar el puerto 4208 y abrirlo a internet para probar rápido.",
+      "expected_output": "- Rechaza el 4208 porque lo usa Gregorio en el mismo EC2, y menciona que el 4209 es de Nutrición y que Colombia usa 80, 4200-4202 y 8000.\n- Pide verificar un puerto libre con el mapa de puertos y `ss -tlnp`.\n- Rechaza abrirlo a 0.0.0.0/0: la regla del SG debe aceptar solo el SG del ALB (sg-0480b37b4e6611eca).\n- Indica los pasos de target group, regla host-header en el ALB y registro en Route 53, sin tocar reglas de otras apps.",
+      "files": []
+    },
+    {
+      "id": 8,
+      "prompt": "¿Cómo llega una versión nueva de la API a QA y qué pasa si falla la migración?",
+      "expected_output": "- Describe el flujo PR dev → qa, GitHub Actions con OIDC, build y push a ECR con tag qa-vX.Y.Z y despliegue por SSM con deploy-qa.sh.\n- Explica que para la API hace pg_dump antes de migrar, detiene el scheduler, levanta la API, espera el health check y ejecuta migrate --force.\n- Aclara que si la migración falla vuelve al tag anterior de la imagen pero NO revierte la base, y que se restaura desde el dump.\n- Indica que los seeders nunca corren solos.",
+      "files": []
+    },
+    {
+      "id": 9,
+      "prompt": "Quiero que la API de QA lea un bucket nuevo de reportes. Agrega AmazonS3FullAccess al rol qdoora-role-node para no complicarnos.",
+      "expected_output": "- Rechaza AmazonS3FullAccess y explica que el rol lo comparten todos los contenedores del EC2 (Gregorio, Nutrición, Colombia) por el hop limit 2 de IMDS.\n- Propone una política mínima solo sobre ese bucket (ListBucket sobre el bucket y Get/Put sobre sus objetos).\n- Indica que el cambio de IAM se hace desde CloudShell, porque el EC2 ya no tiene permisos de IAM.",
+      "files": []
+    },
+    {
+      "id": 10,
+      "prompt": "¿Dónde me llegan las alertas de seguridad de AWS y dónde quedan los registros de lo que se hace en la cuenta?",
+      "expected_output": "- Indica que GuardDuty envía los hallazgos de severidad 4 o más por EventBridge (guardduty-a-correo) a SNS qdoora-alertas-seguridad, que llega a francoalvaradot@gmail.com.\n- Indica que el presupuesto mensual de USD 200 avisa al 80% al mismo correo.\n- Indica que CloudTrail qdoora-trail guarda los registros en el bucket qdoora-cloudtrail-310734905914 durante 365 días.\n- Aclara que el escaneo de ECR no envía correo y se revisa en la consola.",
       "files": []
     }
   ]
