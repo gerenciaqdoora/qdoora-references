@@ -641,6 +641,40 @@ FormRequest (ver `CorrectUserEmailRequest`) y logging explícito del actor + val
 
 ---
 
+## 💳 SUSCRIPCIONES Y PLANES (oct-2026)
+
+### Todo plan tiene tramo por defecto de usuarios y de empresas
+TODO plan del catálogo DEBE tener en `plan_quantity_tier` un tramo `is_default` de `users` y otro de `companies`.
+NUNCA hagas fallback de tramo: `SubscriberPlanService::resolveTierId()` lanza 422 si falta.
+El fallback anterior ("primer tramo por id") dejó planes `full` y `contador-basic` limitados a 1 usuario y 1 empresa.
+
+### El cambio de plan pasa SIEMPRE por `SubscriberPlanService::changePlan()`
+NUNCA edites `plan_id`, `user_tier_id` ni `company_tier_id` de un `subscriber_plan` existente.
+El plan anterior solo recibe `status = superseded`, `superseded_at` y `superseded_by`; sus módulos reciben
+`deactivated_at` y sus cupos extra se revocan (`revoked_*`) y se copian al plan nuevo. Así queda historia.
+
+```php
+// ❌ Incorrecto: se pierde la historia
+$subscriber->activePlan->update(['plan_id' => $nuevo->id]);
+
+// ✅ Correcto
+$planService->changePlan($subscriber, new UpgradePlanDTO(newPlanSlug: 'empresa-pro', reason: 'Upgrade'));
+```
+
+### `normalizaPermisosUsuario()` es destructivo
+Borra y reinserta toda la matriz `users_permission_submodule` del usuario.
+NUNCA lo llames para el equipo en un cambio de plan: borraría los permisos que el suscriptor configuró.
+Úsalo solo para el dueño (SUBSCRIBER_ROLE) o al crear un usuario.
+
+### `activePlan` vs `currentPlan` y el bloqueo 402
+- `activePlan`: último plan `trialing`, `active` o `past_due`. Úsalo para decidir qué módulos y límites aplican.
+- `currentPlan`: último plan no `superseded`, en cualquier estado. Úsalo para mostrar el estado y para el bloqueo.
+- El middleware `subscription.active` responde 402 SOLO si `currentPlan` está `suspended` o `cancelled`.
+  Un suscriptor sin plan no se bloquea. Toda ruta nueva que deba funcionar con el plan suspendido
+  (perfil, logout, avisos) se agrega a `EnsureSubscriptionActive::ALLOWED`.
+
+---
+
 ## 🐳 DEVOPS — Docker Compose
 
 ### Reglas Obligatorias

@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-10-20] docs(reglas): suscripciones y planes — tramos por defecto, cambio de plan con historial, normalizaPermisosUsuario destructivo y bloqueo 402
+
 - [2026-10-20] chore(git): ignorar .DS_Store en todo el repositorio y dejar de versionar los existentes
 
 - [2026-10-20] docs(despliegue): qdoora-despliegue con QA en EC2 compartido, pipeline ECR + SSM, seguridad y alertas, diseño de producción en ECS; PENDIENTE §21 rotación de secretos y §22 cierre del endurecimiento
