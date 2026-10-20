@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-10-20] chore(git): ignorar .DS_Store en todo el repositorio y dejar de versionar los existentes
+
 - [2026-10-20] docs(despliegue): qdoora-despliegue con QA en EC2 compartido, pipeline ECR + SSM, seguridad y alertas, diseño de producción en ECS; PENDIENTE §21 rotación de secretos y §22 cierre del endurecimiento
 
 - [2026-10-10] docs(pendientes): condiciones de cancelación de facturas y pago de documentos en tesorería (ítem 19) para validar con un analista
