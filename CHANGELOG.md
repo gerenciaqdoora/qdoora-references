@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-10-20] feat(skills): nueva habilidad qdoora-subscriber-plan (suscriptores, planes, módulos, tramos, cupos, plazos y vencimiento) publicada desde suite-agents 2bb05fd y registrada en el mapa de activación
+
 - [2026-10-20] docs(reglas): suscripciones y planes — tramos por defecto, cambio de plan con historial, normalizaPermisosUsuario destructivo y bloqueo 402
 
 - [2026-10-20] chore(git): ignorar .DS_Store en todo el repositorio y dejar de versionar los existentes

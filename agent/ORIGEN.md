@@ -13,6 +13,6 @@ a publicar. Las reglas (`agent/rules/`) y los workflows sí se editan aquí.
 
 | Campo | Valor |
 |---|---|
-| Commit de origen | `f6e5fd7` |
+| Commit de origen | `2bb05fd` |
 | Fecha de publicación | 2026-10-20 |
-| Habilidades | 45 (32 de Qdoora, 13 universales) |
+| Habilidades | 46 (33 de Qdoora, 13 universales) |

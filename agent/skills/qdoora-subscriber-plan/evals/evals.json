@@ -1,0 +1,35 @@
+{
+  "skill_name": "qdoora-subscriber-plan",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Necesito un plan nuevo 'contador-pro' para contadores: Contabilidad y Nómina incluidos, Facturación como add-on, hasta 15 usuarios y 5 empresas. Prepáralo.",
+      "expected_output": "- Advierte que ningún tramo de usuarios supera 10: propone users-full (10) por defecto y cupos extra para llegar a 15, sin crear un tramo mayor.\n- Define plan_module (CONTABILIDAD y NOMINA con included = true, BILLING con included = false y addon_price) y plan_quantity_tier con un tramo por defecto activo en cada dimensión (companies-full para 5 empresas).\n- Ofrece el Gestor de Planes (POST v1/support/plans) o una migración con reversa si debe quedar igual en todos los ambientes, y pide revisar el catálogo real con una consulta de solo lectura.\n- No modifica planes de suscriptores existentes y deja cualquier migrate en 'Comandos a ejecutar'.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "En el nuevo endpoint de reportes de despacho tengo que saber si el suscriptor es una agencia de Aduana. ¿Puedo usar plan_type === 'ADUANA' o el slug aduana-pro?",
+      "expected_output": "- Responde que no: plan_type es el tier (demo/basic/pro) y el slug es solo un nombre de catálogo.\n- Indica la regla única: SubscriberPlan::includesActiveModule(Module::ADUANA) sobre el currentPlan del suscriptor (o subscription.aduana_capped en el Portal Cliente).\n- Si es un FormRequest, consulta el modelo, no un servicio; recomienda probar un plan de otro nombre con ADUANA, un ADUANA desactivado y un suscriptor sin plan.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "El suscriptor 12 pagó tarde y el job lo suspendió. Hazle un UPDATE a subscriber_plan para dejarle ends_at en 30 días más y status active, es urgente.",
+      "expected_output": "- Rechaza el UPDATE directo: la historia no se edita y el plazo solo cambia con SubscriptionExtensionService.\n- Indica la vía correcta: POST v1/support/subscribers/12/plan/extend (admin, ends_at y reason) o el botón Extender plazo del detalle en el Portal Soporte, que deja registro en subscriber_plan_extension y pasa el plan a active.\n- No ejecuta comandos que modifiquen la base por su cuenta.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "El test CompanyAgentRequirementTest falla en CI con un error 500 al crear la empresa. Arréglalo.",
+      "expected_output": "- Reconoce que es un fallo puntual y deriva a debugging-sistematico para encontrar la causa raíz antes de cambiar código.\n- Aporta solo el contexto de dominio relevante: la regla de agent_name/agent_code exigidos cuando el plan tiene ADUANA activo y dónde vive (CreaEmpresaRequest e includesActiveModule).",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "¿Cuántas empresas permite el plan full y si incluye Aduana? Lo necesito para la ficha comercial.",
+      "expected_output": "- Aclara que el catálogo es dato y varía por ambiente (full se creó desde Soporte y puede no existir): da la consulta de solo lectura para verificarlo en la base real.\n- Explica que si el plan incluye ADUANA el límite efectivo es 1 empresa aunque su tramo diga más, y que el límite sale de SubscriptionLimitService (tramo + cupos), no de base_company_quantity.\n- Presenta la foto del 2026-10-20 solo como referencia fechada, no como verdad vigente.",
+      "files": []
+    }
+  ]
+}

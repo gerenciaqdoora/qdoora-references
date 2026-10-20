@@ -24,6 +24,7 @@ description: Catastro completo de Skills del ecosistema QdoorA — 45 skills (32
 | Facturación electrónica, DTE, Boletas, Notas de Crédito/Débito | `qdoora-erp-electronic-invoicing-expert` |
 | Parámetros Globales, UF/UTM, Entidades Previsionales, `ParameterCloningService` | `qdoora-erp-global-parameters-expert` |
 | BI, Reportes, Dashboards, Exportaciones gerenciales | `qdoora-bi-reporting-exports-master` |
+| Suscriptores, Planes, Módulos contratados, Tramos de cantidad, Cupos extra, Extensión de plazo, Vencimiento y 402, Gestor de Planes, flujo de agencia Aduana | `qdoora-subscriber-plan` |
 | General, Perfil, Empresas, Usuarios, Roles, ThirdCompany, Centros de Costo | `qdoora-full-stack-architect` |
 
 ### Backend — Laravel 11
@@ -124,7 +125,7 @@ Usuario: "Agrega un campo 'centro de costo' al formulario de liquidación de nó
 
 ---
 
-## ÍNDICE COMPLETO DE SKILLS (45 disponibles)
+## ÍNDICE COMPLETO DE SKILLS (46 disponibles)
 
 ```
 DOMINIO ERP
@@ -132,7 +133,7 @@ DOMINIO ERP
   qdoora-erp-customs-expert               qdoora-erp-electronic-invoicing-expert
   qdoora-erp-global-parameters-expert     qdoora-erp-data-modeler
   qdoora-bi-reporting-exports-master      qdoora-full-stack-architect
-  qdoora-new-accounting-process
+  qdoora-new-accounting-process           qdoora-subscriber-plan
 
 BACKEND (Laravel)
   qdoora-laravel-controllers              qdoora-laravel-form-requests

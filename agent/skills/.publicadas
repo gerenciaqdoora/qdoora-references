@@ -1,4 +1,4 @@
-# Habilidades publicadas desde suite-agents (f6e5fd7, 2026-10-20). No editar a mano.
+# Habilidades publicadas desde suite-agents (2bb05fd, 2026-10-20). No editar a mano.
 # nombre huella-sha256
 qdoora-angular-shared-components-expert 1e9ec8ebb29439af17ff4f2ee12cd59ebeb9808268a82d97760e4141fadb01f3
 qdoora-bi-reporting-exports-master a19dff62405cfe43434ee54bd89a8a0b1800444d65fd0dee48aa0e9d266bb786
@@ -31,6 +31,7 @@ qdoora-new-setting-page a06159277acdb308e420e91a4a9c2aa4d51821c9b8b3b3c3e1671cdd
 qdoora-new-table-page 5520d82b20cf44022b1aedc9fd669e5c7c5e7177acc80eaa677291ba0f5bc3c2
 qdoora-qa-data-auditor 06008133bbc3cfafec225fe207f4bac3c20710a1bacb6c908909ae85123c4ec6
 qdoora-security-iam-expert 7c91b5c609a9adfedc8a40ff949aa78a1b297daa393c8acbd8d3c89eb558f10a
+qdoora-subscriber-plan 4e2d9010a4ca72a36b8fe0efe0a2687ebc8479e9c23af91b7b08386368610f67
 qdoora-ui-ux-master 3b6ee460bd9ff203474dbd6f27a4b44f4a85889581b7b4ee8d8790b3d83cf4a4
 auditoria-appsec 02059e55dbfa8f4da3c989c0350fd21d98c4b5e1a95a9bb15adc19458e86dcd7
 brainstorming 34b4199f8e3738e8510ec5055956d191f911846192b4cc23e532b6c8c3b95951

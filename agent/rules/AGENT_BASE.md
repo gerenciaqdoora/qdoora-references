@@ -120,6 +120,7 @@ La estructura del código la describe graphify. Estas reglas guardan lo que el c
 | Nómina / Liquidación / Previred / Vacaciones | `qdoora-erp-nomina-expert` |
 | Contabilidad / PUC / Comprobantes / Tesorería | `qdoora-erp-accounting-expert` |
 | Aduana / DIN / DUS / Despacho | `qdoora-erp-customs-expert` |
+| Suscriptores / Planes / Tramos / Cupos / Vencimiento de plan | `qdoora-subscriber-plan` |
 | Seguridad / IDOR / JWT / Auth / vectores QD | `qdoora-security-iam-expert` |
 | Docker / AWS / ECS / deploy / infraestructura | `qdoora-despliegue` |
 | Diseño / UI premium / componentes Angular | `qdoora-ui-ux-master` |
