@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-10-21] docs(reglas): herencia de permisos por plantilla de rol (el usuario persiste solo extras, matriz granted/inherited calculada por el backend) y caso abierto del permiso review por defecto en PENDIENTE
+
 - [2026-10-20] feat(skills): nueva habilidad qdoora-subscriber-plan (suscriptores, planes, módulos, tramos, cupos, plazos y vencimiento) publicada desde suite-agents 2bb05fd y registrada en el mapa de activación
 
 - [2026-10-20] docs(reglas): suscripciones y planes — tramos por defecto, cambio de plan con historial, normalizaPermisosUsuario destructivo y bloqueo 402

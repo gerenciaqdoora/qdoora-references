@@ -72,6 +72,24 @@ El frontend replica el modelo de dos capas del trait `AuthorizesClientRequests`.
 - **Ocultar acciones con `@if` + método booleano**, nunca con directivas estructurales nuevas. Precedente: `canEmit(doc)` en `emission-type-selector.component.ts`.
 - **Fail-closed**: si la consulta de permisos falla, `PermissionService` devuelve `{}`. Clave ausente y `false` son equivalentes — el payload viene minimizado (solo submódulos con algún permiso concedido).
 
+### Pantalla de permisos de usuario: la matriz viene calculada por el backend (`users/edit`, oct-2026)
+
+La matriz de `GET /v1/subscriber/user/{id}/permissions` trae cada celda CRUD y cada habilidad especial como `{granted, inherited}`. `inherited` = viene de la plantilla de rol y no es revocable a nivel de usuario. Detalle del modelo en `BACKEND_RULES.md` ("Plantillas de rol").
+
+- **El cliente no deriva lo heredado.** PROHIBIDO calcular `inherited` cruzando la matriz del usuario con la de la plantilla (`getRolePermissions`) o copiar la plantilla a la matriz. Al cambiar la plantilla se pide la vista previa al backend: `getPermissions(userId, roleId ?? 0)`; `0` = "Sin rol" y llega en blanco.
+- **Heredado = marcado y deshabilitado.** `[checked]="cell.granted" [disabled]="cell.inherited"` con tooltip "Heredado de la plantilla". Toda mutación pasa por `setPermission()`, que ignora las celdas heredadas; los toggles masivos (`toggleAllSubmodules`, `toggleSubmoduleAllRow`) lo reutilizan, nunca asignan `granted` directo.
+- **Habilidades especiales**: se habilitan solo si su operación base es efectiva (`isActionEnabled()`); al quitar la base, `_syncActions()` desmarca las extra dependientes. Menú con `mat-slide-toggle` como en `roles/edit`.
+- **Cambiar o quitar la plantilla pide confirmación** (`FuseConfirmationService`): cambiar conserva los extras; "Sin rol" los borra. Cancelar revierte el selector con `_currentRoleId`.
+- **Guardar envía booleans** (el efectivo deseado) y `actions[].granted`; el backend descarta lo heredado. Tras guardar, se relee la matriz del servidor (`_reloadFromServer()`): lo extra, lo heredado y lo descartado los decide el backend, no el estado local.
+
+```ts
+// ❌ Incorrecto — el cliente decide qué es heredado y puede pisarlo
+userSub.permissions = { ...roleSub.permissions };
+
+// ✅ Correcto — el backend entrega granted/inherited; el cliente solo respeta inherited
+this._usersService.getPermissions(userId, roleId ?? 0).subscribe(res => this.data.modules = res.modules);
+```
+
 ---
 
 ## ⚙️ PATRONES OPERATIVOS OBLIGATORIOS

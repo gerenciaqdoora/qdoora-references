@@ -67,6 +67,28 @@ Ese método corre en el `authorize()` de cada request. Antes re-resolvía el sus
 
 Gotcha asociado: `->permisosSubmodulo()` **con paréntesis** abre un query builder nuevo e ignora el eager-load. Un `load('permisosSubmodulo')` por sí solo no arregla nada; el fast-path exige comprobar `relationLoaded()`.
 
+### Plantillas de rol: el usuario persiste SOLO extras; la plantilla se resuelve en tiempo de ejecución (oct-2026)
+
+El permiso efectivo de un usuario es `plantilla(role_id) OR extras`. La plantilla vive en `role_submodule_permissions` y `role_submodule_action_permissions`; los extras, en `users_permission_submodule` y `users_permission_submodule_action`, y guardan **únicamente** lo que la plantilla no concede. `User::usersPermissionSubmodules()` y `User::userHasSubmoduleAction()` ya resuelven ese `OR`, así que `AuthorizesClientRequests` y los FormRequests de dominio no cambian.
+
+- NUNCA copiar la plantilla a las filas del usuario al asignarla, y NUNCA propagar a los usuarios al editar una plantilla (`RoleController::update` no toca filas de usuarios): borrar y reescribir destruye sus extras y deja copias que sobreviven a lo que la plantilla quite después.
+- TODA escritura de permisos de usuario pasa por `UserPermissionService::syncExtras()`: calcula `extras = enviado − plantilla`, descarta lo heredado (un intento de "desmarcarlo" se ignora: la plantilla lo concede igual) y reemplaza las filas en una transacción. Prohibido insertar en `users_permission_submodule*` desde otro servicio.
+- Una habilidad especial extra solo se guarda si su operación base (`requires_operation`) es efectiva (heredada o extra); con trigger `special` no exige base. Las `subscriber_only` nunca se otorgan a un `USER_ROLE`.
+- TODO endpoint que reciba `user_id`, `role_id` o `company_id` desde el cliente verifica pertenencia al suscriptor con `find()` + `NotFound404Exception` en español (`SubscriberService::findTeamUser()` / `findSubscriberRole()`); nunca `findOrFail()` con un id suelto (IDOR).
+- La matriz que ve el cliente la calcula el backend (`getUsuarioPermissions()`): cada celda y cada habilidad viaja como `{granted, inherited}`. `?role_id=<id>` pide la vista previa con otra plantilla y `role_id=0` ("Sin rol") devuelve la matriz en blanco, extras incluidos. El cliente no deriva lo heredado.
+- Auditoría: una sola entrada por guardado (`role_from`, `role_to`, `added`, `removed`), calculada con el delta que el servicio ya tiene, sin consultas extra y sin datos personales.
+- Limpieza de datos heredados del modelo anterior (copias de la plantilla en filas de usuario): comando idempotente `php artisan permissions:strip-inherited [--dry-run]`; no cambia permisos efectivos.
+- Gotcha: `normalizaPermisosUsuario()` (ver "Suscripciones y planes") reescribe las filas del usuario con `review` en todos los submódulos, así que al crear un usuario de trabajo nacen como extras y una plantilla no puede restringirlos. Caso abierto en `PENDIENTE.md` §23.
+
+```php
+// ❌ Incorrecto — copia la plantilla y la propaga: pisa los extras
+UsersPermissionSubmodule::whereIn('user_id', $userIds)->delete();
+UsersPermissionSubmodule::insert($filasDeLaPlantillaPorUsuario);
+
+// ✅ Correcto — la plantilla se hereda en tiempo de ejecución; el usuario guarda solo extras
+$this->userPermissionService->syncExtras($user, $roleId, $submodules, $allowedCodes);
+```
+
 ### Los endpoints de LECTURA también requieren FormRequest (caso: `VoucherController::getDetalleComprobante`)
 La autorización multinivel de arriba **no es un patrón exclusivo de escritura**. Un `GET` con `Request` plano en vez de un `FormRequest` con `authorize()` es tan explotable como un `POST` sin validar: filtra el recurso completo (montos, glosas, razón social de terceros) a cualquier usuario autenticado que adivine o enumere el identificador.
 
