@@ -842,3 +842,22 @@ Repetir la comparación de hashes en el EC2 y que ningún secreto marque `EXPUES
 ### Criterio de aceptación
 
 Volver a ejecutar `security-inventory.sh`: solo el 22 queda abierto a una IP pública (el rango de Instance Connect), no queda ninguna llave AWS activa con más de 90 días ni escrita en disco, y los puntos 1 a 11 están cerrados.
+
+---
+
+## 23. Dashboard home: `companyId` fijo en 1 (ignora la empresa seleccionada)
+
+**Contexto.** `fuse-starter/src/app/modules/admin/dashboards/home/home.component.ts` carga el dashboard con `const companyId = 1;` fijo, sin importar la empresa seleccionada del usuario. Detectado el 2026-10-21 al certificar el alta de usuarios de trabajo: el endpoint `GET /api/v1/company/1/dashboard` respondió 403 para un usuario sin acceso a esa empresa.
+
+**Efecto.** Cualquier usuario cuya empresa seleccionada no sea la 1 recibe un 403 en esa llamada (el backend autoriza por empresa y hace bien su trabajo), y el dashboard queda sin datos. El aviso «Aún no tienes una empresa seleccionada» ya cubre el caso de usuarios sin empresa, pero no este.
+
+**No se corrigió** porque no está claro si el dashboard «Enterprise» es un prototipo (usa un simulador de módulos activos, `activeModules`, y `userName` fijo en «Administrador»): usar la empresa real empezaría a mostrar datos reales sin revisarlos.
+
+**A resolver.**
+
+1. Confirmar con producto si el dashboard está en uso real o es un prototipo.
+2. Si está en uso: tomar la empresa de `UserService.user$` (`user.company.id`), recargar el dashboard cuando el usuario cambie de empresa y quitar el valor fijo.
+3. Revisar los datos que devuelve el endpoint para una empresa real (`metrics`, `charts`, `risks`, `pending_actions`) antes de exponerlos.
+4. Cubrir con spec: el dashboard pide la empresa seleccionada y no la 1.
+
+**Relacionado.** El aviso de «sin empresa seleccionada» (commit `7a0dada` de `fuse-starter`) y `docs/designs/2026-10-21-mitigacion-observaciones-permisos.md`.
