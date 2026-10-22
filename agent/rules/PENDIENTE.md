@@ -864,21 +864,23 @@ Volver a ejecutar `security-inventory.sh`: solo el 22 queda abierto a una IP pú
 
 ---
 
-## 24. Eliminar y editar usuarios de trabajo: el botón existe, el backend no
+## 25. Reactivar usuarios de trabajo dados de baja (Portal Cliente y Portal Soporte)
 
-**Contexto.** En `/general/user` (Portal Cliente) cada fila trae una papelera, pero `onDeleteRow()` de `fuse-starter/src/app/modules/admin/general/users/list/list.component.ts` solo abre el diálogo «Esta acción es permanente e irreversible!»: el bloque `if (result == 'confirmed') { }` está **vacío** y no llama a ningún endpoint. Detectado el 2026-10-21 al revisar qué endpoints de usuarios exigen rol suscriptor.
+**Estado**: pendiente (la baja ya está implementada: `DELETE v1/subscriber/user/{id}`, ver `docs/designs/2026-10-21-baja-usuarios-de-trabajo.md`) · **Detectado**: 2026-10-21 · **Capa**: full-stack (`qdoora-api` + `fuse-starter`) · **Esfuerzo**: M · **Criticidad**: MEDIA
 
-**Efecto.** El suscriptor confirma una eliminación irreversible y no ocurre nada. Tampoco existe en el backend un endpoint para que el suscriptor elimine ni edite (nombre, correo, avatar) a un usuario de su equipo: `routes/api.php` (`v1/subscriber`) solo tiene crear, listar y permisos. La corrección de correo (`PATCH users/{user_id}/email`) vive en el grupo de administración. Un usuario de trabajo creado por error o que deja la empresa no se puede dar de baja, y sigue ocupando un cupo de usuarios del plan.
+**Contexto.** La baja (implementada el 2026-10-21) es reversible a propósito: `suscriptor_team_users.deleted_at` (SoftDeletes), el correo original en `users.previous_email`, `users.active = false`, y permisos y registros históricos intactos. El usuario pidió que la reactivación se haga **desde la misma lista de usuarios** (`/general/user`) y que el diálogo de baja anticipe que el usuario «podrá reactivarse más adelante».
 
 **A resolver.**
 
-1. Decidir el alcance: solo baja, o baja + edición de datos del usuario.
-2. Baja lógica, no física, siguiendo el patrón de `SubscriberService::deleteSubscriber()` (BACKEND_RULES, «Baja/reactivación de cuentas con correo único: patrón `previous_email``»): correo real a `previous_email` y reemplazo por un valor de largo fijo en TLD no enrutable.
-3. Cerrar las sesiones del usuario al darlo de baja (`AuthSessionService::revokeAllForUser`, como en el cambio de email de perfil).
-4. Liberar el cupo del plan (`Dimension::USERS`) y validar que el límite se recalcula.
-5. Endpoint nuevo con FormRequest que exija `authorizeSubscriber()` y verifique que el usuario pertenece al equipo del suscriptor (`find()` + `NotFound404Exception`, nunca un id suelto: IDOR); el suscriptor no puede darse de baja a sí mismo por esta vía.
-6. Conservar los registros históricos de lo que el usuario creó (Hard Reject #6): la baja no borra comprobantes, liquidaciones ni documentos.
-7. Frontend: conectar `onDeleteRow()` al endpoint, refrescar el listado y reflejar los errores; si hay edición, reutilizar la pantalla de creación en modo edición (hoy `is_new_record` siempre es `true`).
-8. Hasta que exista, evaluar ocultar la papelera para no prometer una acción que no ocurre.
+1. Endpoint `POST v1/subscriber/user/{id}/reactivate` con FormRequest que exija `authorizeSubscriber()`. Resolver la fila con `SuscriptorTeamUsers::onlyTrashed()` acotada por `suscriptor_id` del suscriptor autenticado (`find()` + `NotFound404Exception`, nunca un id suelto: IDOR).
+2. **Cupo:** validar `limitService->canAdd($subscriber, Dimension::USERS)` antes de reactivar; si el plan está lleno, error en español (`LimitExceededException`). La baja liberó el cupo, así que reactivar lo vuelve a consumir.
+3. **Correo:** recuperar el correo solo desde `users.previous_email` en el servidor (nunca desde la petición, para evitar secuestro de cuenta, como en `SubscriberService::reactivateSubscriber`). Si otra cuenta ya tomó ese correo, responder 409 en español y no reactivar.
+4. `restore()` de la fila del equipo; `users.email = previous_email`, `previous_email = null`, `active = true`.
+5. **Credenciales:** la contraseña anterior sigue vigente. Decidir si se genera una contraseña temporal, se fuerza `is_required_pwd_change` y se envía `EmailService::usuarioTrabajoCreado` (recomendado: sí, porque el correo pudo cambiar de manos mientras estuvo de baja). El correo se envía fuera de la transacción.
+6. Los permisos del usuario se conservan tal cual; mostrar al suscriptor su pantalla de permisos tras reactivar para que los revise.
+7. Frontend: filtro «Dados de baja» en la lista (listado con `onlyTrashed` acotado por suscriptor, con paginación y búsqueda server-side) y acción «Reactivar» por fila con diálogo de confirmación.
+8. **Soporte también reactiva** (requisito del usuario, 2026-10-21): endpoint y FormRequest **distintos** del de cliente, en el grupo de rutas de soporte/admin junto a `subscribers/{subscriber_id}/users/{user_id}/force-password-change`, con `AuthorizesSupportRequests` y rol/habilidad de soporte (no `authorizeSubscriber`). Recibe `subscriber_id` y `user_id`; resuelve la fila con `onlyTrashed()` dentro de ese suscriptor (IDOR entre suscriptores) y reutiliza el mismo método de servicio que el de cliente (una sola lógica: cupo, correo desde `previous_email`, credenciales). `SupportSubscriberService` debe poder listar a los dados de baja (`withTrashed()`), y la acción de soporte debe quedar auditada con `LoggerService`. Ver `qdoora-security-iam-expert` para el rol.
+9. El diálogo de baja ya anticipa «más adelante podrás reactivarlo» (decisión del usuario): entregar §25 pronto para no dejar la promesa sin función.
+10. Pruebas: reactivación feliz, cupo lleno, correo ya tomado, IDOR entre suscriptores, 403 para usuario de trabajo, y que el usuario vuelve a poder iniciar sesión con su correo original; para soporte, 403 a quien no es soporte y reactivación de un usuario de cualquier suscriptor solo con el `subscriber_id` correcto.
 
-**Relacionado.** `docs/designs/2026-10-21-mitigacion-observaciones-permisos.md` y las pruebas de 403 de `tests/Feature/Permission/SubscriberOnlyEndpointsTest.php`.
+**Relacionado.** `docs/designs/2026-10-21-baja-usuarios-de-trabajo.md` y el pendiente 18 (retención de datos personales de quienes quedan dados de baja).

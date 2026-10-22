@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-10-21] docs(pendiente): cerrar la baja de usuarios de trabajo (§24) y registrar la reactivación desde cliente y soporte (§25)
+
 - [2026-10-21] docs(pendiente): registrar que eliminar y editar usuarios de trabajo no tiene backend y que el botón de eliminar no hace nada (§24)
 
 - [2026-10-21] docs(pendiente): registrar el dashboard home con companyId fijo en 1 que ignora la empresa seleccionada (§23)
