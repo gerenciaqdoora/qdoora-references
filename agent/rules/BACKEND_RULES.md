@@ -636,6 +636,27 @@ Patrón correcto:
 - Se conserva el índice `unique` global en `email` (no índice parcial `WHERE deleted_at IS NULL`): la
   identidad de login debe ser única incluso entre cuentas borradas.
 
+### Baja de usuarios de trabajo: reversible, con SoftDeletes en el vínculo del equipo (oct-2026)
+
+`SubscriberService::darDeBajaUsuarioTrabajo()` (`DELETE v1/subscriber/user/{id}`, solo `SUBSCRIBER_ROLE`).
+
+- NUNCA bloquear a un usuario solo con `active = false`: `AuthService::login` no revisa `users.active`. El
+  bloqueo real es ofuscar el correo (patrón `previous_email` de arriba) y cerrar sus sesiones con
+  `revokeAllForUser(..., SessionRevokeReason::ACCOUNT_SUSPENDED)`.
+- El cupo `Dimension::USERS` se cuenta en `suscriptor_team_users`. La baja hace soft delete de **esa fila**
+  (`SuscriptorTeamUsers` usa `SoftDeletes`), no del usuario: así `teamUsers()`, el cupo, el listado, el
+  perfil y soporte excluyen a los dados de baja sin tocar cada consulta, y reactivar es `restore()`.
+- NUNCA hacer soft delete de `users` ni borrar sus permisos: los `belongsTo(User)` de registros históricos
+  (`created_by_user_id`) deben seguir resolviendo al autor (Hard Reject #6).
+- Todo en una sola `DB::transaction()`: correo, fila del equipo y sesiones.
+- Resolver siempre el id con `findTeamUser()` (acotado por `suscriptor_id`); un usuario de otro equipo o ya
+  dado de baja responde 404 igual, sin filtrar su existencia.
+- Gotcha: `HandlesControllerLogs::logAndResponse` solo relanza `GenericException`, `AuthException` y
+  `ExchangeRateSyncException`; una `NotFound404Exception` sale con status 404 pero con el mensaje genérico.
+  Para mostrar su mensaje, capturarla en el controlador antes del `catch (\Throwable)`.
+- Frontend: el diálogo de confirmación (`FuseConfirmationService`) renderiza el mensaje con `[innerHTML]`;
+  escapar todo dato del servidor (nombre) antes de interpolarlo.
+
 ### Correo con credenciales: siempre fuera de la transacción de creación
 
 `EmailService` envía por MailerSend de forma **síncrona** (`Mail::to()->send()`, sin cola). Si se invoca
