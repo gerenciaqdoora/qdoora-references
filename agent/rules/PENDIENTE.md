@@ -884,3 +884,19 @@ Volver a ejecutar `security-inventory.sh`: solo el 22 queda abierto a una IP pú
 10. Pruebas: reactivación feliz, cupo lleno, correo ya tomado, IDOR entre suscriptores, 403 para usuario de trabajo, y que el usuario vuelve a poder iniciar sesión con su correo original; para soporte, 403 a quien no es soporte y reactivación de un usuario de cualquier suscriptor solo con el `subscriber_id` correcto.
 
 **Relacionado.** `docs/designs/2026-10-21-baja-usuarios-de-trabajo.md` y el pendiente 18 (retención de datos personales de quienes quedan dados de baja).
+
+---
+
+## 26. Sacar Node 20 (EOL) de la imagen de la API y de `fuse-demo`
+
+**Estado**: pendiente · **Detectado**: 2026-10-22 (revisión del boletín [Node.js October 2026 Security Releases](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases)) · **Capa**: infraestructura · **Esfuerzo**: S · **Criticidad**: MEDIA
+**Requiere**: validación de `qdoora-despliegue` antes de aplicar.
+
+**Contexto.** El 2026-10-21 Node publicó 4 CVE altas (DNS, TLS, Brotli con RCE), 3 medias y 3 bajas, además de actualizar Undici, OpenSSL, c-ares y los certificados raíz (CA intermedia de eMudhra comprometida). Solo se corrigieron las líneas 26.12.1, 24.22.1 y 22.23.4. **Node 20 está en EOL desde abril de 2026 y no recibe el parche.** Los portales ya se movieron el 2026-10-22 (`fuse-starter` → `node:22.23.4` y `.nvmrc` 22; `support-portal` → `node:24.22.1`).
+
+**Quedan en Node 20.**
+
+1. `qdoora-api/Dockerfile`: `ARG NODE_VERSION=20`, instalado desde NodeSource (`node_$NODE_VERSION.x`). Pasar a `22`. Revisar también si `docker-compose` u otro archivo sobrescribe ese `ARG`, y si la API usa Node en tiempo de ejecución o solo en la construcción (assets/Vite). Si es solo en la construcción, la exposición es menor, pero la imagen igual queda sin parches.
+2. `fuse-demo/Dockerfile` (`FROM node:20`) y `fuse-demo/.nvmrc` (20). Si `fuse-demo` no se despliega, es lo de menor prioridad; si se despliega, pasar a `node:22.23.4`.
+
+**Criterio de aceptación.** La imagen de la API se construye y levanta con Node 22 (`node -v` dentro del contenedor ≥ 22.23.4), sus assets se construyen sin errores y no queda ningún `node:20` / `NODE_VERSION=20` en los Dockerfile de los repos.

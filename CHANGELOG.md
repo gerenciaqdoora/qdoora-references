@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-10-22] docs(pendiente): registrar §26 para sacar Node 20 (EOL) de la imagen de qdoora-api y de fuse-demo tras el boletín de seguridad de Node de octubre 2026
+
 - [2026-10-21] docs(reglas): baja reversible de usuarios de trabajo — ofuscar correo, SoftDeletes en suscriptor_team_users para liberar el cupo, conservar usuario y permisos, gotcha del 404 en logAndResponse y escape del nombre en el diálogo
 
 - [2026-10-21] docs(pendiente): cerrar la baja de usuarios de trabajo (§24) y registrar la reactivación desde cliente y soporte (§25)
