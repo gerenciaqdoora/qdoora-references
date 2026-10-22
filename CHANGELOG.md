@@ -4,6 +4,8 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ---
 
+- [2026-10-21] docs(pendiente): registrar que eliminar y editar usuarios de trabajo no tiene backend y que el botón de eliminar no hace nada (§24)
+
 - [2026-10-21] docs(pendiente): registrar el dashboard home con companyId fijo en 1 que ignora la empresa seleccionada (§23)
 
 - [2026-10-21] docs(reglas): usuarios de trabajo nacen sin permisos (crearUsuarioTrabajo no normaliza), plantillas validan sus códigos contra allowedSubmoduleCodes y se cierra el pendiente §23 del permiso review por defecto

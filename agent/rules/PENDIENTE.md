@@ -861,3 +861,24 @@ Volver a ejecutar `security-inventory.sh`: solo el 22 queda abierto a una IP pú
 4. Cubrir con spec: el dashboard pide la empresa seleccionada y no la 1.
 
 **Relacionado.** El aviso de «sin empresa seleccionada» (commit `7a0dada` de `fuse-starter`) y `docs/designs/2026-10-21-mitigacion-observaciones-permisos.md`.
+
+---
+
+## 24. Eliminar y editar usuarios de trabajo: el botón existe, el backend no
+
+**Contexto.** En `/general/user` (Portal Cliente) cada fila trae una papelera, pero `onDeleteRow()` de `fuse-starter/src/app/modules/admin/general/users/list/list.component.ts` solo abre el diálogo «Esta acción es permanente e irreversible!»: el bloque `if (result == 'confirmed') { }` está **vacío** y no llama a ningún endpoint. Detectado el 2026-10-21 al revisar qué endpoints de usuarios exigen rol suscriptor.
+
+**Efecto.** El suscriptor confirma una eliminación irreversible y no ocurre nada. Tampoco existe en el backend un endpoint para que el suscriptor elimine ni edite (nombre, correo, avatar) a un usuario de su equipo: `routes/api.php` (`v1/subscriber`) solo tiene crear, listar y permisos. La corrección de correo (`PATCH users/{user_id}/email`) vive en el grupo de administración. Un usuario de trabajo creado por error o que deja la empresa no se puede dar de baja, y sigue ocupando un cupo de usuarios del plan.
+
+**A resolver.**
+
+1. Decidir el alcance: solo baja, o baja + edición de datos del usuario.
+2. Baja lógica, no física, siguiendo el patrón de `SubscriberService::deleteSubscriber()` (BACKEND_RULES, «Baja/reactivación de cuentas con correo único: patrón `previous_email``»): correo real a `previous_email` y reemplazo por un valor de largo fijo en TLD no enrutable.
+3. Cerrar las sesiones del usuario al darlo de baja (`AuthSessionService::revokeAllForUser`, como en el cambio de email de perfil).
+4. Liberar el cupo del plan (`Dimension::USERS`) y validar que el límite se recalcula.
+5. Endpoint nuevo con FormRequest que exija `authorizeSubscriber()` y verifique que el usuario pertenece al equipo del suscriptor (`find()` + `NotFound404Exception`, nunca un id suelto: IDOR); el suscriptor no puede darse de baja a sí mismo por esta vía.
+6. Conservar los registros históricos de lo que el usuario creó (Hard Reject #6): la baja no borra comprobantes, liquidaciones ni documentos.
+7. Frontend: conectar `onDeleteRow()` al endpoint, refrescar el listado y reflejar los errores; si hay edición, reutilizar la pantalla de creación en modo edición (hoy `is_new_record` siempre es `true`).
+8. Hasta que exista, evaluar ocultar la papelera para no prometer una acción que no ocurre.
+
+**Relacionado.** `docs/designs/2026-10-21-mitigacion-observaciones-permisos.md` y las pruebas de 403 de `tests/Feature/Permission/SubscriberOnlyEndpointsTest.php`.
