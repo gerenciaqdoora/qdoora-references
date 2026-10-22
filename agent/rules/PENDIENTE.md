@@ -842,20 +842,3 @@ Repetir la comparación de hashes en el EC2 y que ningún secreto marque `EXPUES
 ### Criterio de aceptación
 
 Volver a ejecutar `security-inventory.sh`: solo el 22 queda abierto a una IP pública (el rango de Instance Connect), no queda ninguna llave AWS activa con más de 90 días ni escrita en disco, y los puntos 1 a 11 están cerrados.
-
----
-
-## 23. Permisos de usuarios nuevos: el `review` por defecto choca con las plantillas de rol
-
-**Contexto.** `UserPermissionService::normalizaPermisosUsuario` (se llama al crear un usuario de trabajo, `SubscriberService::crearUsuarioTrabajo`) le da `review = true` en **todos** los submódulos contratados. Con el modelo de herencia aprobado en `docs/designs/2026-10-21-herencia-permisos-plantilla.md` (permiso efectivo = plantilla OR extras), esas filas pasan a ser **extras** de lectura: una plantilla restrictiva (ej. "Invitado") nunca podría limitar la lectura de un usuario creado así, salvo eligiendo "Sin rol", que borra los extras.
-
-**Casos a resolver en un plan futuro.**
-
-1. Usuario de trabajo nuevo sin plantilla: ¿debe nacer con `review` en todo, o en blanco hasta que el suscriptor le asigne plantilla o permisos?
-2. Usuario nuevo al que se le asigna una plantilla después: sus `review` por defecto quedan como extras y la plantilla no los puede quitar. ¿Se limpian al asignar la plantilla?
-3. `normalizaPermisosUsuario` también se llama al provisionar el suscriptor, al crear su empresa y en cambios de plan (`SubscriberService`), y borra y reinserta todas las filas del usuario. Definir si en usuarios de trabajo con plantilla debe respetar los extras existentes.
-4. Usuarios ya creados: decidir si se aplica una limpieza de los `review` por defecto (distinguirlos de extras reales no es posible por datos; requiere criterio o una marca).
-
-**Opciones a evaluar.** (a) Crear usuarios de trabajo en blanco; (b) conservar el default pero marcarlo como "base por defecto" (columna o tabla aparte) para poder limpiarlo al asignar plantilla; (c) dejarlo como está y documentarlo.
-
-**Depende de.** `docs/implementations/2026-10-21-herencia-permisos-plantilla.md` ya implementado (comando `permissions:strip-inherited` y `UserPermissionService::syncExtras`).

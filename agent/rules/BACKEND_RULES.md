@@ -78,7 +78,8 @@ El permiso efectivo de un usuario es `plantilla(role_id) OR extras`. La plantill
 - La matriz que ve el cliente la calcula el backend (`getUsuarioPermissions()`): cada celda y cada habilidad viaja como `{granted, inherited}`. `?role_id=<id>` pide la vista previa con otra plantilla y `role_id=0` ("Sin rol") devuelve la matriz en blanco, extras incluidos. El cliente no deriva lo heredado.
 - Auditoría: una sola entrada por guardado (`role_from`, `role_to`, `added`, `removed`), calculada con el delta que el servicio ya tiene, sin consultas extra y sin datos personales.
 - Limpieza de datos heredados del modelo anterior (copias de la plantilla en filas de usuario): comando idempotente `php artisan permissions:strip-inherited [--dry-run]`; no cambia permisos efectivos.
-- Gotcha: `normalizaPermisosUsuario()` (ver "Suscripciones y planes") reescribe las filas del usuario con `review` en todos los submódulos, así que al crear un usuario de trabajo nacen como extras y una plantilla no puede restringirlos. Caso abierto en `PENDIENTE.md` §23.
+- `crearUsuarioTrabajo` NO normaliza permisos: el usuario de trabajo nace sin filas de submódulo ni de empresa (mínimo privilegio) y el suscriptor le asigna plantilla y extras desde su pantalla de permisos; el alta devuelve `data: {id}` para llevarlo allí. `normalizaPermisosUsuario()` (submódulos y empresas) queda solo para el dueño: provisión, empresa nueva y cambio de plan.
+- TODA plantilla valida sus códigos de submódulo contra `UserPermissionService::allowedSubmoduleCodes()` (módulos activos del plan y submódulos disponibles) en el `withValidator()` de `CreateSubscriberRoleRequest` y `UpdateSubscriberRoleRequest` (trait `ValidatesSubscriberSubmoduleCodes`): código fuera de lo contratado = 422 con mensaje genérico en español que NO refleja la entrada. Nunca contra el catálogo completo.
 
 ```php
 // ❌ Incorrecto — copia la plantilla y la propaga: pisa los extras
@@ -686,7 +687,7 @@ $planService->changePlan($subscriber, new UpgradePlanDTO(newPlanSlug: 'empresa-p
 ### `normalizaPermisosUsuario()` es destructivo
 Borra y reinserta toda la matriz `users_permission_submodule` del usuario.
 NUNCA lo llames para el equipo en un cambio de plan: borraría los permisos que el suscriptor configuró.
-Úsalo solo para el dueño (SUBSCRIBER_ROLE) o al crear un usuario.
+Úsalo solo para el dueño (SUBSCRIBER_ROLE). `crearUsuarioTrabajo` ya NO lo llama: el usuario de trabajo nace sin permisos (ver "Plantillas de rol").
 
 ### `activePlan` vs `currentPlan` y el bloqueo 402
 - `activePlan`: último plan `trialing`, `active` o `past_due`. Úsalo para decidir qué módulos y límites aplican.
